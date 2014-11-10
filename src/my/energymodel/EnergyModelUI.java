@@ -42,6 +42,10 @@ public class EnergyModelUI extends javax.swing.JFrame {
     double windPower[] = new double[8760];
     double solarPower[] = new double[8760];
     double hourlyHeatDemand[] = new double[8760];
+    double hourlyElecForHeatDemand[] = new double[8760];
+    double hourlySpaceHeatDemand[] = new double[8760];
+    double hourlyWaterHeatDemand[] = new double[8760];
+    double temperatureData[] = new double[8760];
     double totalGeneration[] = new double[8760];
     double backupUsed[] = new double[8760];
     double unmet[] = new double[8760];
@@ -227,7 +231,7 @@ public class EnergyModelUI extends javax.swing.JFrame {
         solarCapField.setText("70");
         jPanel2.add(solarCapField, new org.netbeans.lib.awtextra.AbsoluteConstraints(200, 110, 79, -1));
 
-        appElecDemandField.setText("356");
+        appElecDemandField.setText("105");
         jPanel2.add(appElecDemandField, new org.netbeans.lib.awtextra.AbsoluteConstraints(470, 80, 79, -1));
 
         jLabel2.setText("Wind");
@@ -348,13 +352,13 @@ public class EnergyModelUI extends javax.swing.JFrame {
         jLabel21.setText("TWh/yr");
         jPanel2.add(jLabel21, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 280, 50, 30));
 
-        hotWaterDemandField.setText("80");
+        hotWaterDemandField.setText("96");
         jPanel2.add(hotWaterDemandField, new org.netbeans.lib.awtextra.AbsoluteConstraints(470, 110, 79, -1));
 
-        transportDemandField.setText("50");
+        transportDemandField.setText("42");
         jPanel2.add(transportDemandField, new org.netbeans.lib.awtextra.AbsoluteConstraints(470, 140, 79, -1));
 
-        industrialDemandField.setText("50");
+        industrialDemandField.setText("171");
         jPanel2.add(industrialDemandField, new org.netbeans.lib.awtextra.AbsoluteConstraints(470, 170, 79, -1));
 
         jLabel25.setText("Heat loss coeff (GW/degC)");
@@ -372,7 +376,7 @@ public class EnergyModelUI extends javax.swing.JFrame {
         balanceMarker = 1; supplyMarker = 0; demandMarker = 0;
         totalDemand = Double.parseDouble(appElecDemandField.getText());
         heatLossCoefficient = Double.parseDouble(HLCField.getText());
-        baseTemp = 16-(385/((heatLossCoefficient/4.398)*119)); 
+        baseTemp = 16-(385/((heatLossCoefficient/4.398)*119));//Gains need linking to appliances energy reduction 
         totalDemandInProfile = 0;
         windCap = Double.parseDouble(windCapField.getText());
         solarCap = Double.parseDouble(solarCapField.getText());
@@ -386,7 +390,7 @@ public class EnergyModelUI extends javax.swing.JFrame {
         backupCapUsed = 0;
         backupGeneration = 0;
         x = 0;
-        hotWaterDemand = (Double.parseDouble(hotWaterDemandField.getText())*1000/8760)/heatPumpCoP;
+        hotWaterDemand = (Double.parseDouble(hotWaterDemandField.getText())*1000/8760);
         transportDemand = Double.parseDouble(transportDemandField.getText())*1000/8760;
         industryDemand = Double.parseDouble(industrialDemandField.getText())*1000/8760;
         try{
@@ -406,10 +410,9 @@ public class EnergyModelUI extends javax.swing.JFrame {
           energyDemand[x] = Double.parseDouble(splitarray[0]);
           windPower[x] = Double.parseDouble(splitarray[1])*windCap;
           solarPower[x] = Double.parseDouble(splitarray[2])*solarCap;
-          hourlyHeatDemand[x] = Double.parseDouble(splitarray[3]);
-          if(baseTemp - hourlyHeatDemand[x] > 0){
-              hourlyHeatDemand[x] = (((baseTemp - hourlyHeatDemand[x]) * heatLossCoefficient) / 
-                      heatPumpCoP) + hotWaterDemand;
+          temperatureData[x] = Double.parseDouble(splitarray[3]);
+          if(baseTemp - temperatureData[x] > 0){
+              hourlyHeatDemand[x] = ((baseTemp - temperatureData[x]) * heatLossCoefficient) + hotWaterDemand;
           }
           else{
               hourlyHeatDemand[x] = hotWaterDemand;
@@ -429,13 +432,14 @@ public class EnergyModelUI extends javax.swing.JFrame {
           for(i=0;i<8760;i++){
               totalDemandInProfile += energyDemand[i];
               totalHeatDemand += hourlyHeatDemand[i];
+              hourlyElecForHeatDemand[i] = hourlyHeatDemand[i] / heatPumpCoP;    
           }
           totalHeatDemandLabel.setText(""+(int)Math.round(totalHeatDemand/1000));
           totalHeatDemand = 0;
           
           for(i=0;i<8760;i++){
               energyDemand[i] = energyDemand[i] / (totalDemandInProfile/1000) * totalDemand;
-              energyDemand[i] = energyDemand[i] + hourlyHeatDemand[i] + transportDemand + industryDemand;
+              energyDemand[i] = energyDemand[i] + hourlyElecForHeatDemand[i] + transportDemand + industryDemand;
               totalGeneration[i] = windPower[i] + solarPower[i] + (nuclearCap*0.9);
               // If demand greater than supply take from store
               if(energyDemand[i]>totalGeneration[i]){
@@ -600,16 +604,9 @@ public class EnergyModelUI extends javax.swing.JFrame {
                     demandSquarePos = (int)Math.round(energyDemand[p-1]);
                     //demandSquarePos1 = (int) energyDemand[p];
                     g2d.drawLine(p+25, 25+(200-demandSquarePos), p+25, 225);
-                    if(storageChange[p-1]<0){
-                        g.setColor(Color.pink);
-                        g2d.drawLine(p+25, 25+(200-demandSquarePos+((int)Math.round(storageChange[p-1]))), p+25, 25+(200-demandSquarePos));   
-                    }
-                    else if(storageChange[p-1]>0){
-                        g.setColor(Color.yellow);
-                        g2d.drawLine(p+25, 25+(200-demandSquarePos+((int)Math.round(storageChange[p-1]))), p+25, 25+(200-demandSquarePos));
-                    }
+                    
                     g.setColor(Color.red);
-                    demandSquarePos = (int)Math.round(hourlyHeatDemand[p-1]);
+                    demandSquarePos = (int)Math.round(hourlyElecForHeatDemand[p-1]);
                     g2d.drawLine(p+25, 25+(200-demandSquarePos), p+25, 225);
                     g.setColor(Color.orange);
                     demandSquarePos1 = (int) transportDemand;
@@ -619,6 +616,16 @@ public class EnergyModelUI extends javax.swing.JFrame {
                     g2d.drawLine(p+25, 25+(200-(demandSquarePos+demandSquarePos1)), p+25, 25+(200-(demandSquarePos+demandSquarePos1+demandSquarePos2)));
                     g.setColor(Color.black);
                     g2d.drawLine(25, 225, 8785, 225); 
+                    
+                    demandSquarePos = (int)Math.round(energyDemand[p-1]);
+                    if(storageChange[p-1]<0){
+                        g.setColor(Color.pink);
+                        g2d.drawLine(p+25, 25+(200-demandSquarePos+((int)Math.round(storageChange[p-1]))), p+25, 25+(200-demandSquarePos));   
+                    }
+                    else if(storageChange[p-1]>0){
+                        g.setColor(Color.yellow);
+                        g2d.drawLine(p+25, 25+(200-demandSquarePos+((int)Math.round(storageChange[p-1]))), p+25, 25+(200-demandSquarePos));
+                    }
                 }
             }
             //Draw supply graph 
