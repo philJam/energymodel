@@ -1,0 +1,355 @@
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<script type="text/javascript" src="jquery-1.9.0.min.js"></script>
+
+<style>
+
+    #bound {
+        width: 1024px;
+        height: auto;
+        margin: 0px auto;
+        text-align: left;
+        background-color:#fff;
+        
+        padding:30px;
+        margin-top:0px;
+    }
+
+    body {
+        background-color:#eee;
+        font-family:"Ubuntu Light";
+        font-size: 18px;
+        padding:0px;
+        margin:0px;
+    }
+    
+    h1 { 
+        color: #ff2712;
+    }
+    
+    h3 { 
+        color: #ff2712;
+        margin:0px;
+    }
+    
+    hr {
+        background: #ff2712;
+        border: 0; height: 1px;
+    }
+        
+    .table {
+    }
+    
+    td {
+        padding-right:20px;
+        font-family:"Ubuntu Light";
+        font-size: 16px;
+    }
+
+    input[type="text"] {
+        padding:3px;
+        font-family:"Ubuntu Light";
+        font-size: 16px;
+        color: #ff2712;
+        width:80px;
+
+    }
+    
+    button {
+        padding:10px;
+        font-family:"Ubuntu Light";
+        font-size: 16px;
+        width:100px;
+    }
+
+    span {
+        color: #ff2712;
+    }
+</style>
+
+<body>
+<div id="bound">
+
+<h1>ENERGY MODEL</h1>
+<p>Hourly national energy model for the UK.</p>
+<hr><h3>INPUT</h3><hr>
+
+<table>
+    <tr><th></th><th>GW</th><th></th><th>TWh/yr</th></tr>
+    <tr>
+        <td>Wind</td><td><input type="text" key="input.windCap"></td>
+        <td>Appliances elec. demand</td><td><input type="text" key="input.totalDemand"></td>
+    </tr>
+    <tr>
+        <td>Solar</td><td><input type="text" key="input.solarCap"></td>
+        <td>Hot water demand (heat)</td><td><input type="text" key="input.hotWaterDemand"></td>
+    </tr>
+    <tr>
+        <td>Nuclear</td><td><input type="text" key="input.nuclearCap"></td>
+        <td>Transport elec. demand</td><td><input type="text" key="input.transportDemand"></td>
+    </tr>
+    <tr>
+        <td>Backup capacity installed</td><td><input type="text" key="input.backupCapInstalled"></td>
+        <td>Industrial elec. demand</td><td><input type="text" key="input.industryDemand"></td>
+    </tr>
+    
+</table>
+
+<button id="run">Run</button>
+<br>
+<hr><h3>OUTPUT</h3><hr>
+
+<table>
+    
+    <tr>
+        <td>Excess generation</td><td><span key="out.excessGeneration"></span> TWh/yr</td>
+        <td>Backup capacity used</td><td><span key="out.backupCapUsed"></span> GW</td>
+    </tr>
+    
+    <tr>
+        <td>Unmet demand</td><td><span key="out.unmetDemand"></span> TWh/yr</td>
+        <td>Backup generation</td><td><span key="out.backupGeneration"></span> TWh/yr</td>
+    </tr>
+    
+</table>
+
+
+
+</div>
+</body>
+
+<script>
+    var csvfile = "";
+    var excessGeneration = 0;
+    var unmetDemand = 0;
+    
+    var energyDemand = [];
+    var windPower = [];
+    var solarPower = [];
+    var hourlyHeatDemand = [];
+    var hourlyElecForHeatDemand = [];
+    var hourlySpaceHeatDemand = [];
+    var hourlyWaterHeatDemand = [];
+    var hourlyElecForIndustry = [];
+    var temperatureData = [];
+    var totalGeneration = [];
+    var backupUsed = [];
+    var unmet = [];
+    var storageContent = [];
+    var storageChange = [];
+    
+    var windCap = 140; // GW
+    var solarCap = 70; // GW
+    var nuclearCap = 0; // GW
+    var backupCapInstalled = 45; // GW
+    var backupCapUsed = 0;
+    var backupGeneration = 0;
+    var demandProfile = 0;
+    var totalDemand = 356; // TWh/yr
+    var heatLossCoefficient = 4.398; // GW/degC
+    var baseTemp = 16-(385/((heatLossCoefficient/4.398)*119)); //Gains need linking to appliances energy reduction
+    var totalHeatDemand = 0;
+    var totalDemandInProfile = 0;
+    var storageVolume = 250; // GWh 
+    var storageCap = 30; // GW
+    var heatPumpCoP = 2.5;
+    var hotWaterDemand = 80*1000/8760; // 80 TWh/yr
+    var transportDemand = 50*1000/8760; // 80 TWh/yr
+    var industryDemand = 50*1000/8760; // 80 TWh/yr
+    
+    
+    $('input[key="input.totalDemand"]').val(totalDemand);
+    $('input[key="input.solarCap"]').val(solarCap);
+    $('input[key="input.windCap"]').val(windCap);
+    $('input[key="input.nuclearCap"]').val(nuclearCap);
+    $('input[key="input.backupCapInstalled"]').val(backupCapInstalled);
+    $('input[key="input.hotWaterDemand"]').val(80);
+    $('input[key="input.transportDemand"]').val(50);
+    $('input[key="input.industryDemand"]').val(50);
+    
+    var spaceHeatingDailyProfile = [0.8,0.8,0.9,0.9,1.7,6.5,7.7,8.3,7.5,6.0,4.6,4.0,3.5,3.3,3.3,3.4,3.7,4.1,5.2,6.3,6.4,6.1,4.2,0.8];
+    var hotWaterDailyProfile = [4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2];
+    // [0.1,0.1,0.1,0.5,1.5,3.5,7.6,10.2,11.2,6.9,4.6,3.0,1.9,1.9,2.1,3.0,7.0,7.8,7.1,5.8,4.5,3.7,3.2,2.7];
+    var industrialDailyProfile = [4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2];
+    // [1,1,1,1,1,1,1,1,10.5,10.5,10.5,10.5,10.5,10.5,10.5,10.5,1,1,1,1,1,1,1,1];
+
+    
+    //--------------------------------------------------------------------------------------
+    
+    storageContent[0] = storageVolume/2;
+    
+    function process()
+    {
+        excessGeneration = 0;
+        unmetDemand = 0;
+    
+        energyDemand = [];
+        windPower = [];
+        solarPower = [];
+        hourlyHeatDemand = [];
+        hourlyElecForHeatDemand = [];
+        hourlySpaceHeatDemand = [];
+        hourlyWaterHeatDemand = [];
+        hourlyElecForIndustry = [];
+        temperatureData = [];
+        totalGeneration = [];
+        backupUsed = [];
+        unmet = [];
+        storageContent = [];
+        storageChange = []; 
+        
+        windCap = parseFloat($('input[key="input.windCap"]').val());
+        solarCap = parseFloat($('input[key="input.solarCap"]').val());
+        nuclearCap = parseFloat($('input[key="input.nuclearCap"]').val());
+        backupCapInstalled = parseFloat($('input[key="input.backupCapInstalled"]').val());
+        backupCapUsed = 0;
+        backupGeneration = 0;
+        demandProfile = 0;
+        totalDemand = parseFloat($('input[key="input.totalDemand"]').val());
+        heatLossCoefficient = 4.398; // GW/degC
+        baseTemp = 16-(385/((heatLossCoefficient/4.398)*119)); //Gains need linking to appliances energy reduction
+        totalHeatDemand = 0;
+        totalDemandInProfile = 0;
+        storageVolume = 250; // GWh 
+        storageCap = 30; // GW
+        heatPumpCoP = 2.5;
+        hotWaterDemand = parseFloat($('input[key="input.hotWaterDemand"]').val())*1000/8760;
+        transportDemand = parseFloat($('input[key="input.transportDemand"]').val())*1000/8760;
+        industryDemand = parseFloat($('input[key="input.industryDemand"]').val())*1000/8760;
+        
+        storageContent[0] = storageVolume/2;
+    
+        x=0;
+        var lines = csvfile.split(/\r\n|\n/);
+        
+        for (var i=0; i<lines.length; i++) {
+            var splitarray = lines[i].split(',');
+            
+            energyDemand[x] = parseFloat(splitarray[0]);
+            windPower[x] = parseFloat(splitarray[1]) * windCap;
+            solarPower[x] = parseFloat(splitarray[2]) * solarCap;
+            temperatureData[x] = parseFloat(splitarray[3]);
+            
+            if((baseTemp - temperatureData[x]) > 0){
+                hourlySpaceHeatDemand[x] = ((baseTemp - temperatureData[x]) * heatLossCoefficient);
+            }
+            else{
+                hourlySpaceHeatDemand[x] = 0;
+            }
+            
+            x++;
+        }
+       
+        
+        totalDemandInProfile = 0;
+        totalHeatDemand = 0;
+        x=0;
+        for(var i=0; i<8760; i++)
+        {
+            totalDemandInProfile += energyDemand[i];
+
+            hourlyWaterHeatDemand[i] = hotWaterDemand * 24 * (hotWaterDailyProfile[x]/100);
+            hourlySpaceHeatDemand[i] = hourlySpaceHeatDemand[i] * 24 * (spaceHeatingDailyProfile[x]/100);
+            hourlyElecForIndustry[i] = industryDemand * 24 * (industrialDailyProfile[x]/100);
+                  
+            hourlyHeatDemand[i] = hourlySpaceHeatDemand[i] + hourlyWaterHeatDemand[i];
+            totalHeatDemand += hourlyHeatDemand[i];
+            hourlyElecForHeatDemand[i] = hourlyHeatDemand[i] / heatPumpCoP;
+            x++;
+            if(x==23) x=0;
+        }
+        
+        console.log("Total heat demand: "+Math.round(totalHeatDemand/1000)+" TWh/yr");
+          
+        for(var i=0;i<8760;i++)
+        {
+            energyDemand[i] = energyDemand[i] / (totalDemandInProfile/1000) * totalDemand;
+            energyDemand[i] = energyDemand[i] + hourlyElecForHeatDemand[i] + transportDemand + hourlyElecForIndustry[i];
+            totalGeneration[i] = windPower[i] + solarPower[i] + (nuclearCap*0.9);
+            
+            // If demand greater than supply take from store
+            if(energyDemand[i]>totalGeneration[i]){
+                if(storageContent[i]<storageCap){
+                    if(storageContent[i]<(energyDemand[i]-totalGeneration[i])){
+                        storageChange[i] = -storageContent[i];
+                    }
+                    else{storageChange[i] = -(energyDemand[i]-totalGeneration[i]);}
+                }
+                else if(storageCap<(energyDemand[i]-totalGeneration[i])){
+                    storageChange[i] = -storageCap;
+                }
+                else{storageChange[i] = -(energyDemand[i]-totalGeneration[i]);}
+            }
+            
+            // Is supply greater than demand give to store
+            if(energyDemand[i]<=totalGeneration[i]){
+                if((storageVolume-storageContent[i])<storageCap){
+                    if((storageVolume-storageContent[i])<(totalGeneration[i]-energyDemand[i])){
+                        storageChange[i] = (storageVolume-storageContent[i]);
+                    }
+                    else{storageChange[i] = (totalGeneration[i]-energyDemand[i]);}
+                }
+                else if(storageCap<(totalGeneration[i]-energyDemand[i])){
+                    storageChange[i] = storageCap;
+                }
+                else{storageChange[i] = (totalGeneration[i]-energyDemand[i]);}
+            }
+            //Adjust storage content
+            if(i<8759){storageContent[i+1] = storageContent[i] + storageChange[i];}
+            energyDemand[i] = energyDemand[i] + storageChange[i];
+        }
+        
+        //Calculate backup generation and unmet demand
+        for(var i=0;i<8760;i++){
+            if(energyDemand[i]>totalGeneration[i]){
+                if((energyDemand[i]-totalGeneration[i])<backupCapInstalled){
+                    backupGeneration += (energyDemand[i]-totalGeneration[i]);
+                    backupUsed[i] = (energyDemand[i]-totalGeneration[i]);
+                    unmet[i] = 0;
+                    if((energyDemand[i]-totalGeneration[i])>backupCapUsed){
+                        backupCapUsed = (energyDemand[i]-totalGeneration[i]);
+                    }
+                }
+                else
+                {
+                    backupGeneration += backupCapInstalled;
+                    backupUsed[i] = backupCapInstalled;
+                    unmetDemand += ((energyDemand[i]-totalGeneration[i]) - backupCapInstalled);
+                    unmet[i] = ((energyDemand[i]-totalGeneration[i]) - backupCapInstalled);
+                    backupCapUsed = backupCapInstalled;
+                }
+            }
+            else
+            {
+                excessGeneration += (totalGeneration[i] - energyDemand[i]);
+                backupUsed[i] = 0;
+                unmet[i] = 0;
+            }
+        }
+        
+        console.log("Unmet Demand: "+(unmetDemand/1000).toFixed(1)+" TWh/yr");
+        console.log("Excess Generation: "+(excessGeneration/1000).toFixed(1)+" TWh/yr");
+        console.log("Backup Capacity Used: "+(backupCapUsed).toFixed(1)+" GW");
+        console.log("Backup Generation: "+(backupGeneration/1000).toFixed(1)+" TWh/yr");
+        
+        $('span[key="out.unmetDemand"]').html((unmetDemand/1000).toFixed(1));
+        $('span[key="out.excessGeneration"]').html((excessGeneration/1000).toFixed(1));
+        $('span[key="out.backupCapUsed"]').html((backupCapUsed).toFixed(1));
+        $('span[key="out.backupGeneration"]').html((backupGeneration/1000).toFixed(1));
+    }
+    
+
+    $(document).ready(function() {
+        $.ajax({
+            type: "GET",
+            url: "textfile.csv",
+            dataType: "text",
+            success: function(data) {csvfile = data; process();}
+         });
+    });
+    
+    $("#run").click(function(){
+        process();
+    });
+
+</script>
+
