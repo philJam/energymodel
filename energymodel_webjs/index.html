@@ -64,6 +64,7 @@
     span {
         color: #ff2712;
     }
+}
 </style>
 
 <body>
@@ -72,9 +73,15 @@
 <h1>ENERGY MODEL</h1>
 <p>Hourly national energy model for the UK.</p>
 
-<div style="overflow: scroll;">
+<div style="overflow: scroll; overflow-y: hidden;">
 <canvas id="graph" width="8760" height=250"></canvas>
+
 </div>
+<br>
+<button id="balance">Balance</button>
+<button id="supply">Supply</button>
+<button id="demand">Demand</button>
+
 <hr><h3>INPUT</h3><hr>
 
 <table>
@@ -178,6 +185,8 @@
 
 
     var balanceMarker = 1;
+    var demandMarker = 0;
+    var supplyMarker = 0;
     
     //--------------------------------------------------------------------------------------
     
@@ -359,6 +368,27 @@
         process();
     });
     
+    $("#balance").click(function(){
+        balanceMarker = 1;
+        demandMarker = 0;
+        supplyMarker = 0;
+        draw_graph();
+    });
+
+    $("#supply").click(function(){
+        balanceMarker = 0;
+        demandMarker = 0;
+        supplyMarker = 1;
+        draw_graph();
+    });
+    
+    $("#demand").click(function(){
+        balanceMarker = 0;
+        demandMarker = 1;
+        supplyMarker = 0;
+        draw_graph();
+    });
+    
     function draw_graph()
     {
         var c = document.getElementById("graph");  
@@ -410,65 +440,108 @@
             }
         }
         
-        
-        
-        /*
-            //Draw demand graph
-            else if(demandMarker == 1){
-                for(int p=1;p<8760;p++){
-                    g.setColor(Color.blue);
-                    demandSquarePos = (int)Math.round(energyDemand[p-1]);
-                    //demandSquarePos1 = (int) energyDemand[p];
-                    g2d.drawLine(p+25, 25+(200-demandSquarePos), p+25, 225);
-                    
-                    g.setColor(Color.red);
-                    demandSquarePos = (int)Math.round(hourlyElecForHeatDemand[p-1]);
-                    g2d.drawLine(p+25, 25+(200-demandSquarePos), p+25, 225);
-                    g.setColor(Color.orange);
-                    demandSquarePos1 = (int) transportDemand;
-                    g2d.drawLine(p+25, 25+(200-demandSquarePos), p+25, 25+(200-(demandSquarePos+demandSquarePos1)));
-                    g.setColor(Color.magenta);
-                    demandSquarePos2 = (int)Math.round(hourlyElecForIndustry[p-1]);
-                    g2d.drawLine(p+25, 25+(200-(demandSquarePos+demandSquarePos1)), p+25, 25+(200-(demandSquarePos+demandSquarePos1+demandSquarePos2)));
-                    g.setColor(Color.black);
-                    g2d.drawLine(25, 225, 8785, 225); 
-                    
-                    demandSquarePos = (int)Math.round(energyDemand[p-1]);
-                    if(storageChange[p-1]<0){
-                        g.setColor(Color.pink);
-                        g2d.drawLine(p+25, 25+(200-demandSquarePos+((int)Math.round(storageChange[p-1]))), p+25, 25+(200-demandSquarePos));   
-                    }
-                    else if(storageChange[p-1]>0){
-                        g.setColor(Color.yellow);
-                        g2d.drawLine(p+25, 25+(200-demandSquarePos+((int)Math.round(storageChange[p-1]))), p+25, 25+(200-demandSquarePos));
-                    }
+        //Draw demand graph
+        else if(demandMarker == 1){
+            for(var p=1;p<8760;p++){
+            
+                ctx.strokeStyle = "#0000ff";
+                demandSquarePos = Math.round(energyDemand[p-1]);
+                ctx.beginPath();
+                ctx.moveTo(p+25, 25+(200-demandSquarePos));
+                ctx.lineTo(p+25, 225);
+                ctx.stroke();
+                
+                ctx.strokeStyle = "#ff0000";
+                demandSquarePos = Math.round(hourlyElecForHeatDemand[p-1]);
+                ctx.beginPath();
+                ctx.moveTo(p+25, 25+(200-demandSquarePos));
+                ctx.lineTo(p+25, 225);
+                ctx.stroke();
+                
+                demandSquarePos1 = transportDemand;
+                ctx.strokeStyle = "#ffcc00";
+                ctx.beginPath();
+                ctx.moveTo(p+25, 25+(200-demandSquarePos));
+                ctx.lineTo(p+25, 25+(200-(demandSquarePos+demandSquarePos1)));
+                ctx.stroke();
+                
+                ctx.strokeStyle = "#de2bf3";
+                demandSquarePos2 = Math.round(hourlyElecForIndustry[p-1]);
+                ctx.beginPath();
+                ctx.moveTo(p+25, 25+(200-(demandSquarePos+demandSquarePos1)));
+                ctx.lineTo(p+25, 25+(200-(demandSquarePos+demandSquarePos1+demandSquarePos2)));
+                ctx.stroke();
+                
+                ctx.strokeStyle = "#000";
+                ctx.beginPath();
+                ctx.moveTo(25, 225);
+                ctx.lineTo(8785, 225);
+                ctx.stroke(); 
+                
+                demandSquarePos = Math.round(energyDemand[p-1]);
+                if(storageChange[p-1]<0){
+                    ctx.strokeStyle = "#f477e4";
+                    ctx.beginPath();
+                    ctx.moveTo(p+25, 25+(200-demandSquarePos+Math.round(storageChange[p-1])));
+                    ctx.lineTo(p+25, 25+(200-demandSquarePos));
+                    ctx.stroke();  
+                }
+                else if(storageChange[p-1]>0){
+                    ctx.strokeStyle = "#f9e117";
+                    ctx.beginPath();
+                    ctx.moveTo(p+25, 25+(200-demandSquarePos+Math.round(storageChange[p-1])));
+                    ctx.lineTo(p+25, 25+(200-demandSquarePos));
+                    ctx.stroke();
                 }
             }
-            //Draw supply graph 
-            else if(supplyMarker == 1){
-                for(int p=1;p<8760;p++){
-                    g.setColor(Color.green);
-                    windSquarePos = (int)Math.round(windPower[p-1]);
-                    solarPos = (int)Math.round(solarPower[p-1]);
-                    nuclearPos = (int)Math.round((nuclearCap * 0.9));
-                    backupPos = (int)Math.round(backupUsed[p-1]);
-                    unmetPos = (int)Math.round(unmet[p-1]);
-                    g.setColor(Color.orange);
-                    g2d.drawLine(p+25, 25+(200-nuclearPos), p+25, 225);
-                    g.setColor(Color.yellow);
-                    g2d.drawLine(p+25, 25+(200-nuclearPos)-solarPos, p+25, 25+(200-nuclearPos));                    
-                    g.setColor(Color.gray);
-                    g2d.drawLine(p+25, 25+(200-nuclearPos)-solarPos-windSquarePos-backupPos-unmetPos, p+25, 25+(200-nuclearPos)-solarPos-windSquarePos-backupPos);
-                    g.setColor(Color.red);
-                    g2d.drawLine(p+25, 25+(200-nuclearPos)-solarPos-windSquarePos-backupPos, p+25, 25+(200-nuclearPos)-solarPos-windSquarePos);
-                    g.setColor(Color.blue);
-                    g2d.drawLine(p+25, 25+(200-nuclearPos)-solarPos-windSquarePos, p+25, 25+(200-nuclearPos)-solarPos);
-                    g.setColor(Color.black);
-                    g2d.drawLine(25, 225, 8785, 225); 
-                }
+        }
+        //Draw supply graph 
+        else if(supplyMarker == 1){
+            for(var p=1;p<8760;p++){
+                ctx.strokeStyle = "#00ff00";
+                windSquarePos = Math.round(windPower[p-1]);
+                solarPos = Math.round(solarPower[p-1]);
+                nuclearPos = Math.round((nuclearCap * 0.9));
+                backupPos = Math.round(backupUsed[p-1]);
+                unmetPos = Math.round(unmet[p-1]);
+                
+                ctx.strokeStyle = "#ffcc00"; // orange
+                ctx.beginPath();
+                ctx.moveTo(p+25, 25+(200-nuclearPos));
+                ctx.lineTo(p+25, 225);
+                ctx.stroke();
+                               
+                ctx.strokeStyle = "#f9e117"; // yellow                   
+                ctx.beginPath();
+                ctx.moveTo(p+25, 25+(200-nuclearPos)-solarPos);
+                ctx.lineTo(p+25, 25+(200-nuclearPos));
+                ctx.stroke();
+                
+                ctx.strokeStyle = "#a9a9a9"; // grey
+                ctx.beginPath();
+                ctx.moveTo(p+25, 25+(200-nuclearPos)-solarPos-windSquarePos-backupPos-unmetPos);
+                ctx.lineTo(p+25, 25+(200-nuclearPos)-solarPos-windSquarePos-backupPos);
+                ctx.stroke();
+                
+                ctx.strokeStyle = "#ff0000";
+                ctx.beginPath();
+                ctx.moveTo(p+25, 25+(200-nuclearPos)-solarPos-windSquarePos-backupPos);
+                ctx.lineTo(p+25, 25+(200-nuclearPos)-solarPos-windSquarePos);
+                ctx.stroke();
+                
+                ctx.strokeStyle = "#0000ff";
+                ctx.beginPath();
+                ctx.moveTo(p+25, 25+(200-nuclearPos)-solarPos-windSquarePos);
+                ctx.lineTo(p+25, 25+(200-nuclearPos)-solarPos);
+                ctx.stroke();
+                
+                ctx.strokeStyle = "#000";
+                ctx.beginPath();
+                ctx.moveTo(25, 225);
+                ctx.lineTo(8785, 225);
+                ctx.stroke();
             }
-        }    
-        */  
+        }
     }
 
 </script>
