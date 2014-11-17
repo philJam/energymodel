@@ -71,6 +71,10 @@
 
 <h1>ENERGY MODEL</h1>
 <p>Hourly national energy model for the UK.</p>
+
+<div style="overflow: scroll;">
+<canvas id="graph" width="8760" height=250"></canvas>
+</div>
 <hr><h3>INPUT</h3><hr>
 
 <table>
@@ -144,7 +148,7 @@
     var backupCapUsed = 0;
     var backupGeneration = 0;
     var demandProfile = 0;
-    var totalDemand = 356; // TWh/yr
+    var totalDemand = 105; // TWh/yr
     var heatLossCoefficient = 4.398; // GW/degC
     var baseTemp = 16-(385/((heatLossCoefficient/4.398)*119)); //Gains need linking to appliances energy reduction
     var totalHeatDemand = 0;
@@ -152,9 +156,9 @@
     var storageVolume = 250; // GWh 
     var storageCap = 30; // GW
     var heatPumpCoP = 2.5;
-    var hotWaterDemand = 80*1000/8760; // 80 TWh/yr
-    var transportDemand = 50*1000/8760; // 80 TWh/yr
-    var industryDemand = 50*1000/8760; // 80 TWh/yr
+    var hotWaterDemand = 96*1000/8760; // 80 TWh/yr
+    var transportDemand = 42*1000/8760; // 80 TWh/yr
+    var industryDemand = 171*1000/8760; // 80 TWh/yr
     
     
     $('input[key="input.totalDemand"]').val(totalDemand);
@@ -162,9 +166,9 @@
     $('input[key="input.windCap"]').val(windCap);
     $('input[key="input.nuclearCap"]').val(nuclearCap);
     $('input[key="input.backupCapInstalled"]').val(backupCapInstalled);
-    $('input[key="input.hotWaterDemand"]').val(80);
-    $('input[key="input.transportDemand"]').val(50);
-    $('input[key="input.industryDemand"]').val(50);
+    $('input[key="input.hotWaterDemand"]').val(96);
+    $('input[key="input.transportDemand"]').val(42);
+    $('input[key="input.industryDemand"]').val(171);
     
     var spaceHeatingDailyProfile = [0.8,0.8,0.9,0.9,1.7,6.5,7.7,8.3,7.5,6.0,4.6,4.0,3.5,3.3,3.3,3.4,3.7,4.1,5.2,6.3,6.4,6.1,4.2,0.8];
     var hotWaterDailyProfile = [4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2];
@@ -172,6 +176,8 @@
     var industrialDailyProfile = [4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2];
     // [1,1,1,1,1,1,1,1,10.5,10.5,10.5,10.5,10.5,10.5,10.5,10.5,1,1,1,1,1,1,1,1];
 
+
+    var balanceMarker = 1;
     
     //--------------------------------------------------------------------------------------
     
@@ -335,6 +341,8 @@
         $('span[key="out.excessGeneration"]').html((excessGeneration/1000).toFixed(1));
         $('span[key="out.backupCapUsed"]').html((backupCapUsed).toFixed(1));
         $('span[key="out.backupGeneration"]').html((backupGeneration/1000).toFixed(1));
+        
+        draw_graph();
     }
     
 
@@ -350,6 +358,118 @@
     $("#run").click(function(){
         process();
     });
+    
+    function draw_graph()
+    {
+        var c = document.getElementById("graph");  
+        var ctx = c.getContext("2d");
+        
+        ctx.clearRect(0,0,8760,250);
+        
+        ctx.beginPath();
+        ctx.strokeStyle = "#000";
+        ctx.moveTo(25,25); ctx.lineTo(25, 225);
+        ctx.moveTo(25,225); ctx.lineTo(8785, 225);
+        ctx.stroke();
+        
+        // Draw balance graph
+        if(balanceMarker == 1){
+            for(var p=1;p<8760;p++){
+            
+                ctx.beginPath();
+                ctx.strokeStyle = "#0000ff";
+                windSquarePos = Math.round(totalGeneration[p-1]);
+                windSquarePos1 = Math.round(totalGeneration[p]);
+                ctx.moveTo(p+26, 25+(200-windSquarePos1));
+                ctx.lineTo(p+25, 25+(200-windSquarePos));
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.strokeStyle = "#000";
+                demandSquarePos = Math.round(energyDemand[p-1]);
+                demandSquarePos1 = Math.round(energyDemand[p]);
+                ctx.moveTo(p+26, 25+(200-demandSquarePos1));
+                ctx.lineTo(p+25, 25+(200-demandSquarePos));
+                ctx.stroke();
+                
+                if(windSquarePos>demandSquarePos){
+                    ctx.beginPath();
+                    ctx.strokeStyle = "#00ff00";
+                    ctx.moveTo(p+26, 25+(200-windSquarePos+1));
+                    ctx.lineTo(p+25, 25+(200-demandSquarePos-1));
+                    ctx.stroke();
+                }
+                else if(windSquarePos<demandSquarePos){
+                
+                    ctx.beginPath();
+                    ctx.strokeStyle = "#ff0000";
+                    ctx.moveTo(p+26, 25+(200-windSquarePos-1));
+                    ctx.lineTo(p+25, 25+(200-demandSquarePos+1));
+                    ctx.stroke();
+                }
+            }
+        }
+        
+        
+        
+        /*
+            //Draw demand graph
+            else if(demandMarker == 1){
+                for(int p=1;p<8760;p++){
+                    g.setColor(Color.blue);
+                    demandSquarePos = (int)Math.round(energyDemand[p-1]);
+                    //demandSquarePos1 = (int) energyDemand[p];
+                    g2d.drawLine(p+25, 25+(200-demandSquarePos), p+25, 225);
+                    
+                    g.setColor(Color.red);
+                    demandSquarePos = (int)Math.round(hourlyElecForHeatDemand[p-1]);
+                    g2d.drawLine(p+25, 25+(200-demandSquarePos), p+25, 225);
+                    g.setColor(Color.orange);
+                    demandSquarePos1 = (int) transportDemand;
+                    g2d.drawLine(p+25, 25+(200-demandSquarePos), p+25, 25+(200-(demandSquarePos+demandSquarePos1)));
+                    g.setColor(Color.magenta);
+                    demandSquarePos2 = (int)Math.round(hourlyElecForIndustry[p-1]);
+                    g2d.drawLine(p+25, 25+(200-(demandSquarePos+demandSquarePos1)), p+25, 25+(200-(demandSquarePos+demandSquarePos1+demandSquarePos2)));
+                    g.setColor(Color.black);
+                    g2d.drawLine(25, 225, 8785, 225); 
+                    
+                    demandSquarePos = (int)Math.round(energyDemand[p-1]);
+                    if(storageChange[p-1]<0){
+                        g.setColor(Color.pink);
+                        g2d.drawLine(p+25, 25+(200-demandSquarePos+((int)Math.round(storageChange[p-1]))), p+25, 25+(200-demandSquarePos));   
+                    }
+                    else if(storageChange[p-1]>0){
+                        g.setColor(Color.yellow);
+                        g2d.drawLine(p+25, 25+(200-demandSquarePos+((int)Math.round(storageChange[p-1]))), p+25, 25+(200-demandSquarePos));
+                    }
+                }
+            }
+            //Draw supply graph 
+            else if(supplyMarker == 1){
+                for(int p=1;p<8760;p++){
+                    g.setColor(Color.green);
+                    windSquarePos = (int)Math.round(windPower[p-1]);
+                    solarPos = (int)Math.round(solarPower[p-1]);
+                    nuclearPos = (int)Math.round((nuclearCap * 0.9));
+                    backupPos = (int)Math.round(backupUsed[p-1]);
+                    unmetPos = (int)Math.round(unmet[p-1]);
+                    g.setColor(Color.orange);
+                    g2d.drawLine(p+25, 25+(200-nuclearPos), p+25, 225);
+                    g.setColor(Color.yellow);
+                    g2d.drawLine(p+25, 25+(200-nuclearPos)-solarPos, p+25, 25+(200-nuclearPos));                    
+                    g.setColor(Color.gray);
+                    g2d.drawLine(p+25, 25+(200-nuclearPos)-solarPos-windSquarePos-backupPos-unmetPos, p+25, 25+(200-nuclearPos)-solarPos-windSquarePos-backupPos);
+                    g.setColor(Color.red);
+                    g2d.drawLine(p+25, 25+(200-nuclearPos)-solarPos-windSquarePos-backupPos, p+25, 25+(200-nuclearPos)-solarPos-windSquarePos);
+                    g.setColor(Color.blue);
+                    g2d.drawLine(p+25, 25+(200-nuclearPos)-solarPos-windSquarePos, p+25, 25+(200-nuclearPos)-solarPos);
+                    g.setColor(Color.black);
+                    g2d.drawLine(25, 225, 8785, 225); 
+                }
+            }
+        }    
+        */  
+    }
 
 </script>
 
