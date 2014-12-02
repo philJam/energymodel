@@ -109,7 +109,7 @@
         <td>Store max capacity</td><td><input type="text" key="input.store_max_capacity_TWh"></td>
     </tr>
     <tr>
-        <td></td><td></td>
+        <td>Backup capacity installed</td><td><input type="text" key="input.backupCap"></td>
         <td>Industrial elec. demand</td><td><input type="text" key="input.industryDemand_TWh"></td>
         <td>Store discharge efficiency</td><td><input type="text" key="input.store_discharge_efficiency"></td>
     </tr>
@@ -171,13 +171,13 @@
     </tr>
     
     <tr>
-        <td></td><td></td>
+        <td>Backup generation</td><td><span key="out.backupGeneration" scale=0.001 dp=1></span> TWh/yr</td>
         <td></td><td></td>
         <td>Total discharge</td><td><span key="out.store_total_discharge" scale=0.001 dp=1></span> TWh</td>
     </tr>
     
     <tr>
-        <td></td><td></td>
+        <td>Backup capacity used</td><td><span key="out.backupCapUsed" dp=1></span> GW</td>
         <td></td><td></td>
         <td>Total loss</td><td><span key="out.store_total_loss" scale=0.001 dp=1></span> TWh</td>
     </tr>
@@ -212,10 +212,12 @@
     var temperatureData = [];
     var totalGeneration = [];
     var unmet = [];
+    var backupUsed = [];
     
-    var windCap = 90; // GW
+    var windCap = 140; // GW
     var solarCap = 70; // GW
     var nuclearCap = 0; // GW
+    var backupCap = 45;
     
     var demandProfile = 0;
     var totalDemand = 105; // TWh/yr
@@ -231,14 +233,16 @@
     var solarGeneration = 0;
     var windGeneration = 0;
     var nuclearGeneration = 0;
+    var backupGeneration = 0;
+    var backupCapUsed = 0;
     var demandGWh = 0;
     var max_shortfall = 0;
     
     //------------------------------------------------
     // Storage capacity, size, performance
-    var store_max_discharge_rate   = 45;      // GW
-    var store_max_charge_rate      = 45;      // GW
-    var store_max_capacity_TWh     = 50;      // GWh
+    var store_max_discharge_rate   = 30;      // GW
+    var store_max_charge_rate      = 30;      // GW
+    var store_max_capacity_TWh     = 0.25;    // TWh
     var store_max_capacity         = store_max_capacity_TWh * 1000;
     var store_discharge_efficiency = 0.9;     // 90%
     var store_charge_efficiency    = 0.9;     // 90%
@@ -252,11 +256,12 @@
     var store_total_discharge = 0;
     var store_total_loss = 0;
     
-    var store_start_capacity_TWh   = 9.0;    // GWh
+    var store_start_capacity_TWh   = store_max_capacity_TWh /2;    // GWh
     var store_start_capacity       = store_start_capacity_TWh * 1000;
     var store_capacity = store_start_capacity;
     //------------------------------------------------
     var store_hourly_capacity = [];
+    var storageChange = [];
     
     $("[key]").each(function(){
         var keyparts = $(this).attr('key').split(".");
@@ -280,6 +285,8 @@
         solarGeneration = 0;
         windGeneration = 0;
         nuclearGeneration = 0;
+        backupGeneration = 0;
+        backupCapUsed = 0;
         
         demandGWh = 0;
         unmetDemand = 0;
@@ -295,6 +302,8 @@
         hourlyElecForIndustry = [];
         temperatureData = [];
         totalGeneration = [];
+        backupUsed = [];
+        unmet = [];
 
         $("[key]").each(function(){
             var keyparts = $(this).attr('key').split(".");
@@ -326,6 +335,7 @@
         store_total_loss = 0;
         //------------------------------------------------
         store_hourly_capacity = [];
+        storageChange = [];
         store_capacity = store_start_capacity;
         
         x=0;
@@ -373,10 +383,11 @@
             if(x==23) x=0;
         }
         
-        var backupgen = 0;
+       
           
         for(var i=0;i<8760;i++)
         {
+            var backupgen = 0;
             // energyDemand and totalGeneration in GW
             energyDemand[i] = energyDemand[i] / (totalDemandInProfile/1000) * totalDemand;
             energyDemand[i] = energyDemand[i] + hourlyElecForHeatDemand[i] + transportDemand + hourlyElecForIndustry[i];
@@ -396,12 +407,19 @@
                 store_capacity -= store_output;
                 store_total_discharge += store_output;
                 
+                storageChange[i] = +store_output;
+                
                 // Record capacity utilisation
                 if (store_output > store_used_discharge_rate) store_used_discharge_rate = store_output;
                 
                 // Record unmet demand
                 if ((store_output+totalGeneration[i])<energyDemand[i]) {
                     var shortfall = energyDemand[i]-(store_output+totalGeneration[i]);
+                    
+                    backupgen = shortfall;
+                    if (backupgen>backupCap) backupgen = backupCap;
+                    
+                    shortfall -= backupgen;
                     
                     unmetDemand += shortfall;
                     if (shortfall>max_shortfall) max_shortfall = shortfall;
@@ -422,6 +440,8 @@
                 store_capacity += store_input;
                 store_total_charge += store_input;
                 
+                storageChange[i] = -store_input;
+                
                 if (store_input > store_used_charge_rate) store_used_charge_rate = store_input;
                 
                 // record excess generation 
@@ -431,7 +451,14 @@
             
             if (store_capacity > store_used_max_capacity) store_used_max_capacity = store_capacity;
             if (store_capacity < store_used_min_capacity) store_used_min_capacity = store_capacity;
+            
             store_hourly_capacity[i] = store_capacity;
+            
+            backupUsed[i] = backupgen;
+            backupGeneration += backupgen;
+            if (backupgen>backupCapUsed) backupCapUsed = backupgen;
+            
+            unmet[i] = shortfall;
         }
         
         $("[key]").each(function(){
@@ -571,14 +598,15 @@
                 
                 demandSquarePos = Math.round(energyDemand[p-1]);
                 if(storageChange[p-1]<0){
-                    ctx.strokeStyle = "#f477e4";
+                    ctx.strokeStyle = "#f9e117";
+                    
                     ctx.beginPath();
                     ctx.moveTo(p+25, 25+(200-demandSquarePos+Math.round(storageChange[p-1])));
                     ctx.lineTo(p+25, 25+(200-demandSquarePos));
                     ctx.stroke();  
                 }
                 else if(storageChange[p-1]>0){
-                    ctx.strokeStyle = "#f9e117";
+                    ctx.strokeStyle = "#f477e4";
                     ctx.beginPath();
                     ctx.moveTo(p+25, 25+(200-demandSquarePos+Math.round(storageChange[p-1])));
                     ctx.lineTo(p+25, 25+(200-demandSquarePos));
