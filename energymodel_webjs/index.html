@@ -217,7 +217,7 @@
     var windCap = 140; // GW
     var solarCap = 70; // GW
     var nuclearCap = 0; // GW
-    var backupCap = 45;
+    var backupCap = 0;
     
     var demandProfile = 0;
     var totalDemand = 105; // TWh/yr
@@ -241,9 +241,9 @@
     
     //------------------------------------------------
     // Storage capacity, size, performance
-    var store_max_discharge_rate   = 30;      // GW
-    var store_max_charge_rate      = 30;      // GW
-    var store_max_capacity_TWh     = 0.25;    // TWh
+    var store_max_discharge_rate   = 60;      // GW
+    var store_max_charge_rate      = 60;      // GW
+    var store_max_capacity_TWh     = 5;    // TWh
     var store_max_capacity         = store_max_capacity_TWh * 1000;
     var store_discharge_efficiency = 0.9;     // 90%
     var store_charge_efficiency    = 0.9;     // 90%
@@ -398,6 +398,15 @@
             demandGWh += energyDemand[i];
             
             var store_capacity_remaining = store_max_capacity-store_capacity;
+
+            // STORE DISCHARGE
+            //            Loss
+            //             ^
+            //             |
+            // Store -l2------l1-> Output 
+            //         
+            // - l1 Rate limit
+            // - l2 Capacity limit
             
             if (energyDemand[i]>totalGeneration[i])
             {
@@ -428,6 +437,7 @@
                 }
             }
             
+            // STORE CHARGING
             //            Loss
             //             ^
             //             |
