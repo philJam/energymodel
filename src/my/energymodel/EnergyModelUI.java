@@ -92,7 +92,7 @@ public class EnergyModelUI extends javax.swing.JFrame {
     double H2ElectrolysisCap;
     double H2Produced;
     double H2Shortfall;
-    double heatPumpCoP = 2.5;
+    double heatPumpCoP = 3.0;
     double hotWaterDemand;
     double transportDemand;
     double industryDemand;
@@ -1084,7 +1084,12 @@ public class EnergyModelUI extends javax.swing.JFrame {
             
             g.setColor(Color.black);
             g2d.drawLine(25, 25, 25, 225);
-            g2d.drawLine(25, 225, 8785, 225);           
+            g2d.drawLine(25, 225, 8785, 225);
+            g2d.drawLine(25, 25, 23, 25);
+            g2d.drawLine(25, 125, 23, 125);
+            g2d.drawString("100", 2, 129);
+            g2d.drawString("200", 2, 29);
+            
             // Draw balance graph
             if(balanceMarker == 1){
                 for(int p=1;p<8760;p++){
@@ -1107,6 +1112,10 @@ public class EnergyModelUI extends javax.swing.JFrame {
                         g2d.drawLine(p+25, 25+(200-windSquarePos-1), p+25, 25+(200-demandSquarePos+1));
                     }
                 }
+                g.setColor(Color.green);
+                g.drawString("Surplus", 150, 20);
+                g.setColor(Color.red);
+                g.drawString("Shortfall", 250, 20);
             }
             //Draw demand graph
             else if(demandMarker == 1){
@@ -1151,6 +1160,21 @@ public class EnergyModelUI extends javax.swing.JFrame {
                         g2d.drawLine(p+25, 25+(200-demandSquarePos+demandSquarePos1), p+25, 25+(200-demandSquarePos));
                     }
                 }
+                g.setColor(Color.red);
+                g.drawString("Space heat & hotwater", 50, 20);
+                g.setColor(Color.orange);
+                g.drawString("Electric vehicles", 200, 20);
+                g.setColor(Color.magenta);
+                g.drawString("Industry", 350, 20);
+                g.setColor(Color.green);
+                g.drawString("Electrolysis", 450, 20);
+                g.setColor(Color.blue);
+                g.drawString("Appliances, lights & cooking", 550, 20);
+                g.setColor(Color.yellow);
+                g.drawString("To electricity store", 750, 20);
+                g.setColor(Color.pink);
+                g.drawString("From electricity store", 900, 20);
+                
             }
             //Draw supply graph 
             else if(supplyMarker == 1){
@@ -1177,6 +1201,16 @@ public class EnergyModelUI extends javax.swing.JFrame {
                     g.setColor(Color.black);
                     g2d.drawLine(25, 225, 8785, 225); 
                 }
+                g.setColor(Color.blue);
+                g.drawString("Wind", 150, 20);
+                g.setColor(Color.YELLOW);
+                g.drawString("Solar PV", 250, 20);
+                g.setColor(Color.orange);
+                g.drawString("Nuclear", 350, 20);
+                g.setColor(Color.red);
+                g.drawString("Back-up power", 450, 20);
+                g.setColor(Color.GRAY);
+                g.drawString("Unmet demand", 600, 20);
             }
         }      
     }
