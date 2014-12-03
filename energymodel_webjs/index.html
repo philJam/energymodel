@@ -237,6 +237,7 @@
     var backupCapUsed = 0;
     var demandGWh = 0;
     var max_shortfall = 0;
+    var total_store_loss = 0;
     
     //------------------------------------------------
     // Storage capacity, size, performance
@@ -291,6 +292,7 @@
         demandGWh = 0;
         unmetDemand = 0;
         max_shortfall = 0;
+        store_total_loss = 0;
     
         energyDemand = [];
         windPower = [];
@@ -395,57 +397,66 @@
            
             demandGWh += energyDemand[i];
             
+            var store_capacity_remaining = store_max_capacity-store_capacity;
+            
             if (energyDemand[i]>totalGeneration[i])
             {
-                var store_output = energyDemand[i] - totalGeneration[i];
-                
-                // Discharge rate limit
-                if (store_output>store_max_discharge_rate) store_output = store_max_discharge_rate;
-                // Empty store limit
-                if (store_output>store_capacity) store_output = store_capacity;
-                
-                store_capacity -= store_output;
-                store_total_discharge += store_output;
-                
-                storageChange[i] = +store_output;
-                
-                // Record capacity utilisation
-                if (store_output > store_used_discharge_rate) store_used_discharge_rate = store_output;
+                var shortfall = energyDemand[i] - totalGeneration[i];
+
+                //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                var store_discharge_rate_after_loss = shortfall;
+                if (store_discharge_rate_after_loss>store_max_discharge_rate) store_discharge_rate_after_loss = store_max_discharge_rate;   // 1. Discharge rate limit
+                var store_discharge_rate_pre_loss = store_discharge_rate_after_loss / store_discharge_efficiency;                           // 2. Calculate discharge rate pre losses
+                if (store_discharge_rate_pre_loss>store_capacity) store_discharge_rate_pre_loss = store_capacity;                           // 3. Empty store limit
+                store_discharge_rate_after_loss = store_discharge_rate_pre_loss * store_discharge_efficiency;                               // 4. Work backwards to obtain after loss charge rate again
+                var store_loss = store_discharge_rate_pre_loss - store_discharge_rate_after_loss;                                           // 5. Calculate energy lost in charging
+                store_capacity -= store_discharge_rate_pre_loss;                                                                            // 6. Calculate new store capacity level
+                //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                store_total_discharge += store_discharge_rate_after_loss;
+                store_total_loss += store_loss;
+                storageChange[i] += store_discharge_rate_pre_loss;
+                if (store_discharge_rate_after_loss > store_used_discharge_rate) store_used_discharge_rate = store_discharge_rate_after_loss;
                 
                 // Record unmet demand
-                if ((store_output+totalGeneration[i])<energyDemand[i]) {
-                    var shortfall = energyDemand[i]-(store_output+totalGeneration[i]);
-                    
-                    backupgen = shortfall;
-                    if (backupgen>backupCap) backupgen = backupCap;
-                    
-                    shortfall -= backupgen;
-                    
-                    unmetDemand += shortfall;
-                    if (shortfall>max_shortfall) max_shortfall = shortfall;
+                if ((store_discharge_rate_after_loss+totalGeneration[i])<energyDemand[i]) {
+                    shortfall = energyDemand[i]-(store_discharge_rate_after_loss+totalGeneration[i]);   // shortfall pre backup generation
+                    backupgen = shortfall;                                                              // assign backup generation
+                    if (backupgen>backupCap) backupgen = backupCap;                                     // backup generation capacity limit
+                    shortfall -= backupgen;                                                             // calculate remaining shortfall
+                    unmetDemand += shortfall;                                                           // record unmet demand
+                    if (shortfall>max_shortfall) max_shortfall = shortfall;                             // record max shortfall
                 }
             }
+            
+            //            Loss
+            //             ^
+            //             |
+            // Surplus -l1---l2-> Store 
+            //         
+            // - l1 Rate limit
+            // - l2 Capacity limit
             
             // Supply exceed's demand, excess energy fed into store
             if (totalGeneration[i]>energyDemand[i])
             {
-                var store_input = totalGeneration[i] - energyDemand[i];
+                var surplus_available = totalGeneration[i] - energyDemand[i];
                 
-                // Charge rate limit
-                if (store_input>store_max_charge_rate) store_input = store_max_charge_rate;
-                
-                // Full store limit
-                if (store_input>(store_max_capacity-store_capacity)) store_input = store_max_capacity-store_capacity;
-                
-                store_capacity += store_input;
-                store_total_charge += store_input;
-                
-                storageChange[i] = -store_input;
-                
-                if (store_input > store_used_charge_rate) store_used_charge_rate = store_input;
+                //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                var store_charge_rate_pre_loss = surplus_available;
+                if (store_charge_rate_pre_loss>store_max_charge_rate) store_charge_rate_pre_loss = store_max_charge_rate;           // 1. Charge rate limit
+                var store_charge_rate_after_loss = store_charge_rate_pre_loss * store_charge_efficiency;                            // 2. Calculate charge rate after losses
+                if (store_charge_rate_after_loss>store_capacity_remaining) store_charge_rate_after_loss = store_capacity_remaining; // 3. Capacity limit
+                store_charge_rate_pre_loss = store_charge_rate_after_loss / store_charge_efficiency;                                // 4. Work backwards to obtain pre loss charge rate again
+                var store_loss = store_charge_rate_pre_loss - store_charge_rate_after_loss;                                         // 5. Calculate energy lost in charging
+                store_capacity += store_charge_rate_after_loss;                                                                     // 6. Calculate new store capacity level
+                //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                store_total_charge += store_charge_rate_pre_loss;
+                store_total_loss += store_loss;
+                storageChange[i] = -store_charge_rate_pre_loss;
+                if (store_charge_rate_pre_loss > store_used_charge_rate) store_used_charge_rate = store_charge_rate_pre_loss;
                 
                 // record excess generation 
-                if (totalGeneration[i]>(energyDemand[i]+store_input)) excessGeneration += totalGeneration[i] - (energyDemand[i]+store_input);
+                if (totalGeneration[i]>(energyDemand[i]+store_charge_rate_pre_loss)) excessGeneration += totalGeneration[i] - (energyDemand[i]+store_charge_rate_pre_loss);
             }
             
             
@@ -459,6 +470,8 @@
             if (backupgen>backupCapUsed) backupCapUsed = backupgen;
             
             unmet[i] = shortfall;
+            
+            
         }
         
         $("[key]").each(function(){
