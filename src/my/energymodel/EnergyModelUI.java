@@ -1199,7 +1199,7 @@ public class EnergyModelUI extends javax.swing.JFrame {
                     g.setColor(Color.blue);
                     g2d.drawLine(p+25, 25+(200-nuclearPos)-CHPPos-solarPos-windSquarePos, p+25, 25+(200-nuclearPos)-CHPPos-solarPos);
                     g.setColor(Color.black);
-                    g2d.drawLine(25, 225, 8785, 225); 
+                    g2d.drawLine(25, 226, 8785, 226); 
                 }
                 g.setColor(Color.blue);
                 g.drawString("Wind", 150, 20);
