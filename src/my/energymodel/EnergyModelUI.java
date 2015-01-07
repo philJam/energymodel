@@ -98,6 +98,11 @@ public class EnergyModelUI extends javax.swing.JFrame {
     double industryDemand;
     double biomassSupply;
     double biomassDemand;
+    double biomassForSolid;
+    double biomassForGas;
+    double biomassForSynthGas;
+    double biomassForLiquid;
+    double biomassForSynthLiquid;
     double solidDemand;
     double gasDemand;
     double liquidDemand;
@@ -150,6 +155,7 @@ public class EnergyModelUI extends javax.swing.JFrame {
         biomassShortfallLabel.setText(""+roundOneDecimals(biomassSupply - (biomassDemand/1000)));
         H2ShortfallLabel.setText(""+roundOneDecimals(H2Shortfall));
         totalSupplyLabel.setText(""+roundOneDecimals(totalSupply));
+        residualEmissionsLabel.setText(""+roundOneDecimals(residualEmissions/1000));
         //i++;
     }
     
@@ -292,6 +298,8 @@ public class EnergyModelUI extends javax.swing.JFrame {
         sythFuelsComboBox = new javax.swing.JComboBox();
         jLabel53 = new javax.swing.JLabel();
         totalSupplyLabel = new javax.swing.JLabel();
+        residualEmissionsLabel = new javax.swing.JLabel();
+        jLabel54 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
@@ -550,8 +558,8 @@ public class EnergyModelUI extends javax.swing.JFrame {
         jLabel36.setText("H2 surplus/shortfall");
         jPanel2.add(jLabel36, new org.netbeans.lib.awtextra.AbsoluteConstraints(590, 360, 114, 30));
 
-        jLabel37.setText("Biomass surplus/shortfall");
-        jPanel2.add(jLabel37, new org.netbeans.lib.awtextra.AbsoluteConstraints(590, 310, 160, 30));
+        jLabel37.setText("Residual Emissions (MtCO2)");
+        jPanel2.add(jLabel37, new org.netbeans.lib.awtextra.AbsoluteConstraints(700, 50, 200, 30));
 
         biomassShortfallLabel.setBackground(new java.awt.Color(255, 255, 255));
         biomassShortfallLabel.setOpaque(true);
@@ -652,6 +660,13 @@ public class EnergyModelUI extends javax.swing.JFrame {
 
         totalSupplyLabel.setForeground(new java.awt.Color(153, 153, 153));
         jPanel2.add(totalSupplyLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 170, 40, 20));
+
+        residualEmissionsLabel.setBackground(new java.awt.Color(255, 255, 255));
+        residualEmissionsLabel.setOpaque(true);
+        jPanel2.add(residualEmissionsLabel, new org.netbeans.lib.awtextra.AbsoluteConstraints(879, 50, 50, 30));
+
+        jLabel54.setText("Biomass surplus/shortfall");
+        jPanel2.add(jLabel54, new org.netbeans.lib.awtextra.AbsoluteConstraints(590, 310, 160, 30));
 
         jScrollPane2.setViewportView(jPanel2);
 
@@ -948,61 +963,165 @@ public class EnergyModelUI extends javax.swing.JFrame {
                   if(biomassSupply*1000 > (solidDemand + (gasDemand/1) + (liquidDemand/0.8))){//enough biomass not enough H2
                       if((H2Produced - ((transportH2Demand + industryH2Demand)*1000)) < 0){
                             synthFuelH2Demand = 0;
-                            biomassDemand = solidDemand 
-                                    + (gasDemand/0.6)
-                                    + (liquidDemand/0.5);
                             
-                            solidBiofuel = solidDemand;
-                            if((biomassSupply*1000 - solidDemand) > (gasDemand/0.6)){gasBiofuel = gasDemand;}
-                            else{gasBiofuel = ((biomassSupply*1000 - solidDemand)/(gasDemand/0.6))*gasDemand;}
-                            if((biomassSupply*1000 - solidDemand - (gasDemand/0.6)) > (liquidDemand/0.5)){liquidBiofuel = liquidDemand;}
-                            else{liquidBiofuel = ((biomassSupply*1000 - solidDemand - (gasDemand/0.6))/(liquidDemand/0.5))*liquidDemand;}
+                            biomassForSolid = solidDemand;
+                            biomassForSynthGas = 0;
+                            biomassForGas = (gasDemand/0.6);
+                            biomassForSynthLiquid = 0;
+                            biomassForLiquid = (liquidDemand/0.5);
+                            biomassDemand = biomassForSolid + biomassForSynthGas + biomassForGas + biomassForSynthLiquid + biomassForLiquid;
                       }
                       else if((H2Produced - ((transportH2Demand + industryH2Demand)*1000)) < (gasDemand*0.5)){
                           synthFuelH2Demand = (H2Produced - ((transportH2Demand + industryH2Demand)*1000));
-                          biomassDemand = solidDemand 
-                                  + ((H2Produced - ((transportH2Demand + industryH2Demand)*1000))/(gasDemand*0.5)) * (gasDemand/1)
-                                  + (1 - ((H2Produced - ((transportH2Demand + industryH2Demand)*1000))/(gasDemand*0.5))) * (gasDemand/0.6)
-                                  + (liquidDemand/0.5);
+                          
+                          biomassForSolid = solidDemand;
+                            biomassForSynthGas = ((H2Produced - ((transportH2Demand + industryH2Demand)*1000))/(gasDemand*0.5)) * (gasDemand/1);
+                            biomassForGas = (1 - ((H2Produced - ((transportH2Demand + industryH2Demand)*1000))/(gasDemand*0.5))) * (gasDemand/0.6);
+                            biomassForSynthLiquid = 0;
+                            biomassForLiquid = (liquidDemand/0.5);
+                            biomassDemand = biomassForSolid + biomassForSynthGas + biomassForGas + biomassForSynthLiquid + biomassForLiquid;                         
                       }
                       else{
                           synthFuelH2Demand = (H2Produced - ((transportH2Demand + industryH2Demand)*1000));
-                          biomassDemand = solidDemand
-                                  + (gasDemand/1)
-                                  + ((H2Produced - ((transportH2Demand + industryH2Demand)*1000) - (gasDemand*0.5))/(liquidDemand*0.5)) * (liquidDemand/0.8)
-                                  + (1 - ((H2Produced - ((transportH2Demand + industryH2Demand)*1000) - (gasDemand*0.5))/(liquidDemand*0.5))) * (liquidDemand/0.5);
+
+                          biomassForSolid = solidDemand;
+                            biomassForSynthGas = (gasDemand/1);
+                            biomassForGas = 0;
+                            biomassForSynthLiquid = ((H2Produced - ((transportH2Demand + industryH2Demand)*1000) - (gasDemand*0.5))/(liquidDemand*0.5)) * (liquidDemand/0.8);
+                            biomassForLiquid = (1 - ((H2Produced - ((transportH2Demand + industryH2Demand)*1000) - (gasDemand*0.5))/(liquidDemand*0.5))) * (liquidDemand/0.5);
+                            biomassDemand = biomassForSolid + biomassForSynthGas + biomassForGas + biomassForSynthLiquid + biomassForLiquid;                           
                       }
+                      //work out biofuels produced
+                        if(biomassSupply*1000 < biomassForSolid){
+                            solidBiofuel = biomassSupply*1000; gasBiofuel = 0; liquidBiofuel = 0;
+                        }
+                        else if((biomassSupply*1000 - biomassForSolid) < biomassForSynthGas){
+                            solidBiofuel = biomassForSolid; gasBiofuel = (biomassSupply*1000 - biomassForSolid)*1; liquidBiofuel = 0;
+                        }
+                        else if((biomassSupply*1000 - biomassForSolid - biomassForSynthGas) < biomassForGas){
+                            solidBiofuel = biomassForSolid; gasBiofuel = biomassForSynthGas*1 + (biomassSupply*1000 - biomassForSolid - biomassForSynthGas)*0.6;
+                            liquidBiofuel = 0;
+                        }
+                        else if((biomassSupply*1000 - biomassForSolid - biomassForSynthGas - biomassForGas) < biomassForSynthLiquid){
+                            solidBiofuel = biomassForSolid; gasBiofuel = biomassForSynthGas*1 + biomassForGas*0.6;
+                            liquidBiofuel = (biomassSupply*1000 - biomassForSolid - biomassForSynthGas - biomassForGas)*0.8;
+                        }
+                        else if((biomassSupply*1000 - biomassForSolid - biomassForSynthGas - biomassForGas - biomassForSynthLiquid) < biomassForLiquid){
+                            solidBiofuel = biomassForSolid; gasBiofuel = biomassForSynthGas*1 + biomassForGas*0.6;
+                            liquidBiofuel = biomassForSynthLiquid*0.8 + 
+                                    (biomassSupply*1000 - biomassForSolid - biomassForSynthGas - biomassForGas - biomassForSynthLiquid)*0.5;
+                        }
+                        else{
+                            solidBiofuel = biomassForSolid;
+                            gasBiofuel = biomassForSynthGas*1 + biomassForGas*0.6;
+                            liquidBiofuel = biomassForSynthLiquid*0.8 + biomassForLiquid*0.5;}
                   }
                   else{// not enough H2 not enough biomass
                         if((H2Produced - ((transportH2Demand + industryH2Demand)*1000)) < 0){
                             synthFuelH2Demand = 0;
-                            biomassDemand = solidDemand 
-                                    + (gasDemand/0.6)
-                                    + (liquidDemand/0.5);
+                            
+                            biomassForSolid = solidDemand;
+                            biomassForSynthGas = 0;
+                            biomassForGas = (gasDemand/0.6);
+                            biomassForSynthLiquid = 0;
+                            biomassForLiquid = (liquidDemand/0.5);
+                            biomassDemand = biomassForSolid + biomassForSynthGas + biomassForGas + biomassForSynthLiquid + biomassForLiquid;
+                            
                         }
                         else if((H2Produced - ((transportH2Demand + industryH2Demand)*1000)) < (gasDemand*0.5)){
                             synthFuelH2Demand = (H2Produced - ((transportH2Demand + industryH2Demand)*1000));
-                            biomassDemand = solidDemand 
-                                    + ((H2Produced - ((transportH2Demand + industryH2Demand)*1000))/(gasDemand*0.5)) * (gasDemand/1)
-                                    + (1 - ((H2Produced - ((transportH2Demand + industryH2Demand)*1000))/(gasDemand*0.5))) * (gasDemand/0.6)
-                                    + (liquidDemand/0.5);
+                            
+                            biomassForSolid = solidDemand;
+                            biomassForSynthGas = ((H2Produced - ((transportH2Demand + industryH2Demand)*1000))/(gasDemand*0.5)) * (gasDemand/1);
+                            biomassForGas = (1 - ((H2Produced - ((transportH2Demand + industryH2Demand)*1000))/(gasDemand*0.5))) * (gasDemand/0.6);
+                            biomassForSynthLiquid = 0;
+                            biomassForLiquid = (liquidDemand/0.5);
+                            biomassDemand = biomassForSolid + biomassForSynthGas + biomassForGas + biomassForSynthLiquid + biomassForLiquid;
                         }
                         else{
                             synthFuelH2Demand = (H2Produced - ((transportH2Demand + industryH2Demand)*1000));
-                            biomassDemand = solidDemand
-                                    + (gasDemand/1)
-                                    + ((H2Produced - ((transportH2Demand + industryH2Demand)*1000) - (gasDemand*0.5))/(liquidDemand*0.5)) * (liquidDemand/0.8)
-                                    + (1 - ((H2Produced - ((transportH2Demand + industryH2Demand)*1000) - (gasDemand*0.5))/(liquidDemand*0.5))) * (liquidDemand/0.5);
+                            
+                            biomassForSolid = solidDemand;
+                            biomassForSynthGas = (gasDemand/1);
+                            biomassForGas = 0;
+                            biomassForSynthLiquid = ((H2Produced - ((transportH2Demand + industryH2Demand)*1000) - (gasDemand*0.5))/(liquidDemand*0.5)) * (liquidDemand/0.8);
+                            biomassForLiquid = (1 - ((H2Produced - ((transportH2Demand + industryH2Demand)*1000) - (gasDemand*0.5))/(liquidDemand*0.5))) * (liquidDemand/0.5);
+                            biomassDemand = biomassForSolid + biomassForSynthGas + biomassForGas + biomassForSynthLiquid + biomassForLiquid;
                         }
+                        
+                        //work out biofuels produced
+                        if(biomassSupply*1000 < biomassForSolid){
+                            solidBiofuel = biomassSupply*1000; gasBiofuel = 0; liquidBiofuel = 0;
+                        }
+                        else if((biomassSupply*1000 - biomassForSolid) < biomassForSynthGas){
+                            solidBiofuel = biomassForSolid; gasBiofuel = (biomassSupply*1000 - biomassForSolid)*1; liquidBiofuel = 0;
+                        }
+                        else if((biomassSupply*1000 - biomassForSolid - biomassForSynthGas) < biomassForGas){
+                            solidBiofuel = biomassForSolid; gasBiofuel = biomassForSynthGas*1 + (biomassSupply*1000 - biomassForSolid - biomassForSynthGas)*0.6;
+                            liquidBiofuel = 0;
+                        }
+                        else if((biomassSupply*1000 - biomassForSolid - biomassForSynthGas - biomassForGas) < biomassForSynthLiquid){
+                            solidBiofuel = biomassForSolid; gasBiofuel = biomassForSynthGas*1 + biomassForGas*0.6;
+                            liquidBiofuel = (biomassSupply*1000 - biomassForSolid - biomassForSynthGas - biomassForGas)*0.8;
+                        }
+                        else if((biomassSupply*1000 - biomassForSolid - biomassForSynthGas - biomassForGas - biomassForSynthLiquid) < biomassForLiquid){
+                            solidBiofuel = biomassForSolid; gasBiofuel = biomassForSynthGas*1 + biomassForGas*0.6;
+                            liquidBiofuel = biomassForSynthLiquid*0.8 + 
+                                    (biomassSupply*1000 - biomassForSolid - biomassForSynthGas - biomassForGas - biomassForSynthLiquid)*0.5;
+                        }
+                        else{
+                            solidBiofuel = biomassForSolid;
+                            gasBiofuel = biomassForSynthGas*1 + biomassForGas*0.6;
+                            liquidBiofuel = biomassForSynthLiquid*0.8 + biomassForLiquid*0.5;}
                   }
               }
           }
           else{  //No synth fuels
               synthFuelH2Demand = 0;
-              biomassDemand = solidDemand + (gasDemand/0.6) + (liquidDemand/0.5); 
+              
+              biomassForSolid = solidDemand;
+                            biomassForSynthGas = 0;
+                            biomassForGas = (gasDemand/0.6);
+                            biomassForSynthLiquid = 0;
+                            biomassForLiquid = (liquidDemand/0.5);
+                            biomassDemand = biomassForSolid + biomassForSynthGas + biomassForGas + biomassForSynthLiquid + biomassForLiquid;
+                        
+                //work out biofuels produced
+                if(biomassSupply*1000 < biomassForSolid){
+                    solidBiofuel = biomassSupply*1000; gasBiofuel = 0; liquidBiofuel = 0;
+                }
+                else if((biomassSupply*1000 - biomassForSolid) < biomassForSynthGas){
+                    solidBiofuel = biomassForSolid; gasBiofuel = (biomassSupply*1000 - biomassForSolid)*1; liquidBiofuel = 0;
+                }
+                else if((biomassSupply*1000 - biomassForSolid - biomassForSynthGas) < biomassForGas){
+                    solidBiofuel = biomassForSolid; gasBiofuel = biomassForSynthGas*1 + (biomassSupply*1000 - biomassForSolid - biomassForSynthGas)*0.6;
+                    liquidBiofuel = 0;
+                }
+                else if((biomassSupply*1000 - biomassForSolid - biomassForSynthGas - biomassForGas) < biomassForSynthLiquid){
+                    solidBiofuel = biomassForSolid; gasBiofuel = biomassForSynthGas*1 + biomassForGas*0.6;
+                    liquidBiofuel = (biomassSupply*1000 - biomassForSolid - biomassForSynthGas - biomassForGas)*0.8;
+                }
+                else if((biomassSupply*1000 - biomassForSolid - biomassForSynthGas - biomassForGas - biomassForSynthLiquid) < biomassForLiquid){
+                    solidBiofuel = biomassForSolid; gasBiofuel = biomassForSynthGas*1 + biomassForGas*0.6;
+                    liquidBiofuel = biomassForSynthLiquid*0.8 + 
+                            (biomassSupply*1000 - biomassForSolid - biomassForSynthGas - biomassForGas - biomassForSynthLiquid)*0.5;
+                }
+                else{
+                    solidBiofuel = biomassForSolid;
+                    gasBiofuel = biomassForSynthGas*1 + biomassForGas*0.6;
+                    liquidBiofuel = biomassForSynthLiquid*0.8 + biomassForLiquid*0.5;}
           }
           
-          H2Shortfall = (H2Produced/1000) - (transportH2Demand + industryH2Demand + synthFuelH2Demand/1000);         
+          H2Shortfall = (H2Produced/1000) - (transportH2Demand + industryH2Demand + synthFuelH2Demand/1000);
+          
+          residualEmissions =0;
+          if(solidDemand > solidBiofuel){residualEmissions += (solidDemand - solidBiofuel)*0.4;}
+          if(gasDemand > gasBiofuel){residualEmissions += (gasDemand - gasBiofuel)*0.2;}
+          if(liquidDemand > liquidBiofuel){residualEmissions += (liquidDemand - liquidBiofuel)*0.3;}
+          if((H2Produced/1000) < (transportH2Demand + industryH2Demand)){residualEmissions += 
+                  (((transportH2Demand + industryH2Demand) - (H2Produced/1000))*0.2*1000);}
+          
+          //System.out.println("s:"+solidDemand+"   "+solidBiofuel+"    g:"+gasDemand+"   "+gasBiofuel+"   l:"+liquidDemand+"   "+liquidBiofuel);
          
           //Reminder(10);  
           drawPanel();
@@ -1201,6 +1320,8 @@ public class EnergyModelUI extends javax.swing.JFrame {
                     g.setColor(Color.black);
                     g2d.drawLine(25, 226, 8785, 226); 
                 }
+                g.setColor(Color.pink);
+                g.drawString("CHP", 50, 20);
                 g.setColor(Color.blue);
                 g.drawString("Wind", 150, 20);
                 g.setColor(Color.YELLOW);
@@ -1296,6 +1417,7 @@ public class EnergyModelUI extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel51;
     private javax.swing.JLabel jLabel52;
     private javax.swing.JLabel jLabel53;
+    private javax.swing.JLabel jLabel54;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
@@ -1307,6 +1429,7 @@ public class EnergyModelUI extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JTextField nuclearCapField;
+    private javax.swing.JLabel residualEmissionsLabel;
     private javax.swing.JButton runButton;
     private javax.swing.JTextField solarCapField;
     private javax.swing.JTextField storageCapField;
