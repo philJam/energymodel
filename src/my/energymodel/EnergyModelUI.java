@@ -33,6 +33,7 @@ public class EnergyModelUI extends javax.swing.JFrame {
     int CHPPos = 0;
     int backupPos = 0;
     int unmetPos = 0;
+    int storePos = 0;
     double excessGeneration = 0;
     double unmetDemand = 0;
     int i=0;
@@ -43,6 +44,7 @@ public class EnergyModelUI extends javax.swing.JFrame {
     double windPower[] = new double[8760];
     double solarPower[] = new double[8760];
     double CHPPower[] = new double[8760];
+    double hourlyAppliancesDemand[] = new double[8760];
     double hourlyHeatDemand[] = new double[8760];
     double hourlyElecForHeatDemand[] = new double[8760];
     double hourlySpaceHeatDemand[] = new double[8760];
@@ -61,6 +63,8 @@ public class EnergyModelUI extends javax.swing.JFrame {
     double windCap;
     double solarCap;
     double nuclearCap;
+    double store;
+    double store1;
     double backupCapInstalled;
     double backupCapUsed;
     double backupGeneration;
@@ -808,8 +812,8 @@ public class EnergyModelUI extends javax.swing.JFrame {
           totalSupply = 0;
           
           for(i=0;i<8760;i++){
-              energyDemand[i] = energyDemand[i] / (totalDemandInProfile/1000) * appElecDemand;
-              energyDemand[i] = energyDemand[i] + hourlyElecForHeatDemand[i] + transportDemand + hourlyElecForIndustry[i];
+              hourlyAppliancesDemand[i] = energyDemand[i] / (totalDemandInProfile/1000) * appElecDemand;
+              energyDemand[i] = hourlyAppliancesDemand[i] + hourlyElecForHeatDemand[i] + transportDemand + hourlyElecForIndustry[i];
               totalGeneration[i] = windPower[i] + solarPower[i] + (nuclearCap*0.9) + CHPPower[i];
               totalSupply += totalGeneration[i]/1000;
               // If demand greater than supply take from store
@@ -1212,14 +1216,18 @@ public class EnergyModelUI extends javax.swing.JFrame {
             // Draw balance graph
             if(balanceMarker == 1){
                 for(int p=1;p<8760;p++){
+                    if(storageChange[p-1]<0){store1 = storageChange[p-1];}
+                    else{store1 = 0;}
+                    if(storageChange[p]<0){store = storageChange[p];}
+                    else{store = 0;}
                     g.setColor(Color.blue);
-                    windSquarePos = (int)Math.round(totalGeneration[p-1]);
-                    windSquarePos1 = (int)Math.round(totalGeneration[p]);
+                    windSquarePos = (int)Math.round(totalGeneration[p-1]-store1);
+                    windSquarePos1 = (int)Math.round(totalGeneration[p]-store);
                     //g2d.fillRect(p+26, 25+(200-squarePos), 1, 2);
                     g2d.drawLine(p+26, 25+(200-windSquarePos1), p+25, 25+(200-windSquarePos));
                     g.setColor(Color.black);
-                    demandSquarePos = (int)Math.round(energyDemand[p-1]);
-                    demandSquarePos1 = (int)Math.round(energyDemand[p]);
+                    demandSquarePos = (int)Math.round(energyDemand[p-1]-store1);
+                    demandSquarePos1 = (int)Math.round(energyDemand[p]-store);
                     //g2d.fillRect(p+26, 25+(200-squarePos), 1, 2);
                     g2d.drawLine(p+26, 25+(200-demandSquarePos1), p+25, 25+(200-demandSquarePos));
                     if(windSquarePos>demandSquarePos){
@@ -1240,10 +1248,15 @@ public class EnergyModelUI extends javax.swing.JFrame {
             else if(demandMarker == 1){
                 for(int p=1;p<8760;p++){
                     
-                    g.setColor(Color.blue);
-                    demandSquarePos = (int)Math.round(energyDemand[p-1]);                  
-                    g2d.drawLine(p+25, 25+(200-demandSquarePos), p+25, 225);
+                    //g.setColor(Color.blue);
+                    //demandSquarePos = (int)Math.round(energyDemand[p-1]);                  
+                    //g2d.drawLine(p+25, 25+(200-demandSquarePos), p+25, 225);
                     
+                    if(hourlyAppliancesDemand[p-1]>0){
+                        g.setColor(Color.blue);
+                        demandSquarePos = (int)Math.round(hourlyAppliancesDemand[p-1] + electrolysisDemand[p-1] + hourlyElecForIndustry[p-1] + transportDemand + hourlyElecForHeatDemand[p-1]);                        
+                        g2d.drawLine(p+25, 25+(200-demandSquarePos), p+25, 225);
+                    }
                     if(electrolysisDemand[p-1]>0){
                         g.setColor(Color.green);
                         demandSquarePos = (int)Math.round(electrolysisDemand[p-1] + hourlyElecForIndustry[p-1] + transportDemand + hourlyElecForHeatDemand[p-1]);                        
@@ -1271,8 +1284,8 @@ public class EnergyModelUI extends javax.swing.JFrame {
                     demandSquarePos = (int)Math.round(energyDemand[p-1]);
                     demandSquarePos1 = (int)Math.round(storageChange[p-1]);
                     if(storageChange[p-1]<0){
-                        g.setColor(Color.pink);
-                        g2d.drawLine(p+25, 25+(200-demandSquarePos+demandSquarePos1), p+25, 25+(200-demandSquarePos));   
+                        //g.setColor(Color.pink);
+                        //g2d.drawLine(p+25, 25+(200-demandSquarePos+demandSquarePos1), p+25, 25+(200-demandSquarePos));   
                     }
                     else if(storageChange[p-1]>0){
                         g.setColor(Color.yellow);
@@ -1291,36 +1304,40 @@ public class EnergyModelUI extends javax.swing.JFrame {
                 g.drawString("Appliances, lights & cooking", 550, 20);
                 g.setColor(Color.yellow);
                 g.drawString("To electricity store", 750, 20);
-                g.setColor(Color.pink);
-                g.drawString("From electricity store", 900, 20);
                 
             }
             //Draw supply graph 
             else if(supplyMarker == 1){
                 for(int p=1;p<8760;p++){
-                    g.setColor(Color.green);
                     windSquarePos = (int)Math.round(windPower[p-1]);
                     solarPos = (int)Math.round(solarPower[p-1]);
                     nuclearPos = (int)Math.round((nuclearCap * 0.9));
                     CHPPos = (int)Math.round((CHPPower[p-1]));
                     backupPos = (int)Math.round(backupUsed[p-1]);
-                    unmetPos = (int)Math.round(unmet[p-1]);
+                    unmetPos = (int)Math.round(unmet[p-1]);              
+                    if(storageChange[p-1]<0){storePos = (int)Math.round(storageChange[p-1]);}
+                    else{storePos = 0;}
+                    
+                    g.setColor(Color.gray);
+                    g2d.drawLine(p+25, 25+(200-nuclearPos)-CHPPos-solarPos-windSquarePos+storePos-backupPos-unmetPos, p+25, 25+(200-nuclearPos)-CHPPos-solarPos-windSquarePos+storePos-backupPos);
+                    g.setColor(Color.red);
+                    g2d.drawLine(p+25, 25+(200-nuclearPos)-CHPPos-solarPos-windSquarePos+storePos-backupPos, p+25, 25+(200-nuclearPos)-CHPPos-solarPos-windSquarePos+storePos);
+                    g.setColor(Color.pink);
+                    g2d.drawLine(p+25, 25+(200-nuclearPos)-CHPPos-solarPos-windSquarePos+storePos, p+25, 25+(200-nuclearPos)-CHPPos-solarPos-windSquarePos);
                     g.setColor(Color.orange);
                     g2d.drawLine(p+25, 25+(200-nuclearPos), p+25, 225);
-                    g.setColor(Color.pink);
+                    g.setColor(Color.green);
                     g2d.drawLine(p+25, 25+(200-nuclearPos)-CHPPos, p+25, 25+(200-nuclearPos));
                     g.setColor(Color.yellow);
-                    g2d.drawLine(p+25, 25+(200-nuclearPos)-CHPPos-solarPos, p+25, 25+(200-nuclearPos)-CHPPos);                    
-                    g.setColor(Color.gray);
-                    g2d.drawLine(p+25, 25+(200-nuclearPos)-CHPPos-solarPos-windSquarePos-backupPos-unmetPos, p+25, 25+(200-nuclearPos)-CHPPos-solarPos-windSquarePos-backupPos);
-                    g.setColor(Color.red);
-                    g2d.drawLine(p+25, 25+(200-nuclearPos)-CHPPos-solarPos-windSquarePos-backupPos, p+25, 25+(200-nuclearPos)-CHPPos-solarPos-windSquarePos);
+                    g2d.drawLine(p+25, 25+(200-nuclearPos)-CHPPos-solarPos, p+25, 25+(200-nuclearPos)-CHPPos);                                      
                     g.setColor(Color.blue);
                     g2d.drawLine(p+25, 25+(200-nuclearPos)-CHPPos-solarPos-windSquarePos, p+25, 25+(200-nuclearPos)-CHPPos-solarPos);
+                       
                     g.setColor(Color.black);
-                    g2d.drawLine(25, 226, 8785, 226); 
+                    g2d.drawLine(25, 226, 8785, 226);
+                    
                 }
-                g.setColor(Color.pink);
+                g.setColor(Color.green);
                 g.drawString("CHP", 50, 20);
                 g.setColor(Color.blue);
                 g.drawString("Wind", 150, 20);
@@ -1332,6 +1349,8 @@ public class EnergyModelUI extends javax.swing.JFrame {
                 g.drawString("Back-up power", 450, 20);
                 g.setColor(Color.GRAY);
                 g.drawString("Unmet demand", 600, 20);
+                g.setColor(Color.pink);
+                g.drawString("From electricity store", 750, 20);
             }
         }      
     }
