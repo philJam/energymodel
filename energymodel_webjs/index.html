@@ -81,45 +81,161 @@
 <button id="balance">Balance</button>
 <button id="supply">Supply</button>
 <button id="demand">Demand</button>
+<button id="store">Store</button>
 
 <hr><h3>INPUT</h3><hr>
+<table style="width:100%">
 
-<table>
-    <tr><th></th><th>GW</th><th></th><th>TWh/yr</th></tr>
+    <tr>
+        <th style="text-align:left">Supply</th><th></th>
+    </tr>
+    <tr><td>GW</td></tr>
     <tr>
         <td>Wind</td><td><input type="text" key="input.windCap"></td>
-        <td>Appliances elec. demand</td><td><input type="text" key="input.totalDemand"></td>
-    </tr>
-    <tr>
         <td>Solar</td><td><input type="text" key="input.solarCap"></td>
-        <td>Hot water demand (heat)</td><td><input type="text" key="input.hotWaterDemand"></td>
-    </tr>
-    <tr>
         <td>Nuclear</td><td><input type="text" key="input.nuclearCap"></td>
-        <td>Transport elec. demand</td><td><input type="text" key="input.transportDemand"></td>
+        <td>Backup capacity</td><td><input type="text" key="input.backupCap"></td>
+    </tr>
+    <tr><td><BR></td></tr>
+    <tr><td>Biomass</td><td><input type="text" key="input.biomassSupply"></td><td>TWh/yr</td></tr>
+    <tr><td><BR></td></tr>
+    
+    <tr>
+        <th style="text-align:left">Demand</th><th></th>
+    </tr>
+    <tr>    
+        <td>Heat loss of buildings</td><td><input type="text" key="input.heatLossCoefficient"></td><td>GW/°C</td>
     </tr>
     <tr>
-        <td>Backup capacity installed</td><td><input type="text" key="input.backupCapInstalled"></td>
-        <td>Industrial elec. demand</td><td><input type="text" key="input.industryDemand"></td>
+        <td>Hot water (heat)</td><td><input type="text" key="input.hotWaterDemand_TWh"></td><td>TWh/yr</td>
     </tr>
+    <tr>
+        <td></td><td>Direct electric</td><td>Heat pumps</td><td>Solid</td><td>Gas</td><td>Liquid</td><td>CHP(s)</td><td>CHP(g)</td><td>CHP(l)</td>
+        <tr>    
+        <td>% heat demand met by...</td><td><input type="text" key="input.percentHeatDirectelec"></td><td><input type="text" key="input.percentHeatHeatpumps"></td>
+        <td><input type="text" key="input.percentHeatSolid"></td><td><input type="text" key="input.percentHeatGas"></td>
+        <td><input type="text" key="input.percentHeatLiquid"></td><td><input type="text" key="input.percentHeatCHPSolid"></td>
+        <td><input type="text" key="input.percentHeatCHPGas"></td><td><input type="text" key="input.percentHeatCHPLiquid"></td>
+        </tr>
+    </tr>
+    <tr><td><BR></td></tr>
+    
+    <tr><td>TWh/yr</td><td>Electricity</td><td>Solid</td><td>Gas</td><td>Liquid</td><td>CHP(s)</td><td>CHP(g)</td><td>CHP(l)</td><td>Hydrogen</td></tr>
+    <tr>
+        <td>Appliances, lighting & cooking</td><td><input type="text" key="input.appliancesDemand_TWh"></td>
+        <td><input type="text" key="input.appliancesSolidDemand"></td><td><input type="text" key="input.appliancesGasDemand"></td>
+        <td><input type="text" key="input.appliancesLiquidDemand"></td>
+    </tr>
+    <tr>
+        <td>Transport</td><td><input type="text" key="input.transportDemand_TWh"></td>
+        <td><input type="text" key="input.transportSolidDemand"></td><td><input type="text" key="input.transportGasDemand"></td>
+        <td><input type="text" key="input.transportLiquidDemand"></td><td></td><td></td><td></td>
+        <td><input type="text" key="input.transportHydrogenDemand"></td><td>
+    </tr>
+    <tr>
+        <td>Industry</td><td><input type="text" key="input.industryDemand_TWh"></td>
+        <td><input type="text" key="input.industrySolidDemand"></td><td><input type="text" key="input.industryGasDemand"></td>
+        <td><input type="text" key="input.industryLiquidDemand"></td><td><input type="text" key="input.industryCHPSolidDemand"></td>
+        <td><input type="text" key="input.industryCHPGasDemand"></td><td><input type="text" key="input.industryCHPLiquidDemand"></td>
+        <td><input type="text" key="input.industryHydrogenDemand"></td><td>
+    </tr>
+    <tr><td COLSPAN=2><BR></td></tr>
+    
+    <tr>
+        <th style="text-align:left">Storage</th><th></th>
+    </tr>
+    <tr>
+        <td>Electricity store</td>
+    </tr>
+    <tr>
+        <td COLSPAN=2>Store max discharge rate (GW)</td><td><input type="text" key="input.store_max_discharge_rate"></td>    
+        <td COLSPAN=2>Store max charge rate (GW)</td><td><input type="text" key="input.store_max_charge_rate"></td>
+        <td COLSPAN=2>Store max capacity (GWh)</td><td><input type="text" key="input.store_max_capacity_GWh"></td>
+    </tr>
+    <tr>
+        <td COLSPAN=2>Store discharge efficiency</td><td><input type="text" key="input.store_discharge_efficiency"></td>
+        <td COLSPAN=2>Store charge efficiency</td><td><input type="text" key="input.store_charge_efficiency"></td>
+        <td COLSPAN=2>Store start capacity (GWh)</td><td><input type="text" key="input.store_start_capacity_GWh"></td>
+    </tr>
+    <tr><td><BR></td></tr>
+    <tr>
+        <td>Hydrogen</td>
+    </tr>
+    <tr>
+        <td COLSPAN=2>Electrolysis capacity</td><td><input type="text" key="input.electrolysisCap"></td><td>GW</td>
+    </tr>
+    <tr><td><BR></td></tr>
     
 </table>
 
 <button id="run">Run</button>
 <br>
 <hr><h3>OUTPUT</h3><hr>
+<table style="width:100%">
 
-<table>
-    
+
     <tr>
-        <td>Excess generation</td><td><span key="out.excessGeneration"></span> TWh/yr</td>
-        <td>Backup capacity used</td><td><span key="out.backupCapUsed"></span> GW</td>
+        <th style="text-align:left">Generation</th><th></th>
+        <th style="text-align:left">Demand</th><th></th>
+        <th style="text-align:left">Store</th><th></th>
+    </tr>
+
+    <tr>
+        <td>Wind</td><td><span key="out.windGeneration" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Total electricity demand</td><td><span key="out.demandGWh" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Max discharge rate</td><td><span key="out.store_used_discharge_rate" dp=1></span> GW</td>
+    </tr>
+
+    <tr>
+        <td>Solar</td><td><span key="out.solarGeneration" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Unmet</td><td><span key="out.unmetDemand" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Max charge rate</td><td><span key="out.store_used_charge_rate" dp=1></span> GW</td>
     </tr>
     
     <tr>
-        <td>Unmet demand</td><td><span key="out.unmetDemand"></span> TWh/yr</td>
-        <td>Backup generation</td><td><span key="out.backupGeneration"></span> TWh/yr</td>
+        <td>Nuclear</td><td><span key="out.nuclearGeneration" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Max shortfall</td><td><span key="out.max_shortfall" dp=1></span> GW</td>
+        <td>Lowest capacity</td><td><span key="out.store_used_min_capacity" dp=1></span> GWh</td>
     </tr>
+    
+    <tr>
+        <td>Excess generation</td><td><span key="out.excessGeneration" scale=0.001 dp=1></span> TWh/yr</td>
+        <td></td><td></td>
+        <td>Highest capacity</td><td><span key="out.store_used_max_capacity" dp=1></span> GWh</td>
+    </tr>
+    
+    <tr>
+        <td></td><td></td>
+        <td>Total heat demand</td><td><span key="out.totalHeatDemand" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Total charge</td><td><span key="out.store_total_charge" scale=0.001 dp=1></span> TWh</td>
+    </tr>
+    
+    <tr>
+        <td>Backup generation</td><td><span key="out.backupGeneration" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Hydrogen produced</td><td><span key="out.hydrogenProduced" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Total discharge</td><td><span key="out.store_total_discharge" scale=0.001 dp=1></span> TWh</td>
+    </tr>
+    
+    <tr>
+        <td>Backup capacity used</td><td><span key="out.backupCapUsed" dp=1></span> GW</td>
+        <td></td><td></td>
+        <td>Total loss</td><td><span key="out.store_total_loss" scale=0.001 dp=1></span> TWh</td>
+    </tr>
+    
+    <tr>
+        <td></td><td></td>
+        <td>Solid fuel</td><td><span key="out.solidDemand" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>End capacity level</td><td><span key="out.store_capacity" dp=1></span> GWh</td>
+    </tr>
+    <tr>
+        <td></td><td></td>
+        <td>Gas fuel</td><td><span key="out.gasDemand" scale=0.001 dp=1></span> TWh/yr</td>
+    </tr>
+    <tr>
+        <td></td><td></td>
+        <td>Liquid fuel</td><td><span key="out.liquidDemand" scale=0.001 dp=1></span> TWh/yr</td>
+    </tr>
+    <tr><td><BR></td></tr>
     
 </table>
 
@@ -129,6 +245,7 @@
 </body>
 
 <script>
+
     var csvfile = "";
     var excessGeneration = 0;
     var unmetDemand = 0;
@@ -143,105 +260,185 @@
     var hourlyElecForIndustry = [];
     var temperatureData = [];
     var totalGeneration = [];
-    var backupUsed = [];
     var unmet = [];
-    var storageContent = [];
-    var storageChange = [];
+    var backupUsed = [];
     
     var windCap = 140; // GW
     var solarCap = 70; // GW
     var nuclearCap = 0; // GW
-    var backupCapInstalled = 45; // GW
-    var backupCapUsed = 0;
-    var backupGeneration = 0;
+    var backupCap = 45; // GW
+    var biomassSupply = 274; // TWh/yr
+    
     var demandProfile = 0;
-    var totalDemand = 105; // TWh/yr
-    var heatLossCoefficient = 4.398; // GW/degC
+    var heatLossCoefficient = 4.4; // GW/degC
     var baseTemp = 16-(385/((heatLossCoefficient/4.398)*119)); //Gains need linking to appliances energy reduction
     var totalHeatDemand = 0;
     var totalDemandInProfile = 0;
-    var storageVolume = 250; // GWh 
-    var storageCap = 30; // GW
     var heatPumpCoP = 2.5;
-    var hotWaterDemand = 96*1000/8760; // 80 TWh/yr
-    var transportDemand = 42*1000/8760; // 80 TWh/yr
-    var industryDemand = 171*1000/8760; // 80 TWh/yr
+    var hotWaterDemand_TWh = 96;
+    var percentHeatDirectelec = 15;
+    var percentHeatHeatpumps = 85;
+    var percentHeatSolid = 5;
+    var percentHeatGas = 0;
+    var percentHeatLiquid = 0;
+    var percentHeatCHPSolid = 0;
+    var percentHeatCHPGas = 0;
+    var percentHeatCHPLiquid = 0;
+    var appliancesDemand_TWh = 105;
+    var appliancesSolidDemand = 0;
+    var appliancesGasDemand = 0;
+    var appliancesLiquidDemand = 0;
+    var transportDemand_TWh = 42;
+    var transportSolidDemand = 0;
+    var transportGasDemand = 0;
+    var transportLiquidDemand = 98;
+    var transportHydrogenDemand = 13;
+    var industryDemand_TWh = 171;
+    var industrySolidDemand = 0;
+    var industryGasDemand = 61;
+    var industryLiquidDemand = 12;
+    var industryCHPSolidDemand = 26;
+    var industryCHPGasDemand = 0;
+    var industryCHPLiquidDemand = 0;
+    var industryHydrogenDemand = 0;
     
+    var solidDemand = 0;
+    var gasDemand = 0;
+    var liquidDemand = 0;
     
-    $('input[key="input.totalDemand"]').val(totalDemand);
-    $('input[key="input.solarCap"]').val(solarCap);
-    $('input[key="input.windCap"]').val(windCap);
-    $('input[key="input.nuclearCap"]').val(nuclearCap);
-    $('input[key="input.backupCapInstalled"]').val(backupCapInstalled);
-    $('input[key="input.hotWaterDemand"]').val(96);
-    $('input[key="input.transportDemand"]').val(42);
-    $('input[key="input.industryDemand"]').val(171);
+    var solarGeneration = 0;
+    var windGeneration = 0;
+    var nuclearGeneration = 0;
+    var backupGeneration = 0;
+    var backupCapUsed = 0;
+    var demandGWh = 0;
+    var max_shortfall = 0;
+    var total_store_loss = 0;
+    
+    //------------------------------------------------
+    // Storage capacity, size, performance
+    var store_max_discharge_rate   = 10;      // GW
+    var store_max_charge_rate      = 10;      // GW
+    var store_max_capacity_GWh     = 50;    // TWh
+    var store_max_capacity         = store_max_capacity_GWh;
+    var store_discharge_efficiency = 0.9;     // 90%
+    var store_charge_efficiency    = 0.9;     // 90%
+    
+    var electrolysisCap = 35; // GW
+    var electrolysisDemand = [];
+    var hydrogenProduced = 0;
+    
+    // Variables to record utilisation of store
+    var store_used_discharge_rate = 0;
+    var store_used_charge_rate = 0;
+    var store_used_min_capacity = store_max_capacity;
+    var store_used_max_capacity = 0;
+    var store_total_charge = 0;
+    var store_total_discharge = 0;
+    var store_total_loss = 0;
+    
+    var store_start_capacity_GWh   = store_max_capacity_GWh /2;    // GWh
+    var store_start_capacity       = store_start_capacity_GWh;
+    var store_capacity = store_start_capacity;
+    //------------------------------------------------
+    var store_hourly_capacity = [];
+    var storageChange = [];
+    
+    $("[key]").each(function(){
+        var keyparts = $(this).attr('key').split(".");
+        if (keyparts[0]=='input') $(this).val(window[keyparts[1]]);
+    });
+    
     
     var spaceHeatingDailyProfile = [0.8,0.8,0.9,0.9,1.7,6.5,7.7,8.3,7.5,6.0,4.6,4.0,3.5,3.3,3.3,3.4,3.7,4.1,5.2,6.3,6.4,6.1,4.2,0.8];
-    var hotWaterDailyProfile = [4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2];
+    var hotWaterDailyProfile = [4.1,4.1,4.1,4.1,4.1,4.1,4.1,4.1,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2];
     // [0.1,0.1,0.1,0.5,1.5,3.5,7.6,10.2,11.2,6.9,4.6,3.0,1.9,1.9,2.1,3.0,7.0,7.8,7.1,5.8,4.5,3.7,3.2,2.7];
-    var industrialDailyProfile = [4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2];
+    var industrialDailyProfile = [4.1,4.1,4.1,4.1,4.1,4.1,4.1,4.1,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2];
     // [1,1,1,1,1,1,1,1,10.5,10.5,10.5,10.5,10.5,10.5,10.5,10.5,1,1,1,1,1,1,1,1];
 
 
-    var balanceMarker = 1;
-    var demandMarker = 0;
-    var supplyMarker = 0;
+    var graph_mode = 'balance';
     
-    //--------------------------------------------------------------------------------------
-    
-    storageContent[0] = storageVolume/2;
     
     function process()
     {
         excessGeneration = 0;
+        solarGeneration = 0;
+        windGeneration = 0;
+        nuclearGeneration = 0;
+        backupGeneration = 0;
+        backupCapUsed = 0;
+        
+        demandGWh = 0;
         unmetDemand = 0;
+        max_shortfall = 0;
+        store_total_loss = 0;
     
         energyDemand = [];
         windPower = [];
         solarPower = [];
+        CHPPower = [];
         hourlyHeatDemand = [];
         hourlyElecForHeatDemand = [];
         hourlySpaceHeatDemand = [];
         hourlyWaterHeatDemand = [];
+        hourlyElecForAppliances = [];
+        hourlyElecForTransport = [];
         hourlyElecForIndustry = [];
         temperatureData = [];
         totalGeneration = [];
         backupUsed = [];
         unmet = [];
-        storageContent = [];
-        storageChange = []; 
-        
-        windCap = parseFloat($('input[key="input.windCap"]').val());
-        solarCap = parseFloat($('input[key="input.solarCap"]').val());
-        nuclearCap = parseFloat($('input[key="input.nuclearCap"]').val());
-        backupCapInstalled = parseFloat($('input[key="input.backupCapInstalled"]').val());
-        backupCapUsed = 0;
-        backupGeneration = 0;
+
+        $("[key]").each(function(){
+            var keyparts = $(this).attr('key').split(".");
+            if (keyparts[0]=='input') window[keyparts[1]] = parseFloat($(this).val());
+        });
+
         demandProfile = 0;
-        totalDemand = parseFloat($('input[key="input.totalDemand"]').val());
-        heatLossCoefficient = 4.398; // GW/degC
+        totalDemand = parseFloat($('input[key="input.appliancesDemand_TWh"]').val());
         baseTemp = 16-(385/((heatLossCoefficient/4.398)*119)); //Gains need linking to appliances energy reduction
         totalHeatDemand = 0;
         totalDemandInProfile = 0;
-        storageVolume = 250; // GWh 
-        storageCap = 30; // GW
-        heatPumpCoP = 2.5;
-        hotWaterDemand = parseFloat($('input[key="input.hotWaterDemand"]').val())*1000/8760;
-        transportDemand = parseFloat($('input[key="input.transportDemand"]').val())*1000/8760;
-        industryDemand = parseFloat($('input[key="input.industryDemand"]').val())*1000/8760;
         
-        storageContent[0] = storageVolume/2;
-    
+        heatPumpCoP = 2.5;
+        hotWaterDemand = hotWaterDemand_TWh*1000/8760;
+        transportDemand = transportDemand_TWh*1000/8760;
+        industryDemand = industryDemand_TWh*1000/8760;
+
+        store_max_capacity = store_max_capacity_GWh;
+        store_start_capacity = store_start_capacity_GWh;
+        //------------------------------------------------
+        // Variables to record utilisation of store
+        store_used_discharge_rate = 0;
+        store_used_charge_rate = 0;
+        store_used_min_capacity = store_max_capacity;
+        store_used_max_capacity = 0;
+        store_total_charge = 0;
+        store_total_discharge = 0;
+        store_total_loss = 0;
+        //------------------------------------------------
+        store_hourly_capacity = [];
+        storageChange = [];
+        store_capacity = store_start_capacity;
+        
+        
+        
         x=0;
         var lines = csvfile.split(/\r\n|\n/);
         
-        for (var i=0; i<lines.length; i++) {
+        for (var i=0; i<lines.length-1; i++) {
             var splitarray = lines[i].split(',');
             
             energyDemand[x] = parseFloat(splitarray[0]);
+            
             windPower[x] = parseFloat(splitarray[1]) * windCap;
             solarPower[x] = parseFloat(splitarray[2]) * solarCap;
+            
+            windGeneration += windPower[x];
+            solarGeneration += solarPower[x];
+            nuclearGeneration += nuclearCap*0.9;
+            
             temperatureData[x] = parseFloat(splitarray[3]);
             
             if((baseTemp - temperatureData[x]) > 0){
@@ -252,11 +449,14 @@
             }
             
             x++;
-        }
-       
+        }     
         
         totalDemandInProfile = 0;
         totalHeatDemand = 0;
+        solidDemand = 0;
+        gasDemand = 0;
+        liquidDemand = 0;
+        
         x=0;
         for(var i=0; i<8760; i++)
         {
@@ -269,87 +469,150 @@
             hourlyHeatDemand[i] = hourlySpaceHeatDemand[i] + hourlyWaterHeatDemand[i];
             totalHeatDemand += hourlyHeatDemand[i];
             hourlyElecForHeatDemand[i] = hourlyHeatDemand[i] / heatPumpCoP;
+            
+            // Calculate demand for solid, gas & liquid fuel for heat
+            solidDemand += (hourlyHeatDemand[i]*(percentHeatSolid/100))/0.9;
+            gasDemand += (hourlyHeatDemand[i]*(percentHeatGas/100))/0.9;
+            liquidDemand += (hourlyHeatDemand[i]*(percentHeatLiquid/100))/0.9;
+              
+            solidDemand += (hourlyHeatDemand[i]*(percentHeatCHPSolid/100))/0.6;
+            gasDemand += (hourlyHeatDemand[i]*(percentHeatCHPGas/100))/0.6;
+            liquidDemand += (hourlyHeatDemand[i]*(percentHeatCHPLiquid/100))/0.6;
+            
+            // CHP assumes efficiency of 30% for electricity, 60% for heat
+            CHPPower[i] = (hourlyHeatDemand[i]*(percentHeatCHPSolid/100))*(0.3/0.6) + 
+                      (hourlyHeatDemand[i]*(percentHeatCHPGas/100))*(0.3/0.6) + 
+                      (hourlyHeatDemand[i]*(percentHeatCHPLiquid/100))*(0.3/0.6) + 
+                      ((industryCHPSolidDemand/8760)*1000 * 24 * (industrialDailyProfile[x]/100))*0.3 + 
+                      ((industryCHPGasDemand/8760)*1000 * 24 * (industrialDailyProfile[x]/100))*0.3 +
+                      ((industryCHPLiquidDemand/8760)*1000 * 24 * (industrialDailyProfile[x]/100))*0.3 ;
+            
             x++;
             if(x==23) x=0;
         }
         
-        console.log("Total heat demand: "+Math.round(totalHeatDemand/1000)+" TWh/yr");
-          
+        hydrogenProduced = 0;
+        
         for(var i=0;i<8760;i++)
         {
-            energyDemand[i] = energyDemand[i] / (totalDemandInProfile/1000) * totalDemand;
-            energyDemand[i] = energyDemand[i] + hourlyElecForHeatDemand[i] + transportDemand + hourlyElecForIndustry[i];
-            totalGeneration[i] = windPower[i] + solarPower[i] + (nuclearCap*0.9);
+            var backupgen = 0;
+            // energyDemand and totalGeneration in GW
+            hourlyElecForAppliances[i] = energyDemand[i] / (totalDemandInProfile/1000) * appliancesDemand_TWh;
+            energyDemand[i] = hourlyElecForAppliances[i] + hourlyElecForHeatDemand[i] + transportDemand + hourlyElecForIndustry[i];
+            totalGeneration[i] = windPower[i] + solarPower[i] + (nuclearCap*0.9) + CHPPower[i];
+           
+            demandGWh += energyDemand[i];
             
-            // If demand greater than supply take from store
-            if(energyDemand[i]>totalGeneration[i]){
-                if(storageContent[i]<storageCap){
-                    if(storageContent[i]<(energyDemand[i]-totalGeneration[i])){
-                        storageChange[i] = -storageContent[i];
-                    }
-                    else{storageChange[i] = -(energyDemand[i]-totalGeneration[i]);}
-                }
-                else if(storageCap<(energyDemand[i]-totalGeneration[i])){
-                    storageChange[i] = -storageCap;
-                }
-                else{storageChange[i] = -(energyDemand[i]-totalGeneration[i]);}
-            }
+            var store_capacity_remaining = store_max_capacity-store_capacity;
+
+            // STORE DISCHARGE
+            //            Loss
+            //             ^
+            //             |
+            // Store -l2------l1-> Output 
+            //         
+            // - l1 Rate limit
+            // - l2 Capacity limit
             
-            // Is supply greater than demand give to store
-            if(energyDemand[i]<=totalGeneration[i]){
-                if((storageVolume-storageContent[i])<storageCap){
-                    if((storageVolume-storageContent[i])<(totalGeneration[i]-energyDemand[i])){
-                        storageChange[i] = (storageVolume-storageContent[i]);
-                    }
-                    else{storageChange[i] = (totalGeneration[i]-energyDemand[i]);}
-                }
-                else if(storageCap<(totalGeneration[i]-energyDemand[i])){
-                    storageChange[i] = storageCap;
-                }
-                else{storageChange[i] = (totalGeneration[i]-energyDemand[i]);}
-            }
-            //Adjust storage content
-            if(i<8759){storageContent[i+1] = storageContent[i] + storageChange[i];}
-            energyDemand[i] = energyDemand[i] + storageChange[i];
-        }
-        
-        //Calculate backup generation and unmet demand
-        for(var i=0;i<8760;i++){
-            if(energyDemand[i]>totalGeneration[i]){
-                if((energyDemand[i]-totalGeneration[i])<backupCapInstalled){
-                    backupGeneration += (energyDemand[i]-totalGeneration[i]);
-                    backupUsed[i] = (energyDemand[i]-totalGeneration[i]);
-                    unmet[i] = 0;
-                    if((energyDemand[i]-totalGeneration[i])>backupCapUsed){
-                        backupCapUsed = (energyDemand[i]-totalGeneration[i]);
-                    }
-                }
-                else
-                {
-                    backupGeneration += backupCapInstalled;
-                    backupUsed[i] = backupCapInstalled;
-                    unmetDemand += ((energyDemand[i]-totalGeneration[i]) - backupCapInstalled);
-                    unmet[i] = ((energyDemand[i]-totalGeneration[i]) - backupCapInstalled);
-                    backupCapUsed = backupCapInstalled;
-                }
-            }
-            else
+            if (energyDemand[i]>totalGeneration[i])
             {
-                excessGeneration += (totalGeneration[i] - energyDemand[i]);
-                backupUsed[i] = 0;
-                unmet[i] = 0;
+                var shortfall = energyDemand[i] - totalGeneration[i];
+
+                //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                var store_discharge_rate_after_loss = shortfall;
+                if (store_discharge_rate_after_loss>store_max_discharge_rate) store_discharge_rate_after_loss = store_max_discharge_rate;   // 1. Discharge rate limit
+                var store_discharge_rate_pre_loss = store_discharge_rate_after_loss / store_discharge_efficiency;                           // 2. Calculate discharge rate pre losses
+                if (store_discharge_rate_pre_loss>store_capacity) store_discharge_rate_pre_loss = store_capacity;                           // 3. Empty store limit
+                store_discharge_rate_after_loss = store_discharge_rate_pre_loss * store_discharge_efficiency;                               // 4. Work backwards to obtain after loss charge rate again
+                var store_loss = store_discharge_rate_pre_loss - store_discharge_rate_after_loss;                                           // 5. Calculate energy lost in charging
+                store_capacity -= store_discharge_rate_pre_loss;                                                                            // 6. Calculate new store capacity level
+                //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                store_total_discharge += store_discharge_rate_after_loss;
+                store_total_loss += store_loss;
+                storageChange[i] += store_discharge_rate_pre_loss;
+                if (store_discharge_rate_after_loss > store_used_discharge_rate) store_used_discharge_rate = store_discharge_rate_after_loss;
+                
+                // Record unmet demand
+                if ((store_discharge_rate_after_loss+totalGeneration[i])<energyDemand[i]) {
+                    shortfall = energyDemand[i]-(store_discharge_rate_after_loss+totalGeneration[i]);   // shortfall pre backup generation
+                    backupgen = shortfall;                                                              // assign backup generation
+                    if (backupgen>backupCap) backupgen = backupCap;                                     // backup generation capacity limit
+                    shortfall -= backupgen;                                                             // calculate remaining shortfall
+                    unmetDemand += shortfall;                                                           // record unmet demand
+                    if (shortfall>max_shortfall) max_shortfall = shortfall;                             // record max shortfall
+                }
             }
+            
+            // STORE CHARGING
+            //            Loss
+            //             ^
+            //             |
+            // Surplus -l1---l2-> Store 
+            //         
+            // - l1 Rate limit
+            // - l2 Capacity limit
+            
+            // Supply exceed's demand, excess energy fed into store
+            if (totalGeneration[i]>energyDemand[i])
+            {
+                var surplus_available = totalGeneration[i] - energyDemand[i];
+                
+                //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                var store_charge_rate_pre_loss = surplus_available;
+                if (store_charge_rate_pre_loss>store_max_charge_rate) store_charge_rate_pre_loss = store_max_charge_rate;           // 1. Charge rate limit
+                var store_charge_rate_after_loss = store_charge_rate_pre_loss * store_charge_efficiency;                            // 2. Calculate charge rate after losses
+                if (store_charge_rate_after_loss>store_capacity_remaining) store_charge_rate_after_loss = store_capacity_remaining; // 3. Capacity limit
+                store_charge_rate_pre_loss = store_charge_rate_after_loss / store_charge_efficiency;                                // 4. Work backwards to obtain pre loss charge rate again
+                var store_loss = store_charge_rate_pre_loss - store_charge_rate_after_loss;                                         // 5. Calculate energy lost in charging
+                store_capacity += store_charge_rate_after_loss;                                                                     // 6. Calculate new store capacity level
+                //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                store_total_charge += store_charge_rate_pre_loss;
+                store_total_loss += store_loss;
+                storageChange[i] = -store_charge_rate_pre_loss;
+                if (store_charge_rate_pre_loss > store_used_charge_rate) store_used_charge_rate = store_charge_rate_pre_loss;
+                
+                // adjust energy demand 
+                energyDemand[i]+= store_charge_rate_pre_loss;
+                // Calculate electrolysis demand
+                if((totalGeneration[i] - energyDemand[i]) > electrolysisCap){
+                         electrolysisDemand[i] = electrolysisCap;
+                }
+                else{electrolysisDemand[i] = (totalGeneration[i] - energyDemand[i]);}
+                
+                energyDemand[i] += electrolysisDemand[i];
+                hydrogenProduced += electrolysisDemand[i]*0.7;    
+            
+                // record excess generation 
+                if (totalGeneration[i]>energyDemand[i]) excessGeneration += totalGeneration[i] - energyDemand[i];  
+            }
+            else{electrolysisDemand[i] = 0;}
+            
+            
+            if (store_capacity > store_used_max_capacity) store_used_max_capacity = store_capacity;
+            if (store_capacity < store_used_min_capacity) store_used_min_capacity = store_capacity;
+            
+            store_hourly_capacity[i] = store_capacity;
+            
+            backupUsed[i] = backupgen;
+            backupGeneration += backupgen;
+            if (backupgen>backupCapUsed) backupCapUsed = backupgen;
+            
+            unmet[i] = shortfall;
+                     
         }
         
-        console.log("Unmet Demand: "+(unmetDemand/1000).toFixed(1)+" TWh/yr");
-        console.log("Excess Generation: "+(excessGeneration/1000).toFixed(1)+" TWh/yr");
-        console.log("Backup Capacity Used: "+(backupCapUsed).toFixed(1)+" GW");
-        console.log("Backup Generation: "+(backupGeneration/1000).toFixed(1)+" TWh/yr");
+        solidDemand += (appliancesSolidDemand + transportSolidDemand + industrySolidDemand + industryCHPSolidDemand)*1000;
+        gasDemand += (appliancesGasDemand + transportGasDemand + industryGasDemand + industryCHPGasDemand)*1000 + (backupGeneration/0.5);
+        liquidDemand += (appliancesLiquidDemand + transportLiquidDemand + industryLiquidDemand + industryCHPLiquidDemand)*1000;
         
-        $('span[key="out.unmetDemand"]').html((unmetDemand/1000).toFixed(1));
-        $('span[key="out.excessGeneration"]').html((excessGeneration/1000).toFixed(1));
-        $('span[key="out.backupCapUsed"]').html((backupCapUsed).toFixed(1));
-        $('span[key="out.backupGeneration"]').html((backupGeneration/1000).toFixed(1));
+        $("[key]").each(function(){
+            var keyparts = $(this).attr('key').split(".");
+            var dp = $(this).attr('dp');
+            if (dp==undefined) dp = 5;
+            var scale = $(this).attr('scale');
+            if (scale==undefined) scale = 1;
+            if (keyparts[0]=='out') $(this).html((window[keyparts[1]]*scale).toFixed(dp));
+        });
         
         draw_graph();
     }
@@ -369,23 +632,22 @@
     });
     
     $("#balance").click(function(){
-        balanceMarker = 1;
-        demandMarker = 0;
-        supplyMarker = 0;
+        graph_mode = 'balance';
         draw_graph();
     });
 
     $("#supply").click(function(){
-        balanceMarker = 0;
-        demandMarker = 0;
-        supplyMarker = 1;
+        graph_mode = 'supply';
         draw_graph();
     });
     
     $("#demand").click(function(){
-        balanceMarker = 0;
-        demandMarker = 1;
-        supplyMarker = 0;
+        graph_mode = 'demand';
+        draw_graph();
+    });
+    
+    $("#store").click(function(){
+        graph_mode = 'store';
         draw_graph();
     });
     
@@ -403,7 +665,7 @@
         ctx.stroke();
         
         // Draw balance graph
-        if(balanceMarker == 1){
+        if(graph_mode == 'balance'){
             for(var p=1;p<8760;p++){
             
                 ctx.beginPath();
@@ -441,7 +703,7 @@
         }
         
         //Draw demand graph
-        else if(demandMarker == 1){
+        else if(graph_mode == 'demand'){
             for(var p=1;p<8760;p++){
             
                 ctx.strokeStyle = "#0000ff";
@@ -480,14 +742,15 @@
                 
                 demandSquarePos = Math.round(energyDemand[p-1]);
                 if(storageChange[p-1]<0){
-                    ctx.strokeStyle = "#f477e4";
+                    ctx.strokeStyle = "#f9e117";
+                    
                     ctx.beginPath();
                     ctx.moveTo(p+25, 25+(200-demandSquarePos+Math.round(storageChange[p-1])));
                     ctx.lineTo(p+25, 25+(200-demandSquarePos));
                     ctx.stroke();  
                 }
                 else if(storageChange[p-1]>0){
-                    ctx.strokeStyle = "#f9e117";
+                    ctx.strokeStyle = "#f477e4";
                     ctx.beginPath();
                     ctx.moveTo(p+25, 25+(200-demandSquarePos+Math.round(storageChange[p-1])));
                     ctx.lineTo(p+25, 25+(200-demandSquarePos));
@@ -496,7 +759,7 @@
             }
         }
         //Draw supply graph 
-        else if(supplyMarker == 1){
+        else if(graph_mode == 'supply'){
             for(var p=1;p<8760;p++){
                 ctx.strokeStyle = "#00ff00";
                 windSquarePos = Math.round(windPower[p-1]);
@@ -540,6 +803,25 @@
                 ctx.moveTo(25, 225);
                 ctx.lineTo(8785, 225);
                 ctx.stroke();
+            }
+        }//Draw store graph 
+        else if(graph_mode == 'store'){
+            for(var p=1;p<8760;p++){
+                
+                cap = Math.round(store_hourly_capacity[p-1]*(200/store_max_capacity));
+                
+                ctx.strokeStyle = "#ffcc00"; // orange
+                ctx.beginPath();
+                ctx.moveTo(p+25, 25+(200-cap));
+                ctx.lineTo(p+25, 225);
+                ctx.stroke();
+                
+                ctx.strokeStyle = "#000"; // orange
+                ctx.beginPath();
+                ctx.moveTo(p+25, 24+(200-cap));
+                ctx.lineTo(p+25, 26+(200-cap));
+                ctx.stroke();
+                             
             }
         }
     }
