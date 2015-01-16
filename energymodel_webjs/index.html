@@ -105,8 +105,64 @@
     </tr>
     <tr>    
         <td>Heat loss of buildings</td><td><input type="text" key="input.heatLossCoefficient"></td><td>GW/°C</td>
+<<<<<<< HEAD
+=======
     </tr>
     <tr>
+        <td>Hot water (heat)</td><td><input type="text" key="input.hotWaterDemand_TWh"></td><td>TWh/yr</td>
+    </tr>
+    <tr>
+        <td></td><td>Direct electric</td><td>Heat pumps</td><td>Solid</td><td>Gas</td><td>Liquid</td><td>CHP(s)</td><td>CHP(g)</td><td>CHP(l)</td>
+        <tr>    
+        <td>% heat demand met by...</td><td><input type="text" key="input.percentHeatDirectelec"></td><td><input type="text" key="input.percentHeatHeatpumps"></td>
+        <td><input type="text" key="input.percentHeatSolid"></td><td><input type="text" key="input.percentHeatGas"></td>
+        <td><input type="text" key="input.percentHeatLiquid"></td><td><input type="text" key="input.percentHeatCHPSolid"></td>
+        <td><input type="text" key="input.percentHeatCHPGas"></td><td><input type="text" key="input.percentHeatCHPLiquid"></td>
+        </tr>
+    </tr>
+    <tr><td><BR></td></tr>
+    
+    <tr><td>TWh/yr</td><td>Electricity</td><td>Solid</td><td>Gas</td><td>Liquid</td><td>CHP(s)</td><td>CHP(g)</td><td>CHP(l)</td><td>Hydrogen</td></tr>
+    <tr>
+        <td>Appliances, lighting & cooking</td><td><input type="text" key="input.appliancesDemand_TWh"></td>
+        <td><input type="text" key="input.appliancesSolidDemand"></td><td><input type="text" key="input.appliancesGasDemand"></td>
+        <td><input type="text" key="input.appliancesLiquidDemand"></td>
+    </tr>
+    <tr>
+        <td>Transport</td><td><input type="text" key="input.transportDemand_TWh"></td>
+        <td><input type="text" key="input.transportSolidDemand"></td><td><input type="text" key="input.transportGasDemand"></td>
+        <td><input type="text" key="input.transportLiquidDemand"></td><td></td><td></td><td></td>
+        <td><input type="text" key="input.transportHydrogenDemand"></td><td>
+    </tr>
+    <tr>
+        <td>Industry</td><td><input type="text" key="input.industryDemand_TWh"></td>
+        <td><input type="text" key="input.industrySolidDemand"></td><td><input type="text" key="input.industryGasDemand"></td>
+        <td><input type="text" key="input.industryLiquidDemand"></td><td><input type="text" key="input.industryCHPSolidDemand"></td>
+        <td><input type="text" key="input.industryCHPGasDemand"></td><td><input type="text" key="input.industryCHPLiquidDemand"></td>
+        <td><input type="text" key="input.industryHydrogenDemand"></td><td>
+>>>>>>> origin/complex
+    </tr>
+    <tr><td COLSPAN=2><BR></td></tr>
+    
+    <tr>
+        <th style="text-align:left">Storage</th><th></th>
+    </tr>
+    <tr>
+        <td>Electricity store</td>
+    </tr>
+    <tr>
+        <td COLSPAN=2>Store max discharge rate (GW)</td><td><input type="text" key="input.store_max_discharge_rate"></td>    
+        <td COLSPAN=2>Store max charge rate (GW)</td><td><input type="text" key="input.store_max_charge_rate"></td>
+        <td COLSPAN=2>Store max capacity (GWh)</td><td><input type="text" key="input.store_max_capacity_GWh"></td>
+    </tr>
+    <tr>
+        <td COLSPAN=2>Store discharge efficiency</td><td><input type="text" key="input.store_discharge_efficiency"></td>
+        <td COLSPAN=2>Store charge efficiency</td><td><input type="text" key="input.store_charge_efficiency"></td>
+        <td COLSPAN=2>Store start capacity (GWh)</td><td><input type="text" key="input.store_start_capacity_GWh"></td>
+    </tr>
+    <tr><td><BR></td></tr>
+    <tr>
+<<<<<<< HEAD
         <td>Hot water (heat)</td><td><input type="text" key="input.hotWaterDemand_TWh"></td><td>TWh/yr</td>
     </tr>
     <tr>
@@ -163,6 +219,18 @@
     </tr>
     <tr>
         <td COLSPAN=2>Electrolysis capacity</td><td><input type="text" key="input.electrolysisCap"></td><td>GW</td>
+        <td COLSPAN=3>Use hydrogen for synthetic fuels</td>
+        <td><select type = "text" key="input.useH2ForSynthFuels">
+            <option value="0">Yes</option>
+            <option value="1" selected>No</option>
+            </select>
+        </td>
+=======
+        <td>Hydrogen</td>
+    </tr>
+    <tr>
+        <td COLSPAN=2>Electrolysis capacity</td><td><input type="text" key="input.electrolysisCap"></td><td>GW</td>
+>>>>>>> origin/complex
     </tr>
     <tr><td><BR></td></tr>
     
@@ -175,19 +243,43 @@
 
 
     <tr>
+<<<<<<< HEAD
+        <th style="text-align:left">Supply</th><th></th>
+=======
         <th style="text-align:left">Generation</th><th></th>
+>>>>>>> origin/complex
         <th style="text-align:left">Demand</th><th></th>
         <th style="text-align:left">Store</th><th></th>
     </tr>
 
     <tr>
         <td>Wind</td><td><span key="out.windGeneration" scale=0.001 dp=1></span> TWh/yr</td>
+<<<<<<< HEAD
+        <td>Total heat demand</td><td><span key="out.totalHeatDemand" scale=0.001 dp=1></span> TWh/yr</td>
+=======
         <td>Total electricity demand</td><td><span key="out.demandGWh" scale=0.001 dp=1></span> TWh/yr</td>
+>>>>>>> origin/complex
         <td>Max discharge rate</td><td><span key="out.store_used_discharge_rate" dp=1></span> GW</td>
     </tr>
 
     <tr>
         <td>Solar</td><td><span key="out.solarGeneration" scale=0.001 dp=1></span> TWh/yr</td>
+<<<<<<< HEAD
+        <td></td><td></td>
+        <td>Max charge rate</td><td><span key="out.store_used_charge_rate" dp=1></span> GW</td>
+    </tr>
+    
+    <tr>
+        <td>Nuclear</td><td><span key="out.nuclearGeneration" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Total electricity demand</td><td><span key="out.demandGWh" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Lowest capacity</td><td><span key="out.store_used_min_capacity" dp=1></span> GWh</td>
+    </tr>
+    
+    <tr>
+        <td>Excess generation</td><td><span key="out.excessGeneration" scale=0.001 dp=1></span> TWh/yr</td>
+        <td></td><td></td>
+        <td>Highest capacity</td><td><span key="out.store_used_max_capacity" dp=1></span> GWh</td>
+=======
         <td>Unmet</td><td><span key="out.unmetDemand" scale=0.001 dp=1></span> TWh/yr</td>
         <td>Max charge rate</td><td><span key="out.store_used_charge_rate" dp=1></span> GW</td>
     </tr>
@@ -230,10 +322,59 @@
     <tr>
         <td></td><td></td>
         <td>Gas fuel</td><td><span key="out.gasDemand" scale=0.001 dp=1></span> TWh/yr</td>
+>>>>>>> origin/complex
     </tr>
     <tr>
         <td></td><td></td>
         <td>Liquid fuel</td><td><span key="out.liquidDemand" scale=0.001 dp=1></span> TWh/yr</td>
+    </tr>
+    <tr><td><BR></td></tr>
+    
+    <tr>
+        <td>Backup generation</td><td><span key="out.backupGeneration" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Unmet electricity demand</td><td><span key="out.unmetDemand" scale=0.001 dp=1></span> TWh/yr</td>    
+        <td>Total charge</td><td><span key="out.store_total_charge" scale=0.001 dp=1></span> TWh</td>
+    </tr>
+    
+    <tr>
+        <td>Backup capacity used</td><td><span key="out.backupCapUsed" dp=1></span> GW</td>
+        <td>Max shortfall</td><td><span key="out.max_shortfall" dp=1></span> GW</td>
+        <td>Total discharge</td><td><span key="out.store_total_discharge" scale=0.001 dp=1></span> TWh</td>
+    </tr>
+    
+    <tr>
+        <td></td><td></td>
+        <td></td><td></td>
+        <td>Total loss</td><td><span key="out.store_total_loss" scale=0.001 dp=1></span> TWh</td>
+    </tr>
+    
+    <tr>
+        <td>Solid biomass fuel</td><td><span key="out.solidBiofuel" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Solid fuel</td><td><span key="out.solidDemand" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>End capacity level</td><td><span key="out.store_capacity" dp=1></span> GWh</td>
+    </tr>
+    <tr>
+        <td>Biogas/synthetic gas</td><td><span key="out.gasBiofuel" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Gas fuel</td><td><span key="out.gasDemand" scale=0.001 dp=1></span> TWh/yr</td>
+        <td></td><td></td>
+    </tr>
+    <tr>
+        <td>Biofuel/synthetic liquid</td><td><span key="out.liquidBiofuel" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Liquid fuel</td><td><span key="out.liquidDemand" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Hydrogen produced</td><td><span key="out.hydrogenProduced" scale=0.001 dp=1></span> TWh/yr</td>    
+    </tr>
+    <tr>
+        <td></td><td></td>         
+        <td></td><td></td>  
+        <td>Hydrogen surplus/shortfall</td><td><span key="out.hydrogenShortfall" dp=1></span> TWh/yr</td>
+    </tr>
+    <tr>
+        <td>Biomass surplus/shortfall</td><td><span key="out.biomassShortfall" dp=1></span> TWh/yr</td>
+        <td></td><td></td>
+        <td></td><td></td>        
+    </tr>
+    <tr>
+        <td><h3>Residual emissions</td><td><span key="out.residualEmissions" scale=0.001 dp=1></span> MtCO2/yr</h3></td>        
     </tr>
     <tr><td><BR></td></tr>
     
@@ -276,7 +417,11 @@
     var totalDemandInProfile = 0;
     var heatPumpCoP = 2.5;
     var hotWaterDemand_TWh = 96;
+<<<<<<< HEAD
+    var percentHeatDirectelec = 10;
+=======
     var percentHeatDirectelec = 15;
+>>>>>>> origin/complex
     var percentHeatHeatpumps = 85;
     var percentHeatSolid = 5;
     var percentHeatGas = 0;
@@ -301,10 +446,25 @@
     var industryCHPGasDemand = 0;
     var industryCHPLiquidDemand = 0;
     var industryHydrogenDemand = 0;
+<<<<<<< HEAD
+    var useH2ForSynthFuels = 0;
+=======
+>>>>>>> origin/complex
     
     var solidDemand = 0;
     var gasDemand = 0;
     var liquidDemand = 0;
+<<<<<<< HEAD
+    var solidBiofuel = 0;
+    var gasBiofuel = 0;
+    var liquidBiofuel = 0;
+    var biomassForSolid = 0;
+    var biomassForGas = 0;
+    var biomassForSynthLiquid = 0;
+    var biomassForSynthGas = 0;
+    var biomassForLiquid = 0;
+=======
+>>>>>>> origin/complex
     
     var solarGeneration = 0;
     var windGeneration = 0;
@@ -336,6 +496,7 @@
     var store_total_charge = 0;
     var store_total_discharge = 0;
     var store_total_loss = 0;
+<<<<<<< HEAD
     
     var store_start_capacity_GWh   = store_max_capacity_GWh /2;    // GWh
     var store_start_capacity       = store_start_capacity_GWh;
@@ -344,6 +505,16 @@
     var store_hourly_capacity = [];
     var storageChange = [];
     
+=======
+    
+    var store_start_capacity_GWh   = store_max_capacity_GWh /2;    // GWh
+    var store_start_capacity       = store_start_capacity_GWh;
+    var store_capacity = store_start_capacity;
+    //------------------------------------------------
+    var store_hourly_capacity = [];
+    var storageChange = [];
+    
+>>>>>>> origin/complex
     $("[key]").each(function(){
         var keyparts = $(this).attr('key').split(".");
         if (keyparts[0]=='input') $(this).val(window[keyparts[1]]);
@@ -387,6 +558,7 @@
         hourlyElecForIndustry = [];
         temperatureData = [];
         totalGeneration = [];
+        totalGenerationWithStorage = [];
         backupUsed = [];
         unmet = [];
 
@@ -420,6 +592,10 @@
         //------------------------------------------------
         store_hourly_capacity = [];
         storageChange = [];
+<<<<<<< HEAD
+        storageSupply = [];
+=======
+>>>>>>> origin/complex
         store_capacity = store_start_capacity;
         
         
@@ -468,7 +644,11 @@
                   
             hourlyHeatDemand[i] = hourlySpaceHeatDemand[i] + hourlyWaterHeatDemand[i];
             totalHeatDemand += hourlyHeatDemand[i];
+<<<<<<< HEAD
+            hourlyElecForHeatDemand[i] = (hourlyHeatDemand[i] * percentHeatHeatpumps / 100 / heatPumpCoP) + (hourlyHeatDemand[i] * percentHeatDirectelec / 100);
+=======
             hourlyElecForHeatDemand[i] = hourlyHeatDemand[i] / heatPumpCoP;
+>>>>>>> origin/complex
             
             // Calculate demand for solid, gas & liquid fuel for heat
             solidDemand += (hourlyHeatDemand[i]*(percentHeatSolid/100))/0.9;
@@ -513,6 +693,318 @@
             //         
             // - l1 Rate limit
             // - l2 Capacity limit
+<<<<<<< HEAD
+            
+            if (energyDemand[i] >= totalGeneration[i])
+            {
+                var shortfall = energyDemand[i] - totalGeneration[i];
+
+                //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                var store_discharge_rate_after_loss = shortfall;
+                if (store_discharge_rate_after_loss>store_max_discharge_rate) store_discharge_rate_after_loss = store_max_discharge_rate;   // 1. Discharge rate limit
+                var store_discharge_rate_pre_loss = store_discharge_rate_after_loss / store_discharge_efficiency;                           // 2. Calculate discharge rate pre losses
+                if (store_discharge_rate_pre_loss>store_capacity) store_discharge_rate_pre_loss = store_capacity;                           // 3. Empty store limit
+                store_discharge_rate_after_loss = store_discharge_rate_pre_loss * store_discharge_efficiency;                               // 4. Work backwards to obtain after loss charge rate again
+                var store_loss = store_discharge_rate_pre_loss - store_discharge_rate_after_loss;                                           // 5. Calculate energy lost in charging
+                store_capacity -= store_discharge_rate_pre_loss;                                                                            // 6. Calculate new store capacity level
+                //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                store_total_discharge += store_discharge_rate_after_loss;
+                store_total_loss += store_loss;
+                storageChange[i] += store_discharge_rate_pre_loss;
+                storageSupply[i] = store_discharge_rate_after_loss;
+                if (store_discharge_rate_after_loss > store_used_discharge_rate) store_used_discharge_rate = store_discharge_rate_after_loss;
+                
+                totalGenerationWithStorage[i] = totalGeneration[i] + store_discharge_rate_after_loss;
+                
+                // Record unmet demand
+                if ((store_discharge_rate_after_loss+totalGeneration[i])<energyDemand[i]) {
+                    shortfall = energyDemand[i]-(store_discharge_rate_after_loss+totalGeneration[i]);   // shortfall pre backup generation
+                    backupgen = shortfall;                                                              // assign backup generation
+                    if (backupgen>backupCap) backupgen = backupCap;                                     // backup generation capacity limit
+                    shortfall -= backupgen;                                                             // calculate remaining shortfall
+                    unmetDemand += shortfall;                                                           // record unmet demand
+                    if (shortfall>max_shortfall) max_shortfall = shortfall;                             // record max shortfall
+                }
+                else{shortfall = 0;}
+                //energyDemand[i] -= store_discharge_rate_after_loss;
+            }
+            
+            // STORE CHARGING
+            //            Loss
+            //             ^
+            //             |
+            // Surplus -l1---l2-> Store 
+            //         
+            // - l1 Rate limit
+            // - l2 Capacity limit
+            
+            // Supply exceed's demand, excess energy fed into store
+            if (totalGeneration[i]>energyDemand[i])
+            {
+                var surplus_available = totalGeneration[i] - energyDemand[i];
+                
+                //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                var store_charge_rate_pre_loss = surplus_available;
+                if (store_charge_rate_pre_loss>store_max_charge_rate) store_charge_rate_pre_loss = store_max_charge_rate;           // 1. Charge rate limit
+                var store_charge_rate_after_loss = store_charge_rate_pre_loss * store_charge_efficiency;                            // 2. Calculate charge rate after losses
+                if (store_charge_rate_after_loss>store_capacity_remaining) store_charge_rate_after_loss = store_capacity_remaining; // 3. Capacity limit
+                store_charge_rate_pre_loss = store_charge_rate_after_loss / store_charge_efficiency;                                // 4. Work backwards to obtain pre loss charge rate again
+                var store_loss = store_charge_rate_pre_loss - store_charge_rate_after_loss;                                         // 5. Calculate energy lost in charging
+                store_capacity += store_charge_rate_after_loss;                                                                     // 6. Calculate new store capacity level
+                //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                store_total_charge += store_charge_rate_pre_loss;
+                store_total_loss += store_loss;
+                storageChange[i] = -store_charge_rate_pre_loss;
+                storageSupply[i] = 0;
+                if (store_charge_rate_pre_loss > store_used_charge_rate) store_used_charge_rate = store_charge_rate_pre_loss;
+                
+                // adjust energy demand 
+                energyDemand[i]+= store_charge_rate_pre_loss;
+                // Calculate electrolysis demand
+                if((totalGeneration[i] - energyDemand[i]) > electrolysisCap){
+                         electrolysisDemand[i] = electrolysisCap;
+                }
+                else{electrolysisDemand[i] = (totalGeneration[i] - energyDemand[i]);}
+                
+                energyDemand[i] += electrolysisDemand[i];
+                hydrogenProduced += electrolysisDemand[i]*0.7;    
+                
+                totalGenerationWithStorage[i] = totalGeneration[i];
+                
+                // record excess generation 
+                if (totalGeneration[i]>energyDemand[i]) excessGeneration += totalGeneration[i] - energyDemand[i]; 
+                
+                shortfall = 0;
+            }
+            else{electrolysisDemand[i] = 0;}
+            
+            
+            if (store_capacity > store_used_max_capacity) store_used_max_capacity = store_capacity;
+            if (store_capacity < store_used_min_capacity) store_used_min_capacity = store_capacity;
+            
+            store_hourly_capacity[i] = store_capacity;
+            
+            backupUsed[i] = backupgen;
+            backupGeneration += backupgen;
+            if (backupgen>backupCapUsed) backupCapUsed = backupgen;
+            
+            unmet[i] = shortfall;
+                     
+        }
+        
+        solidDemand += (appliancesSolidDemand + transportSolidDemand + industrySolidDemand + industryCHPSolidDemand)*1000;
+        gasDemand += (appliancesGasDemand + transportGasDemand + industryGasDemand + industryCHPGasDemand)*1000 + (backupGeneration/0.5);
+        liquidDemand += (appliancesLiquidDemand + transportLiquidDemand + industryLiquidDemand + industryCHPLiquidDemand)*1000;
+        
+        //***************************************************************************************************
+        //Convoluted algorithm to work out biofuels made, fossil fuels still required and residual emissions
+        //Biomass to biogas efficiency 0.6, biomass to liquif biofuel efficiency 0.5 
+        //Synth fuels assumption: SABATIER: 1 Biomass + 0.5 H2 --> 1 Biomethane. FISCHER-TROPSCH: 1 Biomass + 0.5 H2 --> 0.8 Synthetic liquid fuel.
+        
+        solidBiofuel = 0;
+        gasBiofuel = 0;
+        liquidBiofuel = 0;
+        biomassForSolid = 0;
+        biomassForGas = 0;
+        biomassForSynthLiquid = 0;
+        biomassForSynthGas = 0;
+        biomassForLiquid = 0;
+        
+        if(useH2ForSynthFuels == 0){
+              
+            synthFuelH2Demand = (gasDemand*0.5) + (liquidDemand*0.5);
+              
+            if(synthFuelH2Demand < (hydrogenProduced - ((transportHydrogenDemand + industryHydrogenDemand)*1000))){//Enough H2  
+                if(biomassSupply*1000 > (solidDemand + (gasDemand/1) + (liquidDemand/0.8))){ // Enough H2, enough biomass
+                    biomassDemand = (solidDemand + (gasDemand/1) + (liquidDemand/0.8));
+                    synthFuelH2Demand = (gasDemand*0.5) + (liquidDemand*0.5);
+
+                    solidBiofuel = solidDemand;
+                    gasBiofuel = gasDemand;
+                    liquidBiofuel = liquidDemand;
+                }
+                else{
+                    //Enough H2, not enough biomass
+                    if(biomassSupply*1000 < solidDemand){
+                        synthFuelH2Demand = 0;
+                        biomassDemand = solidDemand + (gasDemand/1) + (liquidDemand/0.8);
+
+                        solidBiofuel = biomassSupply*1000;
+                        gasBiofuel = 0;
+                        liquidBiofuel = 0;
+                    }
+                    else if(biomassSupply*1000 < solidDemand+(gasDemand/1)){
+                        synthFuelH2Demand = ((biomassSupply*1000 - solidDemand)/(gasDemand/1))*gasDemand*0.5;
+                        biomassDemand = solidDemand + (gasDemand/1) + (liquidDemand/0.8);
+
+                        solidBiofuel = solidDemand;
+                        gasBiofuel = ((biomassSupply*1000 - solidDemand)/(gasDemand/1)) * gasDemand;
+                        liquidBiofuel = 0;
+                    }
+                    else{
+                        synthFuelH2Demand = (gasDemand*0.5) + (((biomassSupply*1000 - solidDemand - (gasDemand/1)) / 
+                                (liquidDemand/0.8)) * liquidDemand*0.5);
+                        biomassDemand = solidDemand + (gasDemand/1) + (liquidDemand/0.8);
+
+                        solidBiofuel = solidDemand;
+                        gasBiofuel = gasDemand;
+                        liquidBiofuel = ((biomassSupply*1000 - solidDemand - (gasDemand/1)) / (liquidDemand/0.8)) * liquidDemand;
+                    }
+
+                }
+            }
+            else{ //Not enough H2
+                if(biomassSupply*1000 > (solidDemand + (gasDemand/1) + (liquidDemand/0.8))){//enough biomass not enough H2
+                    if((hydrogenProduced - ((transportHydrogenDemand + industryHydrogenDemand)*1000)) < 0){
+                          synthFuelH2Demand = 0;
+
+                          biomassForSolid = solidDemand;
+                          biomassForSynthGas = 0;
+                          biomassForGas = (gasDemand/0.6);
+                          biomassForSynthLiquid = 0;
+                          biomassForLiquid = (liquidDemand/0.5);
+                          biomassDemand = biomassForSolid + biomassForSynthGas + biomassForGas + biomassForSynthLiquid + biomassForLiquid;
+                    }
+                    else if((hydrogenProduced - ((transportHydrogenDemand + industryHydrogenDemand)*1000)) < (gasDemand*0.5)){
+                        synthFuelH2Demand = (hydrogenProduced - ((transportHydrogenDemand + industryHydrogenDemand)*1000));
+
+                        biomassForSolid = solidDemand;
+                          biomassForSynthGas = ((hydrogenProduced - ((transportHydrogenDemand + industryHydrogenDemand)*1000))/(gasDemand*0.5)) * (gasDemand/1);
+                          biomassForGas = (1 - ((hydrogenProduced - ((transportHydrogenDemand + industryHydrogenDemand)*1000))/(gasDemand*0.5))) * (gasDemand/0.6);
+                          biomassForSynthLiquid = 0;
+                          biomassForLiquid = (liquidDemand/0.5);
+                          biomassDemand = biomassForSolid + biomassForSynthGas + biomassForGas + biomassForSynthLiquid + biomassForLiquid;                         
+                    }
+                    else{
+                       synthFuelH2Demand = (hydrogenProduced - ((transportHydrogenDemand + industryHydrogenDemand)*1000));
+
+                        biomassForSolid = solidDemand;
+                          biomassForSynthGas = (gasDemand/1);
+                          biomassForGas = 0;
+                          biomassForSynthLiquid = ((hydrogenProduced - ((transportHydrogenDemand + industryHydrogenDemand)*1000) - (gasDemand*0.5))/(liquidDemand*0.5)) * (liquidDemand/0.8);
+                          biomassForLiquid = (1 - ((hydrogenProduced - ((transportHydrogenDemand + industryHydrogenDemand)*1000) - (gasDemand*0.5))/(liquidDemand*0.5))) * (liquidDemand/0.5);
+                          biomassDemand = biomassForSolid + biomassForSynthGas + biomassForGas + biomassForSynthLiquid + biomassForLiquid;                           
+                    }
+                    //work out biofuels produced
+                      if(biomassSupply*1000 < biomassForSolid){
+                          solidBiofuel = biomassSupply*1000; gasBiofuel = 0; liquidBiofuel = 0;
+                      }
+                      else if((biomassSupply*1000 - biomassForSolid) < biomassForSynthGas){
+                          solidBiofuel = biomassForSolid; gasBiofuel = (biomassSupply*1000 - biomassForSolid)*1; liquidBiofuel = 0;
+                      }
+                      else if((biomassSupply*1000 - biomassForSolid - biomassForSynthGas) < biomassForGas){
+                          solidBiofuel = biomassForSolid; gasBiofuel = biomassForSynthGas*1 + (biomassSupply*1000 - biomassForSolid - biomassForSynthGas)*0.6;
+                          liquidBiofuel = 0;
+                      }
+                      else if((biomassSupply*1000 - biomassForSolid - biomassForSynthGas - biomassForGas) < biomassForSynthLiquid){
+                          solidBiofuel = biomassForSolid; gasBiofuel = biomassForSynthGas*1 + biomassForGas*0.6;
+                          liquidBiofuel = (biomassSupply*1000 - biomassForSolid - biomassForSynthGas - biomassForGas)*0.8;
+                      }
+                      else if((biomassSupply*1000 - biomassForSolid - biomassForSynthGas - biomassForGas - biomassForSynthLiquid) < biomassForLiquid){
+                          solidBiofuel = biomassForSolid; gasBiofuel = biomassForSynthGas*1 + biomassForGas*0.6;
+                          liquidBiofuel = biomassForSynthLiquid*0.8 + 
+                                  (biomassSupply*1000 - biomassForSolid - biomassForSynthGas - biomassForGas - biomassForSynthLiquid)*0.5;
+                      }
+                      else{
+                          solidBiofuel = biomassForSolid;
+                          gasBiofuel = biomassForSynthGas*1 + biomassForGas*0.6;
+                          liquidBiofuel = biomassForSynthLiquid*0.8 + biomassForLiquid*0.5;}
+                }
+                else{// not enough H2 not enough biomass
+                      if((hydrogenProduced - ((transportHydrogenDemand + industryHydrogenDemand)*1000)) < 0){
+                          synthFuelH2Demand = 0;
+
+                          biomassForSolid = solidDemand;
+                          biomassForSynthGas = 0;
+                          biomassForGas = (gasDemand/0.6);
+                          biomassForSynthLiquid = 0;
+                          biomassForLiquid = (liquidDemand/0.5);
+                          biomassDemand = biomassForSolid + biomassForSynthGas + biomassForGas + biomassForSynthLiquid + biomassForLiquid;
+
+                      }
+                      else if((hydrogenProduced - ((transportHydrogenDemand + industryHydrogenDemand)*1000)) < (gasDemand*0.5)){
+                          synthFuelH2Demand = (hydrogenProduced - ((transportHydrogenDemand + industryHydrogenDemand)*1000));
+
+                          biomassForSolid = solidDemand;
+                          biomassForSynthGas = ((hydrogenProduced - ((transportHydrogenDemand + industryHydrogenDemand)*1000))/(gasDemand*0.5)) * (gasDemand/1);
+                          biomassForGas = (1 - ((hydrogenProduced - ((transportHydrogenDemand + industryHydrogenDemand)*1000))/(gasDemand*0.5))) * (gasDemand/0.6);
+                          biomassForSynthLiquid = 0;
+                          biomassForLiquid = (liquidDemand/0.5);
+                          biomassDemand = biomassForSolid + biomassForSynthGas + biomassForGas + biomassForSynthLiquid + biomassForLiquid;
+                      }
+                      else{
+                          synthFuelH2Demand = (hydrogenProduced - ((transportHydrogenDemand + industryHydrogenDemand)*1000));
+
+                          biomassForSolid = solidDemand;
+                          biomassForSynthGas = (gasDemand/1);
+                          biomassForGas = 0;
+                          biomassForSynthLiquid = ((hydrogenProduced - ((transportHydrogenDemand + industryHydrogenDemand)*1000) - (gasDemand*0.5))/(liquidDemand*0.5)) * (liquidDemand/0.8);
+                          biomassForLiquid = (1 - ((hydrogenProduced - ((transportHydrogenDemand + industryHydrogenDemand)*1000) - (gasDemand*0.5))/(liquidDemand*0.5))) * (liquidDemand/0.5);
+                          biomassDemand = biomassForSolid + biomassForSynthGas + biomassForGas + biomassForSynthLiquid + biomassForLiquid;
+                      }
+
+                      //work out biofuels produced
+                      if(biomassSupply*1000 < biomassForSolid){
+                          solidBiofuel = biomassSupply*1000; gasBiofuel = 0; liquidBiofuel = 0;
+                      }
+                      else if((biomassSupply*1000 - biomassForSolid) < biomassForSynthGas){
+                          solidBiofuel = biomassForSolid; gasBiofuel = (biomassSupply*1000 - biomassForSolid)*1; liquidBiofuel = 0;
+                      }
+                      else if((biomassSupply*1000 - biomassForSolid - biomassForSynthGas) < biomassForGas){
+                          solidBiofuel = biomassForSolid; gasBiofuel = biomassForSynthGas*1 + (biomassSupply*1000 - biomassForSolid - biomassForSynthGas)*0.6;
+                          liquidBiofuel = 0;
+                      }
+                      else if((biomassSupply*1000 - biomassForSolid - biomassForSynthGas - biomassForGas) < biomassForSynthLiquid){
+                          solidBiofuel = biomassForSolid; gasBiofuel = biomassForSynthGas*1 + biomassForGas*0.6;
+                          liquidBiofuel = (biomassSupply*1000 - biomassForSolid - biomassForSynthGas - biomassForGas)*0.8;
+                      }
+                      else if((biomassSupply*1000 - biomassForSolid - biomassForSynthGas - biomassForGas - biomassForSynthLiquid) < biomassForLiquid){
+                          solidBiofuel = biomassForSolid; gasBiofuel = biomassForSynthGas*1 + biomassForGas*0.6;
+                          liquidBiofuel = biomassForSynthLiquid*0.8 + 
+                                  (biomassSupply*1000 - biomassForSolid - biomassForSynthGas - biomassForGas - biomassForSynthLiquid)*0.5;
+                      }
+                      else{
+                          solidBiofuel = biomassForSolid;
+                          gasBiofuel = biomassForSynthGas*1 + biomassForGas*0.6;
+                          liquidBiofuel = biomassForSynthLiquid*0.8 + biomassForLiquid*0.5;}
+                }
+            }
+        }
+        else{  //No synth fuels
+            synthFuelH2Demand = 0;
+
+            biomassForSolid = solidDemand;
+                          biomassForSynthGas = 0;
+                          biomassForGas = (gasDemand/0.6);
+                          biomassForSynthLiquid = 0;
+                          biomassForLiquid = (liquidDemand/0.5);
+                          biomassDemand = biomassForSolid + biomassForSynthGas + biomassForGas + biomassForSynthLiquid + biomassForLiquid;
+
+            //work out biofuels produced
+            if(biomassSupply*1000 < biomassForSolid){
+                solidBiofuel = biomassSupply*1000; gasBiofuel = 0; liquidBiofuel = 0;
+            }
+            else if((biomassSupply*1000 - biomassForSolid) < biomassForSynthGas){
+                solidBiofuel = biomassForSolid; gasBiofuel = (biomassSupply*1000 - biomassForSolid)*1; liquidBiofuel = 0;
+            }
+            else if((biomassSupply*1000 - biomassForSolid - biomassForSynthGas) < biomassForGas){
+                solidBiofuel = biomassForSolid; gasBiofuel = biomassForSynthGas*1 + (biomassSupply*1000 - biomassForSolid - biomassForSynthGas)*0.6;
+                liquidBiofuel = 0;
+            }
+            else if((biomassSupply*1000 - biomassForSolid - biomassForSynthGas - biomassForGas) < biomassForSynthLiquid){
+                solidBiofuel = biomassForSolid; gasBiofuel = biomassForSynthGas*1 + biomassForGas*0.6;
+                liquidBiofuel = (biomassSupply*1000 - biomassForSolid - biomassForSynthGas - biomassForGas)*0.8;
+            }
+            else if((biomassSupply*1000 - biomassForSolid - biomassForSynthGas - biomassForGas - biomassForSynthLiquid) < biomassForLiquid){
+                solidBiofuel = biomassForSolid; gasBiofuel = biomassForSynthGas*1 + biomassForGas*0.6;
+                liquidBiofuel = biomassForSynthLiquid*0.8 + 
+                        (biomassSupply*1000 - biomassForSolid - biomassForSynthGas - biomassForGas - biomassForSynthLiquid)*0.5;
+            }
+            else{
+                solidBiofuel = biomassForSolid;
+                gasBiofuel = biomassForSynthGas*1 + biomassForGas*0.6;
+                liquidBiofuel = biomassForSynthLiquid*0.8 + biomassForLiquid*0.5;}
+=======
             
             if (energyDemand[i]>totalGeneration[i])
             {
@@ -599,12 +1091,28 @@
             
             unmet[i] = shortfall;
                      
+>>>>>>> origin/complex
         }
+
+        hydrogenShortfall = (hydrogenProduced/1000) - (transportHydrogenDemand + industryHydrogenDemand + synthFuelH2Demand/1000);
+        biomassShortfall = biomassSupply - biomassDemand/1000;     
+
+        residualEmissions =0;
+        if(solidDemand > solidBiofuel){residualEmissions += (solidDemand - solidBiofuel)*0.4;}
+        if(gasDemand > gasBiofuel){residualEmissions += (gasDemand - gasBiofuel)*0.2;}
+        if(liquidDemand > liquidBiofuel){residualEmissions += (liquidDemand - liquidBiofuel)*0.3;}
+        if((hydrogenProduced/1000) < (transportHydrogenDemand + industryHydrogenDemand)){residualEmissions += 
+                (((transportHydrogenDemand + industryHydrogenDemand) - (hydrogenProduced/1000))*0.2*1000);}  
+      
+      //**************************************************************************************************
         
+<<<<<<< HEAD
+=======
         solidDemand += (appliancesSolidDemand + transportSolidDemand + industrySolidDemand + industryCHPSolidDemand)*1000;
         gasDemand += (appliancesGasDemand + transportGasDemand + industryGasDemand + industryCHPGasDemand)*1000 + (backupGeneration/0.5);
         liquidDemand += (appliancesLiquidDemand + transportLiquidDemand + industryLiquidDemand + industryCHPLiquidDemand)*1000;
         
+>>>>>>> origin/complex
         $("[key]").each(function(){
             var keyparts = $(this).attr('key').split(".");
             var dp = $(this).attr('dp');
@@ -661,7 +1169,7 @@
         ctx.beginPath();
         ctx.strokeStyle = "#000";
         ctx.moveTo(25,25); ctx.lineTo(25, 225);
-        ctx.moveTo(25,225); ctx.lineTo(8785, 225);
+        ctx.moveTo(25,226); ctx.lineTo(8785, 226);
         ctx.stroke();
         
         // Draw balance graph
@@ -670,8 +1178,8 @@
             
                 ctx.beginPath();
                 ctx.strokeStyle = "#0000ff";
-                windSquarePos = Math.round(totalGeneration[p-1]);
-                windSquarePos1 = Math.round(totalGeneration[p]);
+                windSquarePos = Math.round(totalGenerationWithStorage[p-1]);
+                windSquarePos1 = Math.round(totalGenerationWithStorage[p]);
                 ctx.moveTo(p+26, 25+(200-windSquarePos1));
                 ctx.lineTo(p+25, 25+(200-windSquarePos));
                 ctx.stroke();
@@ -711,51 +1219,61 @@
                 ctx.beginPath();
                 ctx.moveTo(p+25, 25+(200-demandSquarePos));
                 ctx.lineTo(p+25, 225);
-                ctx.stroke();
+                ctx.stroke();  // Draw total in blue
                 
                 ctx.strokeStyle = "#ff0000";
                 demandSquarePos = Math.round(hourlyElecForHeatDemand[p-1]);
                 ctx.beginPath();
                 ctx.moveTo(p+25, 25+(200-demandSquarePos));
                 ctx.lineTo(p+25, 225);
-                ctx.stroke();
+                ctx.stroke();  // Draw heat in red
                 
                 demandSquarePos1 = transportDemand;
                 ctx.strokeStyle = "#ffcc00";
                 ctx.beginPath();
                 ctx.moveTo(p+25, 25+(200-demandSquarePos));
                 ctx.lineTo(p+25, 25+(200-(demandSquarePos+demandSquarePos1)));
-                ctx.stroke();
+                ctx.stroke();  // Draw tranpsort in orange
                 
                 ctx.strokeStyle = "#de2bf3";
                 demandSquarePos2 = Math.round(hourlyElecForIndustry[p-1]);
                 ctx.beginPath();
                 ctx.moveTo(p+25, 25+(200-(demandSquarePos+demandSquarePos1)));
                 ctx.lineTo(p+25, 25+(200-(demandSquarePos+demandSquarePos1+demandSquarePos2)));
-                ctx.stroke();
-                
-                ctx.strokeStyle = "#000";
-                ctx.beginPath();
-                ctx.moveTo(25, 225);
-                ctx.lineTo(8785, 225);
-                ctx.stroke(); 
+                ctx.stroke();  // Draw industry in purple
                 
                 demandSquarePos = Math.round(energyDemand[p-1]);
                 if(storageChange[p-1]<0){
+<<<<<<< HEAD
+                    ctx.strokeStyle = "#ffff00";                    
+=======
                     ctx.strokeStyle = "#f9e117";
                     
+>>>>>>> origin/complex
                     ctx.beginPath();
-                    ctx.moveTo(p+25, 25+(200-demandSquarePos+Math.round(storageChange[p-1])));
+                    ctx.moveTo(p+25, 25+(200-demandSquarePos-Math.round(storageChange[p-1])));
                     ctx.lineTo(p+25, 25+(200-demandSquarePos));
                     ctx.stroke();  
                 }
+<<<<<<< HEAD
+                
+                if(electrolysisDemand[p-1]>0){
+                    ctx.strokeStyle = "#00ff00";                    
+                    ctx.beginPath();
+                    ctx.moveTo(p+25, 25+(200-demandSquarePos-Math.round(storageChange[p-1]-Math.round(electrolysisDemand[p-1]))));
+                    ctx.lineTo(p+25, 25+(200-demandSquarePos-Math.round(storageChange[p-1])));
+                    ctx.stroke();  
+                }/*
+                if(storageChange[p-1]>0){
+=======
                 else if(storageChange[p-1]>0){
+>>>>>>> origin/complex
                     ctx.strokeStyle = "#f477e4";
                     ctx.beginPath();
                     ctx.moveTo(p+25, 25+(200-demandSquarePos+Math.round(storageChange[p-1])));
                     ctx.lineTo(p+25, 25+(200-demandSquarePos));
                     ctx.stroke();
-                }
+                }*/
             }
         }
         //Draw supply graph 
@@ -764,45 +1282,48 @@
                 ctx.strokeStyle = "#00ff00";
                 windSquarePos = Math.round(windPower[p-1]);
                 solarPos = Math.round(solarPower[p-1]);
+                CHPPos = Math.round(CHPPower[p-1]);
                 nuclearPos = Math.round((nuclearCap * 0.9));
+                storePos = Math.round(storageSupply[p-1]);
                 backupPos = Math.round(backupUsed[p-1]);
                 unmetPos = Math.round(unmet[p-1]);
                 
-                ctx.strokeStyle = "#ffcc00"; // orange
+                ctx.strokeStyle = "#33ff00"; // green
                 ctx.beginPath();
-                ctx.moveTo(p+25, 25+(200-nuclearPos));
+                ctx.moveTo(p+25, 25+(200-CHPPos));
                 ctx.lineTo(p+25, 225);
                 ctx.stroke();
                                
                 ctx.strokeStyle = "#f9e117"; // yellow                   
                 ctx.beginPath();
-                ctx.moveTo(p+25, 25+(200-nuclearPos)-solarPos);
-                ctx.lineTo(p+25, 25+(200-nuclearPos));
-                ctx.stroke();
-                
-                ctx.strokeStyle = "#a9a9a9"; // grey
-                ctx.beginPath();
-                ctx.moveTo(p+25, 25+(200-nuclearPos)-solarPos-windSquarePos-backupPos-unmetPos);
-                ctx.lineTo(p+25, 25+(200-nuclearPos)-solarPos-windSquarePos-backupPos);
-                ctx.stroke();
-                
-                ctx.strokeStyle = "#ff0000";
-                ctx.beginPath();
-                ctx.moveTo(p+25, 25+(200-nuclearPos)-solarPos-windSquarePos-backupPos);
-                ctx.lineTo(p+25, 25+(200-nuclearPos)-solarPos-windSquarePos);
+                ctx.moveTo(p+25, 25+(200-nuclearPos)-CHPPos-solarPos);
+                ctx.lineTo(p+25, 25+(200-nuclearPos)-CHPPos);
                 ctx.stroke();
                 
                 ctx.strokeStyle = "#0000ff";
                 ctx.beginPath();
-                ctx.moveTo(p+25, 25+(200-nuclearPos)-solarPos-windSquarePos);
-                ctx.lineTo(p+25, 25+(200-nuclearPos)-solarPos);
+                ctx.moveTo(p+25, 25+(200-nuclearPos)-CHPPos-solarPos-windSquarePos);
+                ctx.lineTo(p+25, 25+(200-nuclearPos)-CHPPos-solarPos);
                 ctx.stroke();
                 
-                ctx.strokeStyle = "#000";
+                ctx.strokeStyle = "#ffcc00";
                 ctx.beginPath();
-                ctx.moveTo(25, 225);
-                ctx.lineTo(8785, 225);
+                ctx.moveTo(p+25, 25+(200-nuclearPos)-CHPPos-solarPos-windSquarePos-storePos);
+                ctx.lineTo(p+25, 25+(200-nuclearPos)-CHPPos-solarPos-windSquarePos);
                 ctx.stroke();
+                
+                ctx.strokeStyle = "#ff0000";
+                ctx.beginPath();
+                ctx.moveTo(p+25, 25+(200-nuclearPos)-CHPPos-solarPos-windSquarePos-storePos-backupPos);
+                ctx.lineTo(p+25, 25+(200-nuclearPos)-CHPPos-solarPos-windSquarePos-storePos);
+                ctx.stroke();
+                
+                ctx.strokeStyle = "#a9a9a9"; // grey
+                ctx.beginPath();
+                ctx.moveTo(p+25, 25+(200-nuclearPos)-CHPPos-solarPos-windSquarePos-storePos-backupPos-unmetPos);
+                ctx.lineTo(p+25, 25+(200-nuclearPos)-CHPPos-solarPos-windSquarePos-storePos-backupPos);
+                ctx.stroke();
+                              
             }
         }//Draw store graph 
         else if(graph_mode == 'store'){
@@ -821,8 +1342,12 @@
                 ctx.moveTo(p+25, 24+(200-cap));
                 ctx.lineTo(p+25, 26+(200-cap));
                 ctx.stroke();
+<<<<<<< HEAD
+            }        
+=======
                              
             }
+>>>>>>> origin/complex
         }
     }
 
