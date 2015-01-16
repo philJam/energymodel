@@ -3,6 +3,11 @@
 
 <style>
 
+    :root {
+        /*--main-color: #7597ce;*/
+        --main-color: #0699fa;
+    }
+    
     #bound {
         width: 1024px;
         height: auto;
@@ -23,16 +28,26 @@
     }
     
     h1 { 
-        color: #ff2712;
+        color: var(--main-color);
     }
     
     h3 { 
-        color: #ff2712;
+        color: var(--main-color);
         margin:0px;
     }
     
+    a {
+        text-decoration: none;
+        color: var(--main-color);
+    }
+
+    a:hover {
+        text-decoration: none;
+        color: var(--main-color);
+    }
+    
     hr {
-        background: #ff2712;
+        background: var(--main-color);
         border: 0; height: 1px;
     }
         
@@ -49,7 +64,7 @@
         padding:3px;
         font-family:"Ubuntu Light";
         font-size: 16px;
-        color: #ff2712;
+        color: var(--main-color);
         width:80px;
 
     }
@@ -62,16 +77,33 @@
     }
 
     span {
-        color: #ff2712;
+        color: var(--main-color);
+    }
+    
+    #header-bound {
+        background-color:#dedede;
+        color:#333;
+        font-size:12px;
+        width: 1074px;
+        height: auto;
+        margin: 0px auto;
+        text-align: left;
+        margin-top:0px;
+        padding:5px;
     }
 }
 </style>
 
 <body>
+
+<div id="header-bound">
+This model is open source, view the source code and learn how it works on github: <a href="https://github.com/philJam/energymodel">https://github.com/philJam/energymodel</a>
+</div>
+
 <div id="bound">
 
-<h1>ENERGY MODEL</h1>
-<p>Hourly national energy model for the UK.</p>
+<h1>ZERO CARBON ENERGY MODEL</h1>
+<p>Hourly zero carbon energy model for the UK.</p>
 
 <div style="overflow: scroll; overflow-y: hidden;">
 <canvas id="graph" width="8760" height=250"></canvas>
@@ -263,6 +295,11 @@
 
 
 </div>
+
+<div id="header-bound">
+This model is open source, view the source code and learn how it works on github: <a href="https://github.com/philJam/energymodel">https://github.com/philJam/energymodel</a>
+</div>
+
 </body>
 
 <script>
