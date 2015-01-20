@@ -97,7 +97,9 @@
 <body>
 
 <div id="header-bound">
-This model is open source, view the source code and learn how it works on github: <a href="https://github.com/philJam/energymodel">https://github.com/philJam/energymodel</a>
+This model is open source, view the source code and learn how it works on github: <a href="https://github.com/philJam/energymodel">https://github.com/philJam/energymodel</a>.
+Comment on the model and see what further development is planned <a href="http://zcb.wikispot.org/OpensourceEnergyModel">here</a>.
+You can also download the full ten year hourly model used for ZCB <a href="https://dl.dropboxusercontent.com/u/79311585/ZCB_TYHME_v2.xlsx">here</a>.
 </div>
 
 <div id="bound">
@@ -123,11 +125,17 @@ This model is open source, view the source code and learn how it works on github
     </tr>
     <tr><td>GW</td></tr>
     <tr>
-        <td>Wind</td><td><input type="text" key="input.windCap"></td>
+        <td>Onshore wind</td><td><input type="text" key="input.onWindCap"></td>        
         <td>Solar</td><td><input type="text" key="input.solarCap"></td>
-        <td>Nuclear</td><td><input type="text" key="input.nuclearCap"></td>
-        <td>Backup capacity</td><td><input type="text" key="input.backupCap"></td>
+        <td>Wave</td><td><input type="text" key="input.waveCap"></td>
+        <td>Nuclear</td><td><input type="text" key="input.nuclearCap"></td>       
     </tr>
+    <tr>
+        <td>Offshore wind</td><td><input type="text" key="input.offWindCap"></td>
+        <td>Hydro</td><td><input type="text" key="input.hydroCap"></td>
+        <td>Tidal</td><td><input type="text" key="input.tidalCap"></td>
+    </tr>
+    <tr><td>Backup capacity</td><td><input type="text" key="input.backupCap"></td></tr>
     <tr><td><BR></td></tr>
     <tr><td>Biomass</td><td><input type="text" key="input.biomassSupply"></td><td>TWh/yr</td></tr>
     <tr><td><BR></td></tr>
@@ -219,66 +227,85 @@ This model is open source, view the source code and learn how it works on github
     </tr>
 
     <tr>
-        <td>Wind</td><td><span key="out.windGeneration" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Offshore wind</td><td><span key="out.offWindGeneration" scale=0.001 dp=1></span> TWh/yr</td>
         <td>Total heat demand</td><td><span key="out.totalHeatDemand" scale=0.001 dp=1></span> TWh/yr</td>
         <td>Max discharge rate</td><td><span key="out.store_used_discharge_rate" dp=1></span> GW</td>
     </tr>
 
     <tr>
-        <td>Solar</td><td><span key="out.solarGeneration" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Onshore wind</td><td><span key="out.onWindGeneration" scale=0.001 dp=1></span> TWh/yr</td>
         <td></td><td></td>
         <td>Max charge rate</td><td><span key="out.store_used_charge_rate" dp=1></span> GW</td>
     </tr>
     
     <tr>
-        <td>Nuclear</td><td><span key="out.nuclearGeneration" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Solar</td><td><span key="out.solarGeneration" scale=0.001 dp=1></span> TWh/yr</td>
         <td>Total electricity demand</td><td><span key="out.demandGWh" scale=0.001 dp=1></span> TWh/yr</td>
         <td>Lowest capacity</td><td><span key="out.store_used_min_capacity" dp=1></span> GWh</td>
     </tr>
     
     <tr>
-        <td>Excess generation</td><td><span key="out.excessGeneration" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Hydro</td><td><span key="out.hydroGeneration" scale=0.001 dp=1></span> TWh/yr</td>
         <td></td><td></td>
         <td>Highest capacity</td><td><span key="out.store_used_max_capacity" dp=1></span> GWh</td>
     </tr>
     
     <tr>
-        <td>Backup generation</td><td><span key="out.backupGeneration" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Wave</td><td><span key="out.waveGeneration" scale=0.001 dp=1></span> TWh/yr</td>
         <td>Unmet electricity demand</td><td><span key="out.unmetDemand" scale=0.001 dp=1></span> TWh/yr</td>    
         <td>Total charge</td><td><span key="out.store_total_charge" scale=0.001 dp=1></span> TWh</td>
     </tr>
     
     <tr>
-        <td>Backup capacity used</td><td><span key="out.backupCapUsed" dp=1></span> GW</td>
+        <td>Tidal</td><td><span key="out.tidalGeneration" scale=0.001 dp=1></span> TWh/yr</td>
         <td>Max shortfall</td><td><span key="out.max_shortfall" dp=1></span> GW</td>
         <td>Total discharge</td><td><span key="out.store_total_discharge" scale=0.001 dp=1></span> TWh</td>
     </tr>
     
     <tr>
-        <td></td><td></td>
+        <td>Nuclear</td><td><span key="out.nuclearGeneration" scale=0.001 dp=1></span> TWh/yr</td>
         <td></td><td></td>
         <td>Total loss</td><td><span key="out.store_total_loss" scale=0.001 dp=1></span> TWh</td>
     </tr>
     
     <tr>
+        <td>Excess generation</td><td><span key="out.excessGeneration" scale=0.001 dp=1></span> TWh/yr</td>
+        <td></td><td></td>
+        <td>End capacity level</td><td><span key="out.store_capacity" dp=1></span> GWh</td>        
+    </tr>
+    
+    <tr>
+        <td>Backup generation</td><td><span key="out.backupGeneration" scale=0.001 dp=1></span> TWh/yr</td>
+        <td></td><td></td>
+        <td></td><td></td>        
+    </tr>
+    
+    <tr>
+        <td>Backup capacity used</td><td><span key="out.backupCapUsed" dp=1></span> GW</td>
+        <td></td><td></td>
+        <td></td><td></td>        
+    </tr>
+    
+    <tr><td><BR></td></tr>
+    
+    <tr>
         <td>Solid biomass fuel</td><td><span key="out.solidBiofuel" scale=0.001 dp=1></span> TWh/yr</td>
         <td>Solid fuel</td><td><span key="out.solidDemand" scale=0.001 dp=1></span> TWh/yr</td>
-        <td>End capacity level</td><td><span key="out.store_capacity" dp=1></span> GWh</td>
-    </tr>
+        <td>Hydrogen produced</td><td><span key="out.hydrogenProduced" scale=0.001 dp=1></span> TWh/yr</td>
     <tr>
         <td>Biogas/synthetic gas</td><td><span key="out.gasBiofuel" scale=0.001 dp=1></span> TWh/yr</td>
         <td>Gas fuel</td><td><span key="out.gasDemand" scale=0.001 dp=1></span> TWh/yr</td>
-        <td></td><td></td>
+        <td>Hydrogen surplus/shortfall</td><td><span key="out.hydrogenShortfall" dp=1></span> TWh/yr</td>
     </tr>
     <tr>
         <td>Biofuel/synthetic liquid</td><td><span key="out.liquidBiofuel" scale=0.001 dp=1></span> TWh/yr</td>
         <td>Liquid fuel</td><td><span key="out.liquidDemand" scale=0.001 dp=1></span> TWh/yr</td>
-        <td>Hydrogen produced</td><td><span key="out.hydrogenProduced" scale=0.001 dp=1></span> TWh/yr</td>    
+        <td></td><td></td>    
     </tr>
     <tr>
         <td></td><td></td>         
         <td></td><td></td>  
-        <td>Hydrogen surplus/shortfall</td><td><span key="out.hydrogenShortfall" dp=1></span> TWh/yr</td>
+        <td></td><td></td>
     </tr>
     <tr>
         <td>Biomass surplus/shortfall</td><td><span key="out.biomassShortfall" dp=1></span> TWh/yr</td>
@@ -297,7 +324,9 @@ This model is open source, view the source code and learn how it works on github
 </div>
 
 <div id="header-bound">
-This model is open source, view the source code and learn how it works on github: <a href="https://github.com/philJam/energymodel">https://github.com/philJam/energymodel</a>
+This model is open source, view the source code and learn how it works on github: <a href="https://github.com/philJam/energymodel">https://github.com/philJam/energymodel</a>.
+Comment on the model and see what further development is planned <a href="http://zcb.wikispot.org/OpensourceEnergyModel">here</a>.
+You can also download the full ten year hourly model used for ZCB <a href="https://dl.dropboxusercontent.com/u/79311585/ZCB_TYHME_v2.xlsx">here</a>.
 </div>
 
 </body>
@@ -309,8 +338,11 @@ This model is open source, view the source code and learn how it works on github
     var unmetDemand = 0;
     
     var energyDemand = [];
-    var windPower = [];
+    var onWindPower = [];
+    var offWindPower = [];
     var solarPower = [];
+    var wavePower = [];
+    var tidalPower = [];
     var hourlyHeatDemand = [];
     var hourlyElecForHeatDemand = [];
     var hourlySpaceHeatDemand = [];
@@ -321,8 +353,12 @@ This model is open source, view the source code and learn how it works on github
     var unmet = [];
     var backupUsed = [];
     
-    var windCap = 140; // GW
+    var onWindCap = 20; // GW
+    var offWindCap = 140; // GW
     var solarCap = 70; // GW
+    var hydroCap = 3; // GW
+    var waveCap = 10; // GW
+    var tidalCap = 20; // GW
     var nuclearCap = 0; // GW
     var backupCap = 45; // GW
     var biomassSupply = 274; // TWh/yr
@@ -373,12 +409,17 @@ This model is open source, view the source code and learn how it works on github
     var biomassForSynthGas = 0;
     var biomassForLiquid = 0;
     
+    var onWindGeneration = 0;
+    var offWindGeneration = 0;
     var solarGeneration = 0;
-    var windGeneration = 0;
+    var hydroGeneration = 0;
+    var waveGeneration = 0;
+    var tidalGeneration = 0;
     var nuclearGeneration = 0;
     var backupGeneration = 0;
     var backupCapUsed = 0;
     var demandGWh = 0;
+    var totalGenerationTWh = 0;
     var max_shortfall = 0;
     var total_store_loss = 0;
     
@@ -430,13 +471,18 @@ This model is open source, view the source code and learn how it works on github
     function process()
     {
         excessGeneration = 0;
+        onWindGeneration = 0;
+        offWindGeneration = 0;
         solarGeneration = 0;
-        windGeneration = 0;
+        hydroGeneration = 0;
+        waveGeneration = 0;
+        tidalGeneration = 0;
         nuclearGeneration = 0;
         backupGeneration = 0;
         backupCapUsed = 0;
         
         demandGWh = 0;
+        totalGenerationTWh = 0;
         unmetDemand = 0;
         max_shortfall = 0;
         store_total_loss = 0;
@@ -490,9 +536,7 @@ This model is open source, view the source code and learn how it works on github
         storageChange = [];
         storageSupply = [];
         store_capacity = store_start_capacity;
-        
-        
-        
+               
         x=0;
         var lines = csvfile.split(/\r\n|\n/);
         
@@ -501,14 +545,21 @@ This model is open source, view the source code and learn how it works on github
             
             energyDemand[x] = parseFloat(splitarray[0]);
             
-            windPower[x] = parseFloat(splitarray[1]) * windCap;
-            solarPower[x] = parseFloat(splitarray[2]) * solarCap;
+            onWindPower[x] = parseFloat(splitarray[1]) * onWindCap * 0.9;
+            offWindPower[x] = parseFloat(splitarray[2]) * offWindCap * 0.9;
+            wavePower[x] = parseFloat(splitarray[3]) * waveCap;
+            tidalPower[x] = parseFloat(splitarray[4]) * tidalCap;
+            solarPower[x] = parseFloat(splitarray[5]) * solarCap;
             
-            windGeneration += windPower[x];
+            temperatureData[x] = parseFloat(splitarray[6]);
+            
+            onWindGeneration += onWindPower[x];
+            offWindGeneration += offWindPower[x];
             solarGeneration += solarPower[x];
+            hydroGeneration += hydroCap*0.3;
+            waveGeneration += wavePower[x];
+            tidalGeneration += tidalPower[x];
             nuclearGeneration += nuclearCap*0.9;
-            
-            temperatureData[x] = parseFloat(splitarray[3]);
             
             if((baseTemp - temperatureData[x]) > 0){
                 hourlySpaceHeatDemand[x] = ((baseTemp - temperatureData[x]) * heatLossCoefficient);
@@ -568,9 +619,11 @@ This model is open source, view the source code and learn how it works on github
             // energyDemand and totalGeneration in GW
             hourlyElecForAppliances[i] = energyDemand[i] / (totalDemandInProfile/1000) * appliancesDemand_TWh;
             energyDemand[i] = hourlyElecForAppliances[i] + hourlyElecForHeatDemand[i] + transportDemand + hourlyElecForIndustry[i];
-            totalGeneration[i] = windPower[i] + solarPower[i] + (nuclearCap*0.9) + CHPPower[i];
+            totalGeneration[i] = onWindPower[i] + offWindPower[i] + solarPower[i] + hydroCap*0.3
+                    + wavePower[i] + tidalPower[i] + (nuclearCap*0.9) + CHPPower[i];
            
             demandGWh += energyDemand[i];
+            totalGenerationTWh += totalGeneration[i];
             
             var store_capacity_remaining = store_max_capacity-store_capacity;
 
@@ -1007,14 +1060,14 @@ This model is open source, view the source code and learn how it works on github
         else if(graph_mode == 'demand'){
             for(var p=1;p<8760;p++){
             
-                ctx.strokeStyle = "#0000ff";
+                ctx.strokeStyle = "#0000FF";
                 demandSquarePos = Math.round(energyDemand[p-1]);
                 ctx.beginPath();
                 ctx.moveTo(p+25, 25+(200-demandSquarePos));
                 ctx.lineTo(p+25, 225);
                 ctx.stroke();  // Draw total in blue
                 
-                ctx.strokeStyle = "#ff0000";
+                ctx.strokeStyle = "#FF0000";
                 demandSquarePos = Math.round(hourlyElecForHeatDemand[p-1]);
                 ctx.beginPath();
                 ctx.moveTo(p+25, 25+(200-demandSquarePos));
@@ -1022,7 +1075,7 @@ This model is open source, view the source code and learn how it works on github
                 ctx.stroke();  // Draw heat in red
                 
                 demandSquarePos1 = transportDemand;
-                ctx.strokeStyle = "#ffcc00";
+                ctx.strokeStyle = "#FFFF00";
                 ctx.beginPath();
                 ctx.moveTo(p+25, 25+(200-demandSquarePos));
                 ctx.lineTo(p+25, 25+(200-(demandSquarePos+demandSquarePos1)));
@@ -1037,7 +1090,7 @@ This model is open source, view the source code and learn how it works on github
                 
                 demandSquarePos = Math.round(energyDemand[p-1]);
                 if(storageChange[p-1]<0){
-                    ctx.strokeStyle = "#ffff00";                    
+                    ctx.strokeStyle = "#33FF00";                    
                     ctx.beginPath();
                     ctx.moveTo(p+25, 25+(200-demandSquarePos-Math.round(storageChange[p-1])));
                     ctx.lineTo(p+25, 25+(200-demandSquarePos));
@@ -1045,7 +1098,7 @@ This model is open source, view the source code and learn how it works on github
                 }
                 
                 if(electrolysisDemand[p-1]>0){
-                    ctx.strokeStyle = "#00ff00";                    
+                    ctx.strokeStyle = "#FFCCFF";                    
                     ctx.beginPath();
                     ctx.moveTo(p+25, 25+(200-demandSquarePos-Math.round(storageChange[p-1]-Math.round(electrolysisDemand[p-1]))));
                     ctx.lineTo(p+25, 25+(200-demandSquarePos-Math.round(storageChange[p-1])));
@@ -1062,50 +1115,85 @@ This model is open source, view the source code and learn how it works on github
         }
         //Draw supply graph 
         else if(graph_mode == 'supply'){
-            for(var p=1;p<8760;p++){
+            for(var p=1;p<8760;p++){ 
+                
                 ctx.strokeStyle = "#00ff00";
-                windSquarePos = Math.round(windPower[p-1]);
+                onWindSquarePos = Math.round(onWindPower[p-1]);
+                offWindSquarePos = Math.round(offWindPower[p-1]);
                 solarPos = Math.round(solarPower[p-1]);
+                wavePos = Math.round(wavePower[p-1]);
+                tidalPos = Math.round(tidalPower[p-1]);
                 CHPPos = Math.round(CHPPower[p-1]);
+                hydroPos = Math.round((hydroCap * 0.3));
                 nuclearPos = Math.round((nuclearCap * 0.9));
                 storePos = Math.round(storageSupply[p-1]);
                 backupPos = Math.round(backupUsed[p-1]);
                 unmetPos = Math.round(unmet[p-1]);
                 
-                ctx.strokeStyle = "#33ff00"; // green
+                ctx.strokeStyle = "#ff9900";  //orange
                 ctx.beginPath();
                 ctx.moveTo(p+25, 25+(200-CHPPos));
                 ctx.lineTo(p+25, 225);
                 ctx.stroke();
+                
+                ctx.strokeStyle = "#990099"; //purple                  
+                ctx.beginPath();
+                ctx.moveTo(p+25, 25+(200-CHPPos-nuclearPos));
+                ctx.lineTo(p+25, 25+(200-CHPPos));
+                ctx.stroke();
+                
+                ctx.strokeStyle = "#663300"; // Brown                   
+                ctx.beginPath();
+                ctx.moveTo(p+25, 25+(200-CHPPos-nuclearPos-hydroPos));
+                ctx.lineTo(p+25, 25+(200-CHPPos-nuclearPos));
+                ctx.stroke();
+                
+                ctx.strokeStyle = "#336666"; //Aqua blue                  
+                ctx.beginPath();
+                ctx.moveTo(p+25, 25+(200-CHPPos-nuclearPos-hydroPos-wavePos));
+                ctx.lineTo(p+25, 25+(200-CHPPos-nuclearPos-hydroPos));
+                ctx.stroke();
+                
+                ctx.strokeStyle = "#33CC66"; //Greeny blue                    
+                ctx.beginPath();
+                ctx.moveTo(p+25, 25+(200-CHPPos-nuclearPos-hydroPos-wavePos-tidalPos));
+                ctx.lineTo(p+25, 25+(200-CHPPos-nuclearPos-hydroPos-wavePos));
+                ctx.stroke();
                                
-                ctx.strokeStyle = "#f9e117"; // yellow                   
+                ctx.strokeStyle = "#f9e117";  //Yellow                  
                 ctx.beginPath();
-                ctx.moveTo(p+25, 25+(200-nuclearPos)-CHPPos-solarPos);
-                ctx.lineTo(p+25, 25+(200-nuclearPos)-CHPPos);
+                ctx.moveTo(p+25, 25+(200-nuclearPos)-CHPPos-hydroPos-wavePos-tidalPos-solarPos);
+                ctx.lineTo(p+25, 25+(200-nuclearPos)-CHPPos-hydroPos-wavePos-tidalPos);
                 ctx.stroke();
                 
-                ctx.strokeStyle = "#0000ff";
+                ctx.strokeStyle = "#0000FF"; //blue
                 ctx.beginPath();
-                ctx.moveTo(p+25, 25+(200-nuclearPos)-CHPPos-solarPos-windSquarePos);
-                ctx.lineTo(p+25, 25+(200-nuclearPos)-CHPPos-solarPos);
+                ctx.moveTo(p+25, 25+(200-nuclearPos)-CHPPos-hydroPos-wavePos-tidalPos-solarPos-offWindSquarePos);
+                ctx.lineTo(p+25, 25+(200-nuclearPos)-CHPPos-hydroPos-wavePos-tidalPos-solarPos);
                 ctx.stroke();
                 
-                ctx.strokeStyle = "#ffcc00";
+                ctx.strokeStyle = "#00CCFF"; //light blue
                 ctx.beginPath();
-                ctx.moveTo(p+25, 25+(200-nuclearPos)-CHPPos-solarPos-windSquarePos-storePos);
-                ctx.lineTo(p+25, 25+(200-nuclearPos)-CHPPos-solarPos-windSquarePos);
+                ctx.moveTo(p+25, 25+(200-nuclearPos)-CHPPos-hydroPos-wavePos-tidalPos-solarPos-offWindSquarePos-onWindSquarePos);
+                ctx.lineTo(p+25, 25+(200-nuclearPos)-CHPPos-hydroPos-wavePos-tidalPos-solarPos-offWindSquarePos);
                 ctx.stroke();
                 
-                ctx.strokeStyle = "#ff0000";
+                ctx.strokeStyle = "#33ff00"; //Green
                 ctx.beginPath();
-                ctx.moveTo(p+25, 25+(200-nuclearPos)-CHPPos-solarPos-windSquarePos-storePos-backupPos);
-                ctx.lineTo(p+25, 25+(200-nuclearPos)-CHPPos-solarPos-windSquarePos-storePos);
+                ctx.moveTo(p+25, 25+(200-nuclearPos)-CHPPos-hydroPos-wavePos-tidalPos-solarPos-offWindSquarePos-onWindSquarePos-storePos);
+                ctx.lineTo(p+25, 25+(200-nuclearPos)-CHPPos-hydroPos-wavePos-tidalPos-solarPos-offWindSquarePos-onWindSquarePos);
+                ctx.stroke();
+                
+                ctx.strokeStyle = "#ff0000"; // Red
+                ctx.beginPath();
+                ctx.moveTo(p+25, 25+(200-nuclearPos)-CHPPos-hydroPos-wavePos-tidalPos-solarPos-offWindSquarePos-onWindSquarePos-storePos-backupPos);
+                ctx.lineTo(p+25, 25+(200-nuclearPos)-CHPPos-hydroPos-wavePos-tidalPos-solarPos-offWindSquarePos-onWindSquarePos-storePos);
                 ctx.stroke();
                 
                 ctx.strokeStyle = "#a9a9a9"; // grey
                 ctx.beginPath();
-                ctx.moveTo(p+25, 25+(200-nuclearPos)-CHPPos-solarPos-windSquarePos-storePos-backupPos-unmetPos);
-                ctx.lineTo(p+25, 25+(200-nuclearPos)-CHPPos-solarPos-windSquarePos-storePos-backupPos);
+                ctx.moveTo(p+25, 25+(200-nuclearPos)-CHPPos-hydroPos-wavePos-tidalPos-solarPos-offWindSquarePos-onWindSquarePos-storePos-backupPos-unmetPos);
+                ctx.lineTo(p+25, 25+(200-nuclearPos)-CHPPos-hydroPos-wavePos-tidalPos-solarPos-offWindSquarePos-onWindSquarePos-storePos-backupPos);
                 ctx.stroke();
                               
             }
