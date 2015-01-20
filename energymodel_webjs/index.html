@@ -423,6 +423,8 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     var max_shortfall = 0;
     var total_store_loss = 0;
     
+    var grid_loss = 0.07; // 7% - apply to supply from renewables (except PV & CHP), nuke & backup.
+    
     //------------------------------------------------
     // Storage capacity, size, performance
     var store_max_discharge_rate   = 10;      // GW
@@ -625,6 +627,10 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             demandGWh += energyDemand[i];
             totalGenerationTWh += totalGeneration[i];
             
+            // supplied after grid losses
+            totalGeneration[i] = (onWindPower[i] + offWindPower[i] + hydroCap*0.3
+                    + wavePower[i] + tidalPower[i] + (nuclearCap*0.9))*(1-grid_loss) + solarPower[i] + CHPPower[i]; 
+            
             var store_capacity_remaining = store_max_capacity-store_capacity;
 
             // STORE DISCHARGE
@@ -661,7 +667,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
                 if ((store_discharge_rate_after_loss+totalGeneration[i])<energyDemand[i]) {
                     shortfall = energyDemand[i]-(store_discharge_rate_after_loss+totalGeneration[i]);   // shortfall pre backup generation
                     backupgen = shortfall;                                                              // assign backup generation
-                    if (backupgen>backupCap) backupgen = backupCap;                                     // backup generation capacity limit
+                    if (backupgen>backupCap*(1-grid_loss)) backupgen = backupCap*(1-grid_loss);                                     // backup generation capacity limit
                     shortfall -= backupgen;                                                             // calculate remaining shortfall
                     unmetDemand += shortfall;                                                           // record unmet demand
                     if (shortfall>max_shortfall) max_shortfall = shortfall;                             // record max shortfall
@@ -725,9 +731,9 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             
             store_hourly_capacity[i] = store_capacity;
             
-            backupUsed[i] = backupgen;
-            backupGeneration += backupgen;
-            if (backupgen>backupCapUsed) backupCapUsed = backupgen;
+            backupUsed[i] = backupgen/(1-grid_loss); // Backup capacity used
+            backupGeneration += backupgen/(1-grid_loss);
+            if (backupgen/(1-grid_loss)>backupCapUsed) backupCapUsed = backupgen/(1-grid_loss); //Max backup capacity used
             
             unmet[i] = shortfall;
                      
@@ -1118,16 +1124,16 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             for(var p=1;p<8760;p++){ 
                 
                 ctx.strokeStyle = "#00ff00";
-                onWindSquarePos = Math.round(onWindPower[p-1]);
-                offWindSquarePos = Math.round(offWindPower[p-1]);
+                onWindSquarePos = Math.round(onWindPower[p-1]*(1-grid_loss));
+                offWindSquarePos = Math.round(offWindPower[p-1]*(1-grid_loss));
                 solarPos = Math.round(solarPower[p-1]);
-                wavePos = Math.round(wavePower[p-1]);
-                tidalPos = Math.round(tidalPower[p-1]);
+                wavePos = Math.round(wavePower[p-1]*(1-grid_loss));
+                tidalPos = Math.round(tidalPower[p-1]*(1-grid_loss));
                 CHPPos = Math.round(CHPPower[p-1]);
-                hydroPos = Math.round((hydroCap * 0.3));
-                nuclearPos = Math.round((nuclearCap * 0.9));
+                hydroPos = Math.round((hydroCap * 0.3)*(1-grid_loss));
+                nuclearPos = Math.round((nuclearCap * 0.9)*(1-grid_loss));
                 storePos = Math.round(storageSupply[p-1]);
-                backupPos = Math.round(backupUsed[p-1]);
+                backupPos = Math.round(backupUsed[p-1]*(1-grid_loss));
                 unmetPos = Math.round(unmet[p-1]);
                 
                 ctx.strokeStyle = "#ff9900";  //orange
