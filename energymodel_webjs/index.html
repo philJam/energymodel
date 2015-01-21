@@ -4,11 +4,13 @@
 
 
 <script>
-    var model = {};
+    var model = {
+        elecstore_SOC: 500
+    };
 </script>
 
 <script type="text/javascript" src="gasliquid.js"></script>
-
+<script type="text/javascript" src="elecstore.js"></script>
 <style>
 
     :root {
@@ -442,9 +444,9 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     
     //------------------------------------------------
     // Storage capacity, size, performance
-    var store_max_discharge_rate   = 10;      // GW
-    var store_max_charge_rate      = 10;      // GW
-    var store_max_capacity_GWh     = 50;    // TWh
+    var store_max_discharge_rate   = 100;      // GW
+    var store_max_charge_rate      = 100;      // GW
+    var store_max_capacity_GWh     = 1000;    // TWh
     var store_max_capacity         = store_max_capacity_GWh;
     var store_discharge_efficiency = 0.9;     // 90%
     var store_charge_efficiency    = 0.9;     // 90%
@@ -636,8 +638,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             // energyDemand and totalGeneration in GW
             hourlyElecForAppliances[i] = energyDemand[i] / (totalDemandInProfile/1000) * appliancesDemand_TWh;
             energyDemand[i] = hourlyElecForAppliances[i] + hourlyElecForHeatDemand[i] + transportDemand + hourlyElecForIndustry[i];
-            totalGeneration[i] = onWindPower[i] + offWindPower[i] + solarPower[i] + hydroCap*0.3
-                    + wavePower[i] + tidalPower[i] + (nuclearCap*0.9) + CHPPower[i];
+            totalGeneration[i] = onWindPower[i] + offWindPower[i] + solarPower[i] + hydroCap*0.3 + wavePower[i] + tidalPower[i] + (nuclearCap*0.9) + CHPPower[i];
            
             demandGWh += energyDemand[i];
             totalGenerationTWh += totalGeneration[i];
@@ -646,105 +647,60 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             totalGeneration[i] = (onWindPower[i] + offWindPower[i] + hydroCap*0.3
                     + wavePower[i] + tidalPower[i] + (nuclearCap*0.9))*(1-grid_loss) + solarPower[i] + CHPPower[i]; 
             
-            var store_capacity_remaining = store_max_capacity-store_capacity;
-
-            // STORE DISCHARGE
-            //            Loss
-            //             ^
-            //             |
-            // Store -l2------l1-> Output 
-            //         
-            // - l1 Rate limit
-            // - l2 Capacity limit
+            // 1) Initial electricity balance
+            var balance = totalGeneration[i] - energyDemand[i];
             
-            if (energyDemand[i] >= totalGeneration[i])
-            {
-                var shortfall = energyDemand[i] - totalGeneration[i];
-
-                //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-                var store_discharge_rate_after_loss = shortfall;
-                if (store_discharge_rate_after_loss>store_max_discharge_rate) store_discharge_rate_after_loss = store_max_discharge_rate;   // 1. Discharge rate limit
-                var store_discharge_rate_pre_loss = store_discharge_rate_after_loss / store_discharge_efficiency;                           // 2. Calculate discharge rate pre losses
-                if (store_discharge_rate_pre_loss>store_capacity) store_discharge_rate_pre_loss = store_capacity;                           // 3. Empty store limit
-                store_discharge_rate_after_loss = store_discharge_rate_pre_loss * store_discharge_efficiency;                               // 4. Work backwards to obtain after loss charge rate again
-                var store_loss = store_discharge_rate_pre_loss - store_discharge_rate_after_loss;                                           // 5. Calculate energy lost in charging
-                store_capacity -= store_discharge_rate_pre_loss;                                                                            // 6. Calculate new store capacity level
-                //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-                store_total_discharge += store_discharge_rate_after_loss;
-                store_total_loss += store_loss;
-                storageChange[i] += store_discharge_rate_pre_loss;
-                storageSupply[i] = store_discharge_rate_after_loss;
-                if (store_discharge_rate_after_loss > store_used_discharge_rate) store_used_discharge_rate = store_discharge_rate_after_loss;
+            // 2) Electricity store
+            var elecstore_demand = model.elecstore(balance);
+            balance -= elecstore_demand                             // elecstore_demand is negative when discharging
+            
+            // 3) Hydrogen production
+            if (balance>0) {
+                // positive balance == surplus electricity
+                var electricity_for_electrolysis = balance;             // max available electricity for electrolysis
                 
-                totalGenerationWithStorage[i] = totalGeneration[i] + store_discharge_rate_after_loss;
+                if (electricity_for_electrolysis > electrolysisCap)     // is then limited by electrolysis capacity
+                    electricity_for_electrolysis = electrolysisCap;
+                    
+                hydrogenProduced += electricity_for_electrolysis * 0.7; // resulting in produced hydrogen
                 
-                // Record unmet demand
-                if ((store_discharge_rate_after_loss+totalGeneration[i])<energyDemand[i]) {
-                    shortfall = energyDemand[i]-(store_discharge_rate_after_loss+totalGeneration[i]);   // shortfall pre backup generation
-                    backupgen = shortfall;                                                              // assign backup generation
-                    if (backupgen>backupCap*(1-grid_loss)) backupgen = backupCap*(1-grid_loss);                                     // backup generation capacity limit
-                    shortfall -= backupgen;                                                             // calculate remaining shortfall
-                    unmetDemand += shortfall;                                                           // record unmet demand
-                    if (shortfall>max_shortfall) max_shortfall = shortfall;                             // record max shortfall
-                }
-                else{shortfall = 0;}
-                //energyDemand[i] -= store_discharge_rate_after_loss;
+                balance -= electricity_for_electrolysis;
+                energyDemand[i] += electricity_for_electrolysis;
             }
             
-            // STORE CHARGING
-            //            Loss
-            //             ^
-            //             |
-            // Surplus -l1---l2-> Store 
-            //         
-            // - l1 Rate limit
-            // - l2 Capacity limit
+            // SYNTHETIC GAS PRODUCTION FROM H2 + BIOMASS goes here
             
-            // Supply exceed's demand, excess energy fed into store
-            if (totalGeneration[i]>energyDemand[i])
-            {
-                var surplus_available = totalGeneration[i] - energyDemand[i];
-                
-                //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-                var store_charge_rate_pre_loss = surplus_available;
-                if (store_charge_rate_pre_loss>store_max_charge_rate) store_charge_rate_pre_loss = store_max_charge_rate;           // 1. Charge rate limit
-                var store_charge_rate_after_loss = store_charge_rate_pre_loss * store_charge_efficiency;                            // 2. Calculate charge rate after losses
-                if (store_charge_rate_after_loss>store_capacity_remaining) store_charge_rate_after_loss = store_capacity_remaining; // 3. Capacity limit
-                store_charge_rate_pre_loss = store_charge_rate_after_loss / store_charge_efficiency;                                // 4. Work backwards to obtain pre loss charge rate again
-                var store_loss = store_charge_rate_pre_loss - store_charge_rate_after_loss;                                         // 5. Calculate energy lost in charging
-                store_capacity += store_charge_rate_after_loss;                                                                     // 6. Calculate new store capacity level
-                //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-                store_total_charge += store_charge_rate_pre_loss;
-                store_total_loss += store_loss;
-                storageChange[i] = -store_charge_rate_pre_loss;
-                storageSupply[i] = 0;
-                if (store_charge_rate_pre_loss > store_used_charge_rate) store_used_charge_rate = store_charge_rate_pre_loss;
-                
-                // adjust energy demand 
-                energyDemand[i]+= store_charge_rate_pre_loss;
-                // Calculate electrolysis demand
-                if((totalGeneration[i] - energyDemand[i]) > electrolysisCap){
-                         electrolysisDemand[i] = electrolysisCap;
-                }
-                else{electrolysisDemand[i] = (totalGeneration[i] - energyDemand[i]);}
-                
-                energyDemand[i] += electrolysisDemand[i];
-                hydrogenProduced += electrolysisDemand[i]*0.7;    
-                
-                totalGenerationWithStorage[i] = totalGeneration[i];
-                
-                // record excess generation 
-                if (totalGeneration[i]>energyDemand[i]) excessGeneration += totalGeneration[i] - energyDemand[i]; 
-                
+            // 4) Backup generation (needs to draw synthetic FT gas from gas store)
+            if (balance<0) {
+                backupgen = -balance;                                                               // assign backup generation to shortfall
+                if (backupgen>backupCap*(1-grid_loss)) backupgen = backupCap*(1-grid_loss);         // backup generation capacity limit
+                balance += backupgen;                                                               // calculate remaining balance
+            }
+            
+            // 5) Exess generation or
+            if (balance>0) {
+                excessGeneration += balance;
                 shortfall = 0;
+            } else {
+                // Shortfall
+                shortfall = -balance;
+                unmetDemand += shortfall;                                                           // record unmet demand
+                if (shortfall>max_shortfall) max_shortfall = shortfall;                             // record max shortfall}
             }
-            else{electrolysisDemand[i] = 0;}
+            
+            totalGenerationWithStorage[i] = totalGeneration[i];
+            if (elecstore_demand<0) {
+                // when elecstore_demand is negative the elecstore is discharging and so adds to supply
+                totalGenerationWithStorage[i] -= elecstore_demand;
+            } else {
+                energyDemand[i] += elecstore_demand;
+            }
             
             
-            if (store_capacity > store_used_max_capacity) store_used_max_capacity = store_capacity;
-            if (store_capacity < store_used_min_capacity) store_used_min_capacity = store_capacity;
             
-            store_hourly_capacity[i] = store_capacity;
+            if (model.elecstore_SOC > store_used_max_capacity) store_used_max_capacity = model.elecstore_SOC;
+            if (model.elecstore_SOC < store_used_min_capacity) store_used_min_capacity = model.elecstore_SOC;
+            store_hourly_capacity[i] = model.elecstore_SOC;
             
             backupUsed[i] = backupgen/(1-grid_loss); // Backup capacity used
             backupGeneration += backupgen/(1-grid_loss);
@@ -784,6 +740,9 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         }
         
         residual_emissions = unmet_solid_demand*0.4 + gasliquid.unmet_gas_demand*0.2 + gasliquid.unmet_liquid_demand*0.3 + 1000*unmet_hydrogen*0.2;
+        
+        
+        
         
         //-------------------------------------------------------------------------------------------
         
