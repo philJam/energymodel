@@ -303,12 +303,12 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     <tr>
         <td>Biogas/synthetic gas</td><td><span key="out.gasBiofuel" scale=0.001 dp=1></span> TWh/yr</td>
         <td>Gas fuel</td><td><span key="out.gasDemand" scale=0.001 dp=1></span> TWh/yr</td>
-        <td>Hydrogen surplus</td><td><span key="out.hydrogen_surplus" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Hydrogen surplus</td><td><span key="out.gasliquid.hydrogen_surplus" scale=0.001 dp=1></span> TWh/yr</td>
     </tr>
     <tr>
         <td>Biofuel/synthetic liquid</td><td><span key="out.liquidBiofuel" scale=0.001 dp=1></span> TWh/yr</td>
         <td>Liquid fuel</td><td><span key="out.liquidDemand" scale=0.001 dp=1></span> TWh/yr</td>
-        <td>Biomass surplus</td><td><span key="out.biomass_surplus" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Biomass surplus</td><td><span key="out.gasliquid.biomass_surplus" scale=0.001 dp=1></span> TWh/yr</td>
     </tr>
     <tr>
         <td>Unmet solid demand</td><td><span key="out.unmet_solid_demand" scale=0.001 dp=1></span> TWh/yr</td>        
@@ -316,12 +316,12 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         <td></td><td></td>
     </tr>
     <tr>
-        <td>Unmet gas demand</td><td><span key="out.unmet_gas_demand" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Unmet gas demand</td><td><span key="out.gasliquid.unmet_gas_demand" scale=0.001 dp=1></span> TWh/yr</td>
         <td></td><td></td>
         <td></td><td></td>        
     </tr>
     <tr>
-        <td>Unmet liquid demand</td><td><span key="out.unmet_liquid_demand" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Unmet liquid demand</td><td><span key="out.gasliquid.unmet_liquid_demand" scale=0.001 dp=1></span> TWh/yr</td>
         <td></td><td></td>
         <td></td><td></td>        
     </tr>
@@ -769,32 +769,33 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         hydrogen -= transportHydrogenDemand;            // H2 to transport
         hydrogen -= industryHydrogenDemand;             // H2 to industry are also both prioritiezed over gas and liquid
     
-        var gasliquid = model.gasliquid(biomass, hydrogen, gasDemand, liquidDemand);
+        // Call synthetic gas liquid module
+        gasliquid = model.gasliquid(biomass, hydrogen, gasDemand, liquidDemand);
         
+        // Totals of direct biomass to gas/liquid for UI
         gasBiofuel = gasliquid.biomethane + gasliquid.biogas;
+        
+        // Totals of synthetic h2+biomass to gas/liquid for UI
         liquidBiofuel = gasliquid.synthfuel + gasliquid.biofuel;
-        unmet_gas_demand = gasliquid.unmet_gas_demand
-        unmet_liquid_demand = gasliquid.unmet_liquid_demand
-        hydrogen_surplus = gasliquid.hydrogen_surplus;
-        biomass_surplus = gasliquid.biomass_surplus;
-
 
         var unmet_hydrogen = 0;
         if(hydrogenProduced<(transportHydrogenDemand + industryHydrogenDemand)){
             unmet_hydrogen = transportHydrogenDemand + industryHydrogenDemand - hydrogenProduced;
         }
         
-        residual_emissions = unmet_solid_demand*0.4 + unmet_gas_demand*0.2 + unmet_liquid_demand*0.3 + 1000*unmet_hydrogen*0.2;
+        residual_emissions = unmet_solid_demand*0.4 + gasliquid.unmet_gas_demand*0.2 + gasliquid.unmet_liquid_demand*0.3 + 1000*unmet_hydrogen*0.2;
         
         //-------------------------------------------------------------------------------------------
         
         $("[key]").each(function(){
             var keyparts = $(this).attr('key').split(".");
+            
             var dp = $(this).attr('dp');
             if (dp==undefined) dp = 5;
             var scale = $(this).attr('scale');
             if (scale==undefined) scale = 1;
-            if (keyparts[0]=='out') $(this).html((window[keyparts[1]]*scale).toFixed(dp));
+            if (keyparts[0]=='out' && keyparts.length==2) $(this).html((window[keyparts[1]]*scale).toFixed(dp));
+            if (keyparts[0]=='out' && keyparts.length==3) $(this).html((window[keyparts[1]][keyparts[2]]*scale).toFixed(dp));
         });
         
         draw_graph();
