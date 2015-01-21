@@ -295,12 +295,12 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     <tr>
         <td>Biogas/synthetic gas</td><td><span key="out.gasBiofuel" scale=0.001 dp=1></span> TWh/yr</td>
         <td>Gas fuel</td><td><span key="out.gasDemand" scale=0.001 dp=1></span> TWh/yr</td>
-        <td>Hydrogen surplus/shortfall</td><td><span key="out.hydrogenShortfall" dp=1></span> TWh/yr</td>
+        <td>Hydrogen surplus</td><td><span key="out.hydrogen_surplus" scale=0.001 dp=1></span> TWh/yr</td>
     </tr>
     <tr>
         <td>Biofuel/synthetic liquid</td><td><span key="out.liquidBiofuel" scale=0.001 dp=1></span> TWh/yr</td>
         <td>Liquid fuel</td><td><span key="out.liquidDemand" scale=0.001 dp=1></span> TWh/yr</td>
-        <td></td><td></td>    
+        <td>Biomass surplus</td><td><span key="out.biomass_surplus" scale=0.001 dp=1></span> TWh/yr</td>
     </tr>
     <tr>
         <td></td><td></td>         
@@ -308,12 +308,14 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         <td></td><td></td>
     </tr>
     <tr>
-        <td>Biomass surplus/shortfall</td><td><span key="out.biomassShortfall" dp=1></span> TWh/yr</td>
+        <td>Unmet gas demand</td><td><span key="out.unmet_gas_demand" scale=0.001 dp=1></span> TWh/yr</td>
         <td></td><td></td>
         <td></td><td></td>        
     </tr>
     <tr>
-        <td><h3>Residual emissions</td><td><span key="out.residualEmissions" scale=0.001 dp=1></span> MtCO2/yr</h3></td>        
+        <td>Unmet liquid demand</td><td><span key="out.unmet_liquid_demand" scale=0.001 dp=1></span> TWh/yr</td>
+        <td></td><td></td>
+        <td></td><td></td>        
     </tr>
     <tr><td><BR></td></tr>
     
@@ -361,7 +363,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     var tidalCap = 20; // GW
     var nuclearCap = 0; // GW
     var backupCap = 45; // GW
-    var biomassSupply = 274; // TWh/yr
+    var biomassSupply = 300; // TWh/yr
     
     var demandProfile = 0;
     var heatLossCoefficient = 4.4; // GW/degC
@@ -744,226 +746,115 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         liquidDemand += (appliancesLiquidDemand + transportLiquidDemand + industryLiquidDemand + industryCHPLiquidDemand)*1000;
         
         //***************************************************************************************************
-        //Convoluted algorithm to work out biofuels made, fossil fuels still required and residual emissions
-        //Biomass to biogas efficiency 0.6, biomass to liquif biofuel efficiency 0.5 
-        //Synth fuels assumption: SABATIER: 1 Biomass + 0.5 H2 --> 1 Biomethane. FISCHER-TROPSCH: 1 Biomass + 0.5 H2 --> 0.8 Synthetic liquid fuel.
+        // Algorithm to work out biofuels made, fossil fuels still required and residual emissions
+        // Biomass to biogas efficiency 0.6, biomass to liquif biofuel efficiency 0.5 
+        // Synth fuels assumption: SABATIER: 1 Biomass + 0.5 H2 --> 1 Biomethane. FISCHER-TROPSCH: 1 Biomass + 0.5 H2 --> 0.8 Synthetic liquid fuel.
+
+        var biomass = biomassSupply*1000;               // available biomass
+        var hydrogen = hydrogenProduced;                // available hydrogen
+
+        var transport_hydrogen_demand = transportHydrogenDemand;               
+        var industry_hydrogen_demand = industryHydrogenDemand;
+
+        var solid_demand = solidDemand;
+        var gas_demand = gasDemand;
+        var liquid_demand = liquidDemand;
+
+        biomass -= solid_demand;                        // Biomass solid demand here is prioritiezed over gas and liquid
+        hydrogen -= transport_hydrogen_demand;          // H2 to transport
+        hydrogen -= industry_hydrogen_demand;           // H2 to industry are also both prioritiezed over gas and liquid
+
+        //-------------------------------------------------------------------------------------------
+        // SUPPLY AS MUCH OF GAS AND LIQUID DEMAND FROM SABATIER & FISCHER-TROPSCH PROCESSES
+        //-------------------------------------------------------------------------------------------
+
+        // 1. start by calculating actual requirements of H2 and biomass if full demand was supplied
+        // 2. then limit by the actual hydrogen available
+        // 3. re-calcuate resultant biomass use
+        // 4. then limit by biomass available
+        // 5. re-calculate resultant H2 use
+        // 6. calculate actual synthetic fuels produced
+
+        // 1. Start by calculating actual requirements of H2 and biomass if full demand was supplied
+
+        // var biomass_for_FT = (1.0/0.8) * liquid_demand;
+        var H2_for_FT = (0.5/0.8) * liquid_demand;
+        // var biomass_for_sabatier = (1.0) * gas_demand;
+        var H2_for_sabatier = (0.5) * gas_demand;
+        // var biomass_requirement = biomass_for_FT + biomass_for_sabatier;
+        var H2_requirement = H2_for_FT + H2_for_sabatier;
         
-        solidBiofuel = 0;
-        gasBiofuel = 0;
-        liquidBiofuel = 0;
-        biomassForSolid = 0;
-        biomassForGas = 0;
-        biomassForSynthLiquid = 0;
-        biomassForSynthGas = 0;
-        biomassForLiquid = 0;
-        
-        if(useH2ForSynthFuels == 0){
-              
-            synthFuelH2Demand = (gasDemand*0.5) + (liquidDemand*0.5);
-              
-            if(synthFuelH2Demand < (hydrogenProduced - ((transportHydrogenDemand + industryHydrogenDemand)*1000))){//Enough H2  
-                if(biomassSupply*1000 > (solidDemand + (gasDemand/1) + (liquidDemand/0.8))){ // Enough H2, enough biomass
-                    biomassDemand = (solidDemand + (gasDemand/1) + (liquidDemand/0.8));
-                    synthFuelH2Demand = (gasDemand*0.5) + (liquidDemand*0.5);
+        console.log("full H2_requirement: "+H2_requirement);
 
-                    solidBiofuel = solidDemand;
-                    gasBiofuel = gasDemand;
-                    liquidBiofuel = liquidDemand;
-                }
-                else{
-                    //Enough H2, not enough biomass
-                    if(biomassSupply*1000 < solidDemand){
-                        synthFuelH2Demand = 0;
-                        biomassDemand = solidDemand + (gasDemand/1) + (liquidDemand/0.8);
+        // 2. Limit by the actual amount of hydrogen available
+        var H2 = hydrogen;                                                      // max H2 available 
+        if (H2>H2_requirement) H2 = H2_requirement;                             // limit to demand if demand is larger than supply
 
-                        solidBiofuel = biomassSupply*1000;
-                        gasBiofuel = 0;
-                        liquidBiofuel = 0;
-                    }
-                    else if(biomassSupply*1000 < solidDemand+(gasDemand/1)){
-                        synthFuelH2Demand = ((biomassSupply*1000 - solidDemand)/(gasDemand/1))*gasDemand*0.5;
-                        biomassDemand = solidDemand + (gasDemand/1) + (liquidDemand/0.8);
+        H2_for_FT = (H2_for_FT / H2_requirement) * H2;                          // calculate resulting proportion of available hydrogen available for FT
+        H2_for_sabatier = (H2_for_sabatier/H2_requirement) * H2;                // and for sabatier process
 
-                        solidBiofuel = solidDemand;
-                        gasBiofuel = ((biomassSupply*1000 - solidDemand)/(gasDemand/1)) * gasDemand;
-                        liquidBiofuel = 0;
-                    }
-                    else{
-                        synthFuelH2Demand = (gasDemand*0.5) + (((biomassSupply*1000 - solidDemand - (gasDemand/1)) / 
-                                (liquidDemand/0.8)) * liquidDemand*0.5);
-                        biomassDemand = solidDemand + (gasDemand/1) + (liquidDemand/0.8);
+        // 3. Calcuate resultant biomass use
+        var biomass_for_FT = H2_for_FT / 0.5;
+        var biomass_for_sabatier = H2_for_sabatier / 0.5;
+        var biomass_requirement = biomass_for_FT + biomass_for_sabatier;
 
-                        solidBiofuel = solidDemand;
-                        gasBiofuel = gasDemand;
-                        liquidBiofuel = ((biomassSupply*1000 - solidDemand - (gasDemand/1)) / (liquidDemand/0.8)) * liquidDemand;
-                    }
-
-                }
-            }
-            else{ //Not enough H2
-                if(biomassSupply*1000 > (solidDemand + (gasDemand/1) + (liquidDemand/0.8))){//enough biomass not enough H2
-                    if((hydrogenProduced - ((transportHydrogenDemand + industryHydrogenDemand)*1000)) < 0){
-                          synthFuelH2Demand = 0;
-
-                          biomassForSolid = solidDemand;
-                          biomassForSynthGas = 0;
-                          biomassForGas = (gasDemand/0.6);
-                          biomassForSynthLiquid = 0;
-                          biomassForLiquid = (liquidDemand/0.5);
-                          biomassDemand = biomassForSolid + biomassForSynthGas + biomassForGas + biomassForSynthLiquid + biomassForLiquid;
-                    }
-                    else if((hydrogenProduced - ((transportHydrogenDemand + industryHydrogenDemand)*1000)) < (gasDemand*0.5)){
-                        synthFuelH2Demand = (hydrogenProduced - ((transportHydrogenDemand + industryHydrogenDemand)*1000));
-
-                        biomassForSolid = solidDemand;
-                          biomassForSynthGas = ((hydrogenProduced - ((transportHydrogenDemand + industryHydrogenDemand)*1000))/(gasDemand*0.5)) * (gasDemand/1);
-                          biomassForGas = (1 - ((hydrogenProduced - ((transportHydrogenDemand + industryHydrogenDemand)*1000))/(gasDemand*0.5))) * (gasDemand/0.6);
-                          biomassForSynthLiquid = 0;
-                          biomassForLiquid = (liquidDemand/0.5);
-                          biomassDemand = biomassForSolid + biomassForSynthGas + biomassForGas + biomassForSynthLiquid + biomassForLiquid;                         
-                    }
-                    else{
-                       synthFuelH2Demand = (hydrogenProduced - ((transportHydrogenDemand + industryHydrogenDemand)*1000));
-
-                        biomassForSolid = solidDemand;
-                          biomassForSynthGas = (gasDemand/1);
-                          biomassForGas = 0;
-                          biomassForSynthLiquid = ((hydrogenProduced - ((transportHydrogenDemand + industryHydrogenDemand)*1000) - (gasDemand*0.5))/(liquidDemand*0.5)) * (liquidDemand/0.8);
-                          biomassForLiquid = (1 - ((hydrogenProduced - ((transportHydrogenDemand + industryHydrogenDemand)*1000) - (gasDemand*0.5))/(liquidDemand*0.5))) * (liquidDemand/0.5);
-                          biomassDemand = biomassForSolid + biomassForSynthGas + biomassForGas + biomassForSynthLiquid + biomassForLiquid;                           
-                    }
-                    //work out biofuels produced
-                      if(biomassSupply*1000 < biomassForSolid){
-                          solidBiofuel = biomassSupply*1000; gasBiofuel = 0; liquidBiofuel = 0;
-                      }
-                      else if((biomassSupply*1000 - biomassForSolid) < biomassForSynthGas){
-                          solidBiofuel = biomassForSolid; gasBiofuel = (biomassSupply*1000 - biomassForSolid)*1; liquidBiofuel = 0;
-                      }
-                      else if((biomassSupply*1000 - biomassForSolid - biomassForSynthGas) < biomassForGas){
-                          solidBiofuel = biomassForSolid; gasBiofuel = biomassForSynthGas*1 + (biomassSupply*1000 - biomassForSolid - biomassForSynthGas)*0.6;
-                          liquidBiofuel = 0;
-                      }
-                      else if((biomassSupply*1000 - biomassForSolid - biomassForSynthGas - biomassForGas) < biomassForSynthLiquid){
-                          solidBiofuel = biomassForSolid; gasBiofuel = biomassForSynthGas*1 + biomassForGas*0.6;
-                          liquidBiofuel = (biomassSupply*1000 - biomassForSolid - biomassForSynthGas - biomassForGas)*0.8;
-                      }
-                      else if((biomassSupply*1000 - biomassForSolid - biomassForSynthGas - biomassForGas - biomassForSynthLiquid) < biomassForLiquid){
-                          solidBiofuel = biomassForSolid; gasBiofuel = biomassForSynthGas*1 + biomassForGas*0.6;
-                          liquidBiofuel = biomassForSynthLiquid*0.8 + 
-                                  (biomassSupply*1000 - biomassForSolid - biomassForSynthGas - biomassForGas - biomassForSynthLiquid)*0.5;
-                      }
-                      else{
-                          solidBiofuel = biomassForSolid;
-                          gasBiofuel = biomassForSynthGas*1 + biomassForGas*0.6;
-                          liquidBiofuel = biomassForSynthLiquid*0.8 + biomassForLiquid*0.5;}
-                }
-                else{// not enough H2 not enough biomass
-                      if((hydrogenProduced - ((transportHydrogenDemand + industryHydrogenDemand)*1000)) < 0){
-                          synthFuelH2Demand = 0;
-
-                          biomassForSolid = solidDemand;
-                          biomassForSynthGas = 0;
-                          biomassForGas = (gasDemand/0.6);
-                          biomassForSynthLiquid = 0;
-                          biomassForLiquid = (liquidDemand/0.5);
-                          biomassDemand = biomassForSolid + biomassForSynthGas + biomassForGas + biomassForSynthLiquid + biomassForLiquid;
-
-                      }
-                      else if((hydrogenProduced - ((transportHydrogenDemand + industryHydrogenDemand)*1000)) < (gasDemand*0.5)){
-                          synthFuelH2Demand = (hydrogenProduced - ((transportHydrogenDemand + industryHydrogenDemand)*1000));
-
-                          biomassForSolid = solidDemand;
-                          biomassForSynthGas = ((hydrogenProduced - ((transportHydrogenDemand + industryHydrogenDemand)*1000))/(gasDemand*0.5)) * (gasDemand/1);
-                          biomassForGas = (1 - ((hydrogenProduced - ((transportHydrogenDemand + industryHydrogenDemand)*1000))/(gasDemand*0.5))) * (gasDemand/0.6);
-                          biomassForSynthLiquid = 0;
-                          biomassForLiquid = (liquidDemand/0.5);
-                          biomassDemand = biomassForSolid + biomassForSynthGas + biomassForGas + biomassForSynthLiquid + biomassForLiquid;
-                      }
-                      else{
-                          synthFuelH2Demand = (hydrogenProduced - ((transportHydrogenDemand + industryHydrogenDemand)*1000));
-
-                          biomassForSolid = solidDemand;
-                          biomassForSynthGas = (gasDemand/1);
-                          biomassForGas = 0;
-                          biomassForSynthLiquid = ((hydrogenProduced - ((transportHydrogenDemand + industryHydrogenDemand)*1000) - (gasDemand*0.5))/(liquidDemand*0.5)) * (liquidDemand/0.8);
-                          biomassForLiquid = (1 - ((hydrogenProduced - ((transportHydrogenDemand + industryHydrogenDemand)*1000) - (gasDemand*0.5))/(liquidDemand*0.5))) * (liquidDemand/0.5);
-                          biomassDemand = biomassForSolid + biomassForSynthGas + biomassForGas + biomassForSynthLiquid + biomassForLiquid;
-                      }
-
-                      //work out biofuels produced
-                      if(biomassSupply*1000 < biomassForSolid){
-                          solidBiofuel = biomassSupply*1000; gasBiofuel = 0; liquidBiofuel = 0;
-                      }
-                      else if((biomassSupply*1000 - biomassForSolid) < biomassForSynthGas){
-                          solidBiofuel = biomassForSolid; gasBiofuel = (biomassSupply*1000 - biomassForSolid)*1; liquidBiofuel = 0;
-                      }
-                      else if((biomassSupply*1000 - biomassForSolid - biomassForSynthGas) < biomassForGas){
-                          solidBiofuel = biomassForSolid; gasBiofuel = biomassForSynthGas*1 + (biomassSupply*1000 - biomassForSolid - biomassForSynthGas)*0.6;
-                          liquidBiofuel = 0;
-                      }
-                      else if((biomassSupply*1000 - biomassForSolid - biomassForSynthGas - biomassForGas) < biomassForSynthLiquid){
-                          solidBiofuel = biomassForSolid; gasBiofuel = biomassForSynthGas*1 + biomassForGas*0.6;
-                          liquidBiofuel = (biomassSupply*1000 - biomassForSolid - biomassForSynthGas - biomassForGas)*0.8;
-                      }
-                      else if((biomassSupply*1000 - biomassForSolid - biomassForSynthGas - biomassForGas - biomassForSynthLiquid) < biomassForLiquid){
-                          solidBiofuel = biomassForSolid; gasBiofuel = biomassForSynthGas*1 + biomassForGas*0.6;
-                          liquidBiofuel = biomassForSynthLiquid*0.8 + 
-                                  (biomassSupply*1000 - biomassForSolid - biomassForSynthGas - biomassForGas - biomassForSynthLiquid)*0.5;
-                      }
-                      else{
-                          solidBiofuel = biomassForSolid;
-                          gasBiofuel = biomassForSynthGas*1 + biomassForGas*0.6;
-                          liquidBiofuel = biomassForSynthLiquid*0.8 + biomassForLiquid*0.5;}
-                }
-            }
-        }
-        else{  //No synth fuels
-            synthFuelH2Demand = 0;
-
-            biomassForSolid = solidDemand;
-                          biomassForSynthGas = 0;
-                          biomassForGas = (gasDemand/0.6);
-                          biomassForSynthLiquid = 0;
-                          biomassForLiquid = (liquidDemand/0.5);
-                          biomassDemand = biomassForSolid + biomassForSynthGas + biomassForGas + biomassForSynthLiquid + biomassForLiquid;
-
-            //work out biofuels produced
-            if(biomassSupply*1000 < biomassForSolid){
-                solidBiofuel = biomassSupply*1000; gasBiofuel = 0; liquidBiofuel = 0;
-            }
-            else if((biomassSupply*1000 - biomassForSolid) < biomassForSynthGas){
-                solidBiofuel = biomassForSolid; gasBiofuel = (biomassSupply*1000 - biomassForSolid)*1; liquidBiofuel = 0;
-            }
-            else if((biomassSupply*1000 - biomassForSolid - biomassForSynthGas) < biomassForGas){
-                solidBiofuel = biomassForSolid; gasBiofuel = biomassForSynthGas*1 + (biomassSupply*1000 - biomassForSolid - biomassForSynthGas)*0.6;
-                liquidBiofuel = 0;
-            }
-            else if((biomassSupply*1000 - biomassForSolid - biomassForSynthGas - biomassForGas) < biomassForSynthLiquid){
-                solidBiofuel = biomassForSolid; gasBiofuel = biomassForSynthGas*1 + biomassForGas*0.6;
-                liquidBiofuel = (biomassSupply*1000 - biomassForSolid - biomassForSynthGas - biomassForGas)*0.8;
-            }
-            else if((biomassSupply*1000 - biomassForSolid - biomassForSynthGas - biomassForGas - biomassForSynthLiquid) < biomassForLiquid){
-                solidBiofuel = biomassForSolid; gasBiofuel = biomassForSynthGas*1 + biomassForGas*0.6;
-                liquidBiofuel = biomassForSynthLiquid*0.8 + 
-                        (biomassSupply*1000 - biomassForSolid - biomassForSynthGas - biomassForGas - biomassForSynthLiquid)*0.5;
-            }
-            else{
-                solidBiofuel = biomassForSolid;
-                gasBiofuel = biomassForSynthGas*1 + biomassForGas*0.6;
-                liquidBiofuel = biomassForSynthLiquid*0.8 + biomassForLiquid*0.5;}
+        // 4. then limit by biomass available if biomass requirement for hydrogen available is more than biomass available
+        if (biomass_requirement > biomass)
+        {
+            biomass_for_FT = (biomass_for_FT/biomass_requirement) * biomass;
+            biomass_for_sabatier = (biomass_for_sabatier/biomass_requirement) * biomass;
+            
+            // 5. re-calculate hydrogen requirement after biomass limit
+            H2_for_FT = biomass_for_FT * 0.5;
+            H2_for_sabatier = biomass_for_sabatier * 0.5;
         }
 
-        hydrogenShortfall = (hydrogenProduced/1000) - (transportHydrogenDemand + industryHydrogenDemand + synthFuelH2Demand/1000);
-        biomassShortfall = biomassSupply - biomassDemand/1000;     
+        biomass_requirement = biomass_for_FT + biomass_for_sabatier;
+        H2_requirement = H2_for_FT + H2_for_sabatier;                    
 
-        residualEmissions =0;
-        if(solidDemand > solidBiofuel){residualEmissions += (solidDemand - solidBiofuel)*0.4;}
-        if(gasDemand > gasBiofuel){residualEmissions += (gasDemand - gasBiofuel)*0.2;}
-        if(liquidDemand > liquidBiofuel){residualEmissions += (liquidDemand - liquidBiofuel)*0.3;}
-        if((hydrogenProduced/1000) < (transportHydrogenDemand + industryHydrogenDemand)){residualEmissions += 
-                (((transportHydrogenDemand + industryHydrogenDemand) - (hydrogenProduced/1000))*0.2*1000);}  
+        biomass -= biomass_requirement;
+        hydrogen -= H2_requirement;
+
+        // 6. calculate actual synthetic fuels produced
+        var synthfuel = 0.8*biomass_for_FT;         // == 0.8*0.5*H2_for_FT;
+        var biomethane = biomass_for_sabatier;
+
+        // subtract available biomethane and synthfuel from demands
+        gas_demand -= biomethane;
+        liquid_demand -= synthfuel;
+
+        //-------------------------------------------------------------------------------------------
+        // SUPPLY REMAINING DEMAND BY LESS EFFICIENT DIRECT BIOMASS PROCESS
+        //-------------------------------------------------------------------------------------------
+        
+        // Start by dividing remaining biomass by gas/liquid demand ratio:
+        var max_biomass_for_gas = 0;
+        if (gas_demand>0) max_biomass_for_gas = gas_demand/(gas_demand+liquid_demand) * biomass;            // biogas
+        
+        var max_biomass_for_liquid = 0;
+        if (liquid_demand>0) max_biomass_for_liquid = liquid_demand/(gas_demand+liquid_demand) * biomass;   // biofuel
+
+        var biogas = max_biomass_for_gas * 0.6;                         // calc max biogas production
+        if (biogas>gas_demand) biogas = gas_demand;                       // Limit by gas demand
+        biomass -= biogas / 0.6;                                        // calc actual biomass used
+
+        var biofuel = max_biomass_for_liquid * 0.5;                     // calc max biofuel production
+        if (biofuel>gas_demand) biofuel = liquid_demand;                  // Limit by liquid demand
+        biomass -= biofuel / 0.5;                                       // calc actual biomass used
+
+        gas_demand -= biogas;
+        liquid_demand -= biofuel;
       
-      //**************************************************************************************************
+        //-------------------------------------------------------------------------------------------
+        gasBiofuel = biomethane+biogas;
+        liquidBiofuel = synthfuel+biofuel;
+        
+        unmet_gas_demand = gas_demand;
+        unmet_liquid_demand = liquid_demand;
+        
+        hydrogen_surplus = hydrogen;
+        biomass_surplus = biomass;
+        //-------------------------------------------------------------------------------------------
         
         $("[key]").each(function(){
             var keyparts = $(this).attr('key').split(".");
@@ -976,7 +867,6 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         
         draw_graph();
     }
-    
 
     $(document).ready(function() {
         $.ajax({
