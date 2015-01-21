@@ -297,7 +297,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     <tr><td><BR></td></tr>
     
     <tr>
-        <td>Solid biomass fuel</td><td><span key="out.solidBiofuel" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Solid biomass fuel</td><td><span key="out.solidBiomassUsed" scale=0.001 dp=1></span> TWh/yr</td>
         <td>Solid fuel</td><td><span key="out.solidDemand" scale=0.001 dp=1></span> TWh/yr</td>
         <td>Hydrogen produced</td><td><span key="out.hydrogenProduced" scale=0.001 dp=1></span> TWh/yr</td>
     <tr>
@@ -311,7 +311,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         <td>Biomass surplus</td><td><span key="out.biomass_surplus" scale=0.001 dp=1></span> TWh/yr</td>
     </tr>
     <tr>
-        <td></td><td></td>         
+        <td>Unmet solid demand</td><td><span key="out.unmet_solid_demand" scale=0.001 dp=1></span> TWh/yr</td>        
         <td></td><td></td>  
         <td></td><td></td>
     </tr>
@@ -322,6 +322,11 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     </tr>
     <tr>
         <td>Unmet liquid demand</td><td><span key="out.unmet_liquid_demand" scale=0.001 dp=1></span> TWh/yr</td>
+        <td></td><td></td>
+        <td></td><td></td>        
+    </tr>
+    <tr>
+        <td><h3>Residual Emissions</td><td><span key="out.residual_emissions" scale=0.001 dp=1></span> MtCO2/yr</h3></td>
         <td></td><td></td>
         <td></td><td></td>        
     </tr>
@@ -752,12 +757,15 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         solidDemand += (appliancesSolidDemand + transportSolidDemand + industrySolidDemand + industryCHPSolidDemand)*1000;
         gasDemand += (appliancesGasDemand + transportGasDemand + industryGasDemand + industryCHPGasDemand)*1000 + (backupGeneration/0.5);
         liquidDemand += (appliancesLiquidDemand + transportLiquidDemand + industryLiquidDemand + industryCHPLiquidDemand)*1000;
+
+        var biomass = biomassSupply*1000;                           // available biomass
+        var hydrogen = hydrogenProduced;                            // available hydrogen
+
+        solidBiomassUsed = solidDemand;                         
+        if(solidBiomassUsed>biomass) solidBiomassUsed = biomass;    // limit by amount of biomass available
+        unmet_solid_demand = solidDemand - solidBiomassUsed;
         
-
-        var biomass = biomassSupply*1000;               // available biomass
-        var hydrogen = hydrogenProduced;                // available hydrogen
-
-        biomass -= solidDemand;                         // Biomass solid demand here is prioritiezed over gas and liquid
+        biomass -= solidBiomassUsed;                    // Biomass solid demand here is prioritiezed over gas and liquid
         hydrogen -= transportHydrogenDemand;            // H2 to transport
         hydrogen -= industryHydrogenDemand;             // H2 to industry are also both prioritiezed over gas and liquid
     
@@ -769,6 +777,15 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         unmet_liquid_demand = gasliquid.unmet_liquid_demand
         hydrogen_surplus = gasliquid.hydrogen_surplus;
         biomass_surplus = gasliquid.biomass_surplus;
+
+
+        var unmet_hydrogen = 0;
+        if(hydrogenProduced<(transportHydrogenDemand + industryHydrogenDemand)){
+            unmet_hydrogen = transportHydrogenDemand + industryHydrogenDemand - hydrogenProduced;
+        }
+        
+        residual_emissions = unmet_solid_demand*0.4 + unmet_gas_demand*0.2 + unmet_liquid_demand*0.3 + 1000*unmet_hydrogen*0.2;
+        
         //-------------------------------------------------------------------------------------------
         
         $("[key]").each(function(){
