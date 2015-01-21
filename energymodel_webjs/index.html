@@ -303,7 +303,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         <td>Biomass surplus</td><td><span key="out.biomass_surplus" scale=0.001 dp=1></span> TWh/yr</td>
     </tr>
     <tr>
-        <td></td><td></td>         
+        <td>Unmet solid demand</td><td><span key="out.unmet_solid_demand" scale=0.001 dp=1></span> TWh/yr</td>        
         <td></td><td></td>  
         <td></td><td></td>
     </tr>
@@ -314,6 +314,11 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     </tr>
     <tr>
         <td>Unmet liquid demand</td><td><span key="out.unmet_liquid_demand" scale=0.001 dp=1></span> TWh/yr</td>
+        <td></td><td></td>
+        <td></td><td></td>        
+    </tr>
+    <tr>
+        <td><h3>Residual Emissions</td><td><span key="out.residual_emissions" scale=0.001 dp=1></span> MtCO2/yr</h3></td>
         <td></td><td></td>
         <td></td><td></td>        
     </tr>
@@ -747,7 +752,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         
         //***************************************************************************************************
         // Algorithm to work out biofuels made, fossil fuels still required and residual emissions
-        // Biomass to biogas efficiency 0.6, biomass to liquif biofuel efficiency 0.5 
+        // Biomass to biogas efficiency 0.6, biomass to liquid biofuel efficiency 0.5 
         // Synth fuels assumption: SABATIER: 1 Biomass + 0.5 H2 --> 1 Biomethane. FISCHER-TROPSCH: 1 Biomass + 0.5 H2 --> 0.8 Synthetic liquid fuel.
 
         var biomass = biomassSupply*1000;               // available biomass
@@ -759,8 +764,13 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         var solid_demand = solidDemand;
         var gas_demand = gasDemand;
         var liquid_demand = liquidDemand;
+        var solidBiomass = 0;
+        
+        if(biomass>solid_demand){solidBiomass = solid_demand;}
+        else{solidBiomass = biomass;}
+        solid_demand -= solidBiomass;
 
-        biomass -= solid_demand;                        // Biomass solid demand here is prioritiezed over gas and liquid
+        biomass -= solidBiomass;                        // Biomass solid demand here is prioritiezed over gas and liquid
         hydrogen -= transport_hydrogen_demand;          // H2 to transport
         hydrogen -= industry_hydrogen_demand;           // H2 to industry are also both prioritiezed over gas and liquid
 
@@ -809,10 +819,10 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             H2_for_sabatier = biomass_for_sabatier * 0.5;
         }
 
-        biomass_requirement = biomass_for_FT + biomass_for_sabatier;
+        var biomass_used = biomass_for_FT + biomass_for_sabatier;
         H2_requirement = H2_for_FT + H2_for_sabatier;                    
 
-        biomass -= biomass_requirement;
+        biomass -= biomass_used;
         hydrogen -= H2_requirement;
 
         // 6. calculate actual synthetic fuels produced
@@ -827,6 +837,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         // SUPPLY REMAINING DEMAND BY LESS EFFICIENT DIRECT BIOMASS PROCESS
         //-------------------------------------------------------------------------------------------
         
+        //biomass_requirement += (gas_demand/0.6 + liquid_demand/0.5); 
         // Start by dividing remaining biomass by gas/liquid demand ratio:
         var max_biomass_for_gas = 0;
         if (gas_demand>0) max_biomass_for_gas = gas_demand/(gas_demand+liquid_demand) * biomass;            // biogas
@@ -846,14 +857,24 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         liquid_demand -= biofuel;
       
         //-------------------------------------------------------------------------------------------
+        solidBiofuel = solidBiomass;
         gasBiofuel = biomethane+biogas;
         liquidBiofuel = synthfuel+biofuel;
         
+        unmet_solid_demand = solid_demand;
         unmet_gas_demand = gas_demand;
         unmet_liquid_demand = liquid_demand;
         
+        var unmet_hydrogen = 0;
+        if(hydrogenProduced<(transportHydrogenDemand + industryHydrogenDemand)){
+            unmet_hydrogen = transportHydrogenDemand + industryHydrogenDemand - hydrogenProduced;
+        }
+        else{unmet_hydrogen = 0;}
+        
+        residual_emissions = unmet_solid_demand*0.4 + unmet_gas_demand*0.2 + unmet_liquid_demand*0.3 + 1000*unmet_hydrogen*0.2;
+        
         hydrogen_surplus = hydrogen;
-        biomass_surplus = biomass;
+        biomass_surplus = biomass; 
         //-------------------------------------------------------------------------------------------
         
         $("[key]").each(function(){
