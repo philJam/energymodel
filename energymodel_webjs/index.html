@@ -1,6 +1,16 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <script type="text/javascript" src="jquery-1.9.0.min.js"></script>
 
+
+
+<script>
+    var model = {
+        elecstore_SOC: 500
+    };
+</script>
+
+<script type="text/javascript" src="gasliquid.js"></script>
+<script type="text/javascript" src="elecstore.js"></script>
 <style>
 
     :root {
@@ -289,18 +299,18 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     <tr><td><BR></td></tr>
     
     <tr>
-        <td>Solid biomass fuel</td><td><span key="out.solidBiofuel" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Solid biomass fuel</td><td><span key="out.solidBiomassUsed" scale=0.001 dp=1></span> TWh/yr</td>
         <td>Solid fuel</td><td><span key="out.solidDemand" scale=0.001 dp=1></span> TWh/yr</td>
         <td>Hydrogen produced</td><td><span key="out.hydrogenProduced" scale=0.001 dp=1></span> TWh/yr</td>
     <tr>
         <td>Biogas/synthetic gas</td><td><span key="out.gasBiofuel" scale=0.001 dp=1></span> TWh/yr</td>
         <td>Gas fuel</td><td><span key="out.gasDemand" scale=0.001 dp=1></span> TWh/yr</td>
-        <td>Hydrogen surplus</td><td><span key="out.hydrogen_surplus" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Hydrogen surplus</td><td><span key="out.gasliquid.hydrogen_surplus" scale=0.001 dp=1></span> TWh/yr</td>
     </tr>
     <tr>
         <td>Biofuel/synthetic liquid</td><td><span key="out.liquidBiofuel" scale=0.001 dp=1></span> TWh/yr</td>
         <td>Liquid fuel</td><td><span key="out.liquidDemand" scale=0.001 dp=1></span> TWh/yr</td>
-        <td>Biomass surplus</td><td><span key="out.biomass_surplus" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Biomass surplus</td><td><span key="out.gasliquid.biomass_surplus" scale=0.001 dp=1></span> TWh/yr</td>
     </tr>
     <tr>
         <td>Unmet solid demand</td><td><span key="out.unmet_solid_demand" scale=0.001 dp=1></span> TWh/yr</td>        
@@ -308,12 +318,12 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         <td></td><td></td>
     </tr>
     <tr>
-        <td>Unmet gas demand</td><td><span key="out.unmet_gas_demand" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Unmet gas demand</td><td><span key="out.gasliquid.unmet_gas_demand" scale=0.001 dp=1></span> TWh/yr</td>
         <td></td><td></td>
         <td></td><td></td>        
     </tr>
     <tr>
-        <td>Unmet liquid demand</td><td><span key="out.unmet_liquid_demand" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Unmet liquid demand</td><td><span key="out.gasliquid.unmet_liquid_demand" scale=0.001 dp=1></span> TWh/yr</td>
         <td></td><td></td>
         <td></td><td></td>        
     </tr>
@@ -434,9 +444,9 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     
     //------------------------------------------------
     // Storage capacity, size, performance
-    var store_max_discharge_rate   = 10;      // GW
-    var store_max_charge_rate      = 10;      // GW
-    var store_max_capacity_GWh     = 50;    // TWh
+    var store_max_discharge_rate   = 100;      // GW
+    var store_max_charge_rate      = 100;      // GW
+    var store_max_capacity_GWh     = 1000;    // TWh
     var store_max_capacity         = store_max_capacity_GWh;
     var store_discharge_efficiency = 0.9;     // 90%
     var store_charge_efficiency    = 0.9;     // 90%
@@ -628,8 +638,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             // energyDemand and totalGeneration in GW
             hourlyElecForAppliances[i] = energyDemand[i] / (totalDemandInProfile/1000) * appliancesDemand_TWh;
             energyDemand[i] = hourlyElecForAppliances[i] + hourlyElecForHeatDemand[i] + transportDemand + hourlyElecForIndustry[i];
-            totalGeneration[i] = onWindPower[i] + offWindPower[i] + solarPower[i] + hydroCap*0.3
-                    + wavePower[i] + tidalPower[i] + (nuclearCap*0.9) + CHPPower[i];
+            totalGeneration[i] = onWindPower[i] + offWindPower[i] + solarPower[i] + hydroCap*0.3 + wavePower[i] + tidalPower[i] + (nuclearCap*0.9) + CHPPower[i];
            
             demandGWh += energyDemand[i];
             totalGenerationTWh += totalGeneration[i];
@@ -638,105 +647,60 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             totalGeneration[i] = (onWindPower[i] + offWindPower[i] + hydroCap*0.3
                     + wavePower[i] + tidalPower[i] + (nuclearCap*0.9))*(1-grid_loss) + solarPower[i] + CHPPower[i]; 
             
-            var store_capacity_remaining = store_max_capacity-store_capacity;
-
-            // STORE DISCHARGE
-            //            Loss
-            //             ^
-            //             |
-            // Store -l2------l1-> Output 
-            //         
-            // - l1 Rate limit
-            // - l2 Capacity limit
+            // 1) Initial electricity balance
+            var balance = totalGeneration[i] - energyDemand[i];
             
-            if (energyDemand[i] >= totalGeneration[i])
-            {
-                var shortfall = energyDemand[i] - totalGeneration[i];
-
-                //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-                var store_discharge_rate_after_loss = shortfall;
-                if (store_discharge_rate_after_loss>store_max_discharge_rate) store_discharge_rate_after_loss = store_max_discharge_rate;   // 1. Discharge rate limit
-                var store_discharge_rate_pre_loss = store_discharge_rate_after_loss / store_discharge_efficiency;                           // 2. Calculate discharge rate pre losses
-                if (store_discharge_rate_pre_loss>store_capacity) store_discharge_rate_pre_loss = store_capacity;                           // 3. Empty store limit
-                store_discharge_rate_after_loss = store_discharge_rate_pre_loss * store_discharge_efficiency;                               // 4. Work backwards to obtain after loss charge rate again
-                var store_loss = store_discharge_rate_pre_loss - store_discharge_rate_after_loss;                                           // 5. Calculate energy lost in charging
-                store_capacity -= store_discharge_rate_pre_loss;                                                                            // 6. Calculate new store capacity level
-                //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-                store_total_discharge += store_discharge_rate_after_loss;
-                store_total_loss += store_loss;
-                storageChange[i] += store_discharge_rate_pre_loss;
-                storageSupply[i] = store_discharge_rate_after_loss;
-                if (store_discharge_rate_after_loss > store_used_discharge_rate) store_used_discharge_rate = store_discharge_rate_after_loss;
+            // 2) Electricity store
+            var elecstore_demand = model.elecstore(balance);
+            balance -= elecstore_demand                             // elecstore_demand is negative when discharging
+            
+            // 3) Hydrogen production
+            if (balance>0) {
+                // positive balance == surplus electricity
+                var electricity_for_electrolysis = balance;             // max available electricity for electrolysis
                 
-                totalGenerationWithStorage[i] = totalGeneration[i] + store_discharge_rate_after_loss;
+                if (electricity_for_electrolysis > electrolysisCap)     // is then limited by electrolysis capacity
+                    electricity_for_electrolysis = electrolysisCap;
+                    
+                hydrogenProduced += electricity_for_electrolysis * 0.7; // resulting in produced hydrogen
                 
-                // Record unmet demand
-                if ((store_discharge_rate_after_loss+totalGeneration[i])<energyDemand[i]) {
-                    shortfall = energyDemand[i]-(store_discharge_rate_after_loss+totalGeneration[i]);   // shortfall pre backup generation
-                    backupgen = shortfall;                                                              // assign backup generation
-                    if (backupgen>backupCap*(1-grid_loss)) backupgen = backupCap*(1-grid_loss);                                     // backup generation capacity limit
-                    shortfall -= backupgen;                                                             // calculate remaining shortfall
-                    unmetDemand += shortfall;                                                           // record unmet demand
-                    if (shortfall>max_shortfall) max_shortfall = shortfall;                             // record max shortfall
-                }
-                else{shortfall = 0;}
-                //energyDemand[i] -= store_discharge_rate_after_loss;
+                balance -= electricity_for_electrolysis;
+                energyDemand[i] += electricity_for_electrolysis;
             }
             
-            // STORE CHARGING
-            //            Loss
-            //             ^
-            //             |
-            // Surplus -l1---l2-> Store 
-            //         
-            // - l1 Rate limit
-            // - l2 Capacity limit
+            // SYNTHETIC GAS PRODUCTION FROM H2 + BIOMASS goes here
             
-            // Supply exceed's demand, excess energy fed into store
-            if (totalGeneration[i]>energyDemand[i])
-            {
-                var surplus_available = totalGeneration[i] - energyDemand[i];
-                
-                //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-                var store_charge_rate_pre_loss = surplus_available;
-                if (store_charge_rate_pre_loss>store_max_charge_rate) store_charge_rate_pre_loss = store_max_charge_rate;           // 1. Charge rate limit
-                var store_charge_rate_after_loss = store_charge_rate_pre_loss * store_charge_efficiency;                            // 2. Calculate charge rate after losses
-                if (store_charge_rate_after_loss>store_capacity_remaining) store_charge_rate_after_loss = store_capacity_remaining; // 3. Capacity limit
-                store_charge_rate_pre_loss = store_charge_rate_after_loss / store_charge_efficiency;                                // 4. Work backwards to obtain pre loss charge rate again
-                var store_loss = store_charge_rate_pre_loss - store_charge_rate_after_loss;                                         // 5. Calculate energy lost in charging
-                store_capacity += store_charge_rate_after_loss;                                                                     // 6. Calculate new store capacity level
-                //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-                store_total_charge += store_charge_rate_pre_loss;
-                store_total_loss += store_loss;
-                storageChange[i] = -store_charge_rate_pre_loss;
-                storageSupply[i] = 0;
-                if (store_charge_rate_pre_loss > store_used_charge_rate) store_used_charge_rate = store_charge_rate_pre_loss;
-                
-                // adjust energy demand 
-                energyDemand[i]+= store_charge_rate_pre_loss;
-                // Calculate electrolysis demand
-                if((totalGeneration[i] - energyDemand[i]) > electrolysisCap){
-                         electrolysisDemand[i] = electrolysisCap;
-                }
-                else{electrolysisDemand[i] = (totalGeneration[i] - energyDemand[i]);}
-                
-                energyDemand[i] += electrolysisDemand[i];
-                hydrogenProduced += electrolysisDemand[i]*0.7;    
-                
-                totalGenerationWithStorage[i] = totalGeneration[i];
-                
-                // record excess generation 
-                if (totalGeneration[i]>energyDemand[i]) excessGeneration += totalGeneration[i] - energyDemand[i]; 
-                
+            // 4) Backup generation (needs to draw synthetic FT gas from gas store)
+            if (balance<0) {
+                backupgen = -balance;                                                               // assign backup generation to shortfall
+                if (backupgen>backupCap*(1-grid_loss)) backupgen = backupCap*(1-grid_loss);         // backup generation capacity limit
+                balance += backupgen;                                                               // calculate remaining balance
+            }
+            
+            // 5) Exess generation or
+            if (balance>0) {
+                excessGeneration += balance;
                 shortfall = 0;
+            } else {
+                // Shortfall
+                shortfall = -balance;
+                unmetDemand += shortfall;                                                           // record unmet demand
+                if (shortfall>max_shortfall) max_shortfall = shortfall;                             // record max shortfall}
             }
-            else{electrolysisDemand[i] = 0;}
+            
+            totalGenerationWithStorage[i] = totalGeneration[i];
+            if (elecstore_demand<0) {
+                // when elecstore_demand is negative the elecstore is discharging and so adds to supply
+                totalGenerationWithStorage[i] -= elecstore_demand;
+            } else {
+                energyDemand[i] += elecstore_demand;
+            }
             
             
-            if (store_capacity > store_used_max_capacity) store_used_max_capacity = store_capacity;
-            if (store_capacity < store_used_min_capacity) store_used_min_capacity = store_capacity;
             
-            store_hourly_capacity[i] = store_capacity;
+            if (model.elecstore_SOC > store_used_max_capacity) store_used_max_capacity = model.elecstore_SOC;
+            if (model.elecstore_SOC < store_used_min_capacity) store_used_min_capacity = model.elecstore_SOC;
+            store_hourly_capacity[i] = model.elecstore_SOC;
             
             backupUsed[i] = backupgen/(1-grid_loss); // Backup capacity used
             backupGeneration += backupgen/(1-grid_loss);
@@ -749,141 +713,48 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         solidDemand += (appliancesSolidDemand + transportSolidDemand + industrySolidDemand + industryCHPSolidDemand)*1000;
         gasDemand += (appliancesGasDemand + transportGasDemand + industryGasDemand + industryCHPGasDemand)*1000 + (backupGeneration/0.5);
         liquidDemand += (appliancesLiquidDemand + transportLiquidDemand + industryLiquidDemand + industryCHPLiquidDemand)*1000;
+
+        var biomass = biomassSupply*1000;                           // available biomass
+        var hydrogen = hydrogenProduced;                            // available hydrogen
+
+        solidBiomassUsed = solidDemand;                         
+        if(solidBiomassUsed>biomass) solidBiomassUsed = biomass;    // limit by amount of biomass available
+        unmet_solid_demand = solidDemand - solidBiomassUsed;
         
-        //***************************************************************************************************
-        // Algorithm to work out biofuels made, fossil fuels still required and residual emissions
-        // Biomass to biogas efficiency 0.6, biomass to liquid biofuel efficiency 0.5 
-        // Synth fuels assumption: SABATIER: 1 Biomass + 0.5 H2 --> 1 Biomethane. FISCHER-TROPSCH: 1 Biomass + 0.5 H2 --> 0.8 Synthetic liquid fuel.
-
-        var biomass = biomassSupply*1000;               // available biomass
-        var hydrogen = hydrogenProduced;                // available hydrogen
-
-        var transport_hydrogen_demand = transportHydrogenDemand;               
-        var industry_hydrogen_demand = industryHydrogenDemand;
-
-        var solid_demand = solidDemand;
-        var gas_demand = gasDemand;
-        var liquid_demand = liquidDemand;
-        var solidBiomass = 0;
+        biomass -= solidBiomassUsed;                    // Biomass solid demand here is prioritiezed over gas and liquid
+        hydrogen -= transportHydrogenDemand;            // H2 to transport
+        hydrogen -= industryHydrogenDemand;             // H2 to industry are also both prioritiezed over gas and liquid
+    
+        // Call synthetic gas liquid module
+        gasliquid = model.gasliquid(biomass, hydrogen, gasDemand, liquidDemand);
         
-        if(biomass>solid_demand){solidBiomass = solid_demand;}
-        else{solidBiomass = biomass;}
-        solid_demand -= solidBiomass;
-
-        biomass -= solidBiomass;                        // Biomass solid demand here is prioritiezed over gas and liquid
-        hydrogen -= transport_hydrogen_demand;          // H2 to transport
-        hydrogen -= industry_hydrogen_demand;           // H2 to industry are also both prioritiezed over gas and liquid
-
-        //-------------------------------------------------------------------------------------------
-        // SUPPLY AS MUCH OF GAS AND LIQUID DEMAND FROM SABATIER & FISCHER-TROPSCH PROCESSES
-        //-------------------------------------------------------------------------------------------
-
-        // 1. start by calculating actual requirements of H2 and biomass if full demand was supplied
-        // 2. then limit by the actual hydrogen available
-        // 3. re-calcuate resultant biomass use
-        // 4. then limit by biomass available
-        // 5. re-calculate resultant H2 use
-        // 6. calculate actual synthetic fuels produced
-
-        // 1. Start by calculating actual requirements of H2 and biomass if full demand was supplied
-
-        // var biomass_for_FT = (1.0/0.8) * liquid_demand;
-        var H2_for_FT = (0.5/0.8) * liquid_demand;
-        // var biomass_for_sabatier = (1.0) * gas_demand;
-        var H2_for_sabatier = (0.5) * gas_demand;
-        // var biomass_requirement = biomass_for_FT + biomass_for_sabatier;
-        var H2_requirement = H2_for_FT + H2_for_sabatier;
+        // Totals of direct biomass to gas/liquid for UI
+        gasBiofuel = gasliquid.biomethane + gasliquid.biogas;
         
-        console.log("full H2_requirement: "+H2_requirement);
+        // Totals of synthetic h2+biomass to gas/liquid for UI
+        liquidBiofuel = gasliquid.synthfuel + gasliquid.biofuel;
 
-        // 2. Limit by the actual amount of hydrogen available
-        var H2 = hydrogen;                                                      // max H2 available 
-        if (H2>H2_requirement) H2 = H2_requirement;                             // limit to demand if demand is larger than supply
-
-        H2_for_FT = (H2_for_FT / H2_requirement) * H2;                          // calculate resulting proportion of available hydrogen available for FT
-        H2_for_sabatier = (H2_for_sabatier/H2_requirement) * H2;                // and for sabatier process
-
-        // 3. Calcuate resultant biomass use
-        var biomass_for_FT = H2_for_FT / 0.5;
-        var biomass_for_sabatier = H2_for_sabatier / 0.5;
-        var biomass_requirement = biomass_for_FT + biomass_for_sabatier;
-
-        // 4. then limit by biomass available if biomass requirement for hydrogen available is more than biomass available
-        if (biomass_requirement > biomass)
-        {
-            biomass_for_FT = (biomass_for_FT/biomass_requirement) * biomass;
-            biomass_for_sabatier = (biomass_for_sabatier/biomass_requirement) * biomass;
-            
-            // 5. re-calculate hydrogen requirement after biomass limit
-            H2_for_FT = biomass_for_FT * 0.5;
-            H2_for_sabatier = biomass_for_sabatier * 0.5;
-        }
-
-        var biomass_used = biomass_for_FT + biomass_for_sabatier;
-        H2_requirement = H2_for_FT + H2_for_sabatier;                    
-
-        biomass -= biomass_used;
-        hydrogen -= H2_requirement;
-
-        // 6. calculate actual synthetic fuels produced
-        var synthfuel = 0.8*biomass_for_FT;         // == 0.8*0.5*H2_for_FT;
-        var biomethane = biomass_for_sabatier;
-
-        // subtract available biomethane and synthfuel from demands
-        gas_demand -= biomethane;
-        liquid_demand -= synthfuel;
-
-        //-------------------------------------------------------------------------------------------
-        // SUPPLY REMAINING DEMAND BY LESS EFFICIENT DIRECT BIOMASS PROCESS
-        //-------------------------------------------------------------------------------------------
-        
-        //biomass_requirement += (gas_demand/0.6 + liquid_demand/0.5); 
-        // Start by dividing remaining biomass by gas/liquid demand ratio:
-        var max_biomass_for_gas = 0;
-        if (gas_demand>0) max_biomass_for_gas = gas_demand/(gas_demand+liquid_demand) * biomass;            // biogas
-        
-        var max_biomass_for_liquid = 0;
-        if (liquid_demand>0) max_biomass_for_liquid = liquid_demand/(gas_demand+liquid_demand) * biomass;   // biofuel
-
-        var biogas = max_biomass_for_gas * 0.6;                         // calc max biogas production
-        if (biogas>gas_demand) biogas = gas_demand;                       // Limit by gas demand
-        biomass -= biogas / 0.6;                                        // calc actual biomass used
-
-        var biofuel = max_biomass_for_liquid * 0.5;                     // calc max biofuel production
-        if (biofuel>gas_demand) biofuel = liquid_demand;                  // Limit by liquid demand
-        biomass -= biofuel / 0.5;                                       // calc actual biomass used
-
-        gas_demand -= biogas;
-        liquid_demand -= biofuel;
-      
-        //-------------------------------------------------------------------------------------------
-        solidBiofuel = solidBiomass;
-        gasBiofuel = biomethane+biogas;
-        liquidBiofuel = synthfuel+biofuel;
-        
-        unmet_solid_demand = solid_demand;
-        unmet_gas_demand = gas_demand;
-        unmet_liquid_demand = liquid_demand;
-        
         var unmet_hydrogen = 0;
         if(hydrogenProduced<(transportHydrogenDemand + industryHydrogenDemand)){
             unmet_hydrogen = transportHydrogenDemand + industryHydrogenDemand - hydrogenProduced;
         }
-        else{unmet_hydrogen = 0;}
         
-        residual_emissions = unmet_solid_demand*0.4 + unmet_gas_demand*0.2 + unmet_liquid_demand*0.3 + 1000*unmet_hydrogen*0.2;
+        residual_emissions = unmet_solid_demand*0.4 + gasliquid.unmet_gas_demand*0.2 + gasliquid.unmet_liquid_demand*0.3 + 1000*unmet_hydrogen*0.2;
         
-        hydrogen_surplus = hydrogen;
-        biomass_surplus = biomass; 
+        
+        
+        
         //-------------------------------------------------------------------------------------------
         
         $("[key]").each(function(){
             var keyparts = $(this).attr('key').split(".");
+            
             var dp = $(this).attr('dp');
             if (dp==undefined) dp = 5;
             var scale = $(this).attr('scale');
             if (scale==undefined) scale = 1;
-            if (keyparts[0]=='out') $(this).html((window[keyparts[1]]*scale).toFixed(dp));
+            if (keyparts[0]=='out' && keyparts.length==2) $(this).html((window[keyparts[1]]*scale).toFixed(dp));
+            if (keyparts[0]=='out' && keyparts.length==3) $(this).html((window[keyparts[1]][keyparts[2]]*scale).toFixed(dp));
         });
         
         draw_graph();
