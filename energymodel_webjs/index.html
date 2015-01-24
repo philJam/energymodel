@@ -1,16 +1,6 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <script type="text/javascript" src="jquery-1.9.0.min.js"></script>
 
-
-
-<script>
-    var model = {
-        elecstore_SOC: 500
-    };
-</script>
-
-<script type="text/javascript" src="gasliquid.js"></script>
-<script type="text/javascript" src="elecstore.js"></script>
 <style>
 
     :root {
@@ -239,49 +229,49 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     <tr>
         <td>Offshore wind</td><td><span key="out.offWindGeneration" scale=0.001 dp=1></span> TWh/yr</td>
         <td>Total heat demand</td><td><span key="out.totalHeatDemand" scale=0.001 dp=1></span> TWh/yr</td>
-        <td>Max discharge rate</td><td><span key="out.store_used_discharge_rate" dp=1></span> GW</td>
+        <td>Max discharge rate</td><td><span key="out.elecstore_used_discharge_rate" dp=1></span> GW</td>
     </tr>
 
     <tr>
         <td>Onshore wind</td><td><span key="out.onWindGeneration" scale=0.001 dp=1></span> TWh/yr</td>
         <td></td><td></td>
-        <td>Max charge rate</td><td><span key="out.store_used_charge_rate" dp=1></span> GW</td>
+        <td>Max charge rate</td><td><span key="out.elecstore_used_charge_rate" dp=1></span> GW</td>
     </tr>
     
     <tr>
         <td>Solar</td><td><span key="out.solarGeneration" scale=0.001 dp=1></span> TWh/yr</td>
         <td>Total electricity demand</td><td><span key="out.demandGWh" scale=0.001 dp=1></span> TWh/yr</td>
-        <td>Lowest capacity</td><td><span key="out.store_used_min_capacity" dp=1></span> GWh</td>
+        <td>Lowest capacity</td><td><span key="out.elecstore_used_min_capacity" dp=1></span> GWh</td>
     </tr>
     
     <tr>
         <td>Hydro</td><td><span key="out.hydroGeneration" scale=0.001 dp=1></span> TWh/yr</td>
         <td></td><td></td>
-        <td>Highest capacity</td><td><span key="out.store_used_max_capacity" dp=1></span> GWh</td>
+        <td>Highest capacity</td><td><span key="out.elecstore_used_max_capacity" dp=1></span> GWh</td>
     </tr>
     
     <tr>
         <td>Wave</td><td><span key="out.waveGeneration" scale=0.001 dp=1></span> TWh/yr</td>
         <td>Unmet electricity demand</td><td><span key="out.unmetDemand" scale=0.001 dp=1></span> TWh/yr</td>    
-        <td>Total charge</td><td><span key="out.store_total_charge" scale=0.001 dp=1></span> TWh</td>
+        <td>Total charge</td><td><span key="out.elecstore_total_charge" scale=0.001 dp=1></span> TWh</td>
     </tr>
     
     <tr>
         <td>Tidal</td><td><span key="out.tidalGeneration" scale=0.001 dp=1></span> TWh/yr</td>
         <td>Max shortfall</td><td><span key="out.max_shortfall" dp=1></span> GW</td>
-        <td>Total discharge</td><td><span key="out.store_total_discharge" scale=0.001 dp=1></span> TWh</td>
+        <td>Total discharge</td><td><span key="out.elecstore_total_discharge" scale=0.001 dp=1></span> TWh</td>
     </tr>
     
     <tr>
         <td>Nuclear</td><td><span key="out.nuclearGeneration" scale=0.001 dp=1></span> TWh/yr</td>
         <td></td><td></td>
-        <td>Total loss</td><td><span key="out.store_total_loss" scale=0.001 dp=1></span> TWh</td>
+        <td>Total loss</td><td><span key="out.elecstore_total_loss" scale=0.001 dp=1></span> TWh</td>
     </tr>
     
     <tr>
         <td>Excess generation</td><td><span key="out.excessGeneration" scale=0.001 dp=1></span> TWh/yr</td>
         <td></td><td></td>
-        <td>End capacity level</td><td><span key="out.store_capacity" dp=1></span> GWh</td>        
+        <td>End capacity level</td><td><span key="out.elecstore_capacity" dp=1></span> GWh</td>        
     </tr>
     
     <tr>
@@ -301,7 +291,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     <tr>
         <td>Solid biomass fuel</td><td><span key="out.solidBiomassUsed" scale=0.001 dp=1></span> TWh/yr</td>
         <td>Solid fuel</td><td><span key="out.solidDemand" scale=0.001 dp=1></span> TWh/yr</td>
-        <td>Hydrogen produced</td><td><span key="out.hydrogenProduced" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Hydrogen produced</td><td><span key="out.total_hydrogen_produced" scale=0.001 dp=1></span> TWh/yr</td>
     <tr>
         <td>Biogas/synthetic gas</td><td><span key="out.gasBiofuel" scale=0.001 dp=1></span> TWh/yr</td>
         <td>Gas fuel</td><td><span key="out.gasDemand" scale=0.001 dp=1></span> TWh/yr</td>
@@ -378,7 +368,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     var tidalCap = 20; // GW
     var nuclearCap = 0; // GW
     var backupCap = 45; // GW
-    var biomassSupply = 300; // TWh/yr
+    var biomassSupply = 400; // TWh/yr
     
     var demandProfile = 0;
     var heatLossCoefficient = 4.4; // GW/degC
@@ -443,33 +433,38 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     var grid_loss = 0.07; // 7% - apply to supply from renewables (except PV & CHP), nuke & backup.
     
     //------------------------------------------------
-    // Storage capacity, size, performance
-    var store_max_discharge_rate   = 100;      // GW
-    var store_max_charge_rate      = 100;      // GW
-    var store_max_capacity_GWh     = 1000;    // TWh
-    var store_max_capacity         = store_max_capacity_GWh;
-    var store_discharge_efficiency = 0.9;     // 90%
-    var store_charge_efficiency    = 0.9;     // 90%
+    // Electric storage (in-home & grid scale) capacity, size, performance
+    var elecstore_max_discharge_rate   = 100;      // GW
+    var elecstore_max_charge_rate      = 100;      // GW
+    var elecstore_capacity             = 1000;     // GWh
+    var elecstore_discharge_efficiency = 0.9;      // 90%
+    var elecstore_charge_efficiency    = 0.9;      // 90%
+        
+    // Variables to record utilisation of store
+    var elecstore_used_discharge_rate = 0;
+    var elecstore_used_charge_rate = 0;
+    var elecstore_used_min_capacity = elecstore_capacity;
+    var elecstore_used_max_capacity = 0;
+    var elecstore_total_charge = 0;
+    var elecstore_total_discharge = 0;
+    var elecstore_total_loss = 0;
+
+    var elecstore_hourly_capacity = [];
+    var elecstore_change = [];
+    elecstore_SOC = elecstore_capacity / 2;
+
+    //------------------------------------------------   
     
-    var electrolysisCap = 35; // GW
+    var total_hydrogen_produced = 0;
+    
+    var electrolysisCap = 35;                    // GW
     var electrolysisDemand = [];
     var hydrogenProduced = 0;
     
-    // Variables to record utilisation of store
-    var store_used_discharge_rate = 0;
-    var store_used_charge_rate = 0;
-    var store_used_min_capacity = store_max_capacity;
-    var store_used_max_capacity = 0;
-    var store_total_charge = 0;
-    var store_total_discharge = 0;
-    var store_total_loss = 0;
+    // Hydrogen
+    var hydrogen_store_capacity = 1000;
+    var hydrogen_store_SOC = hydrogen_store_capacity / 2;
     
-    var store_start_capacity_GWh   = store_max_capacity_GWh /2;    // GWh
-    var store_start_capacity       = store_start_capacity_GWh;
-    var store_capacity = store_start_capacity;
-    //------------------------------------------------
-    var store_hourly_capacity = [];
-    var storageChange = [];
     
     $("[key]").each(function(){
         var keyparts = $(this).attr('key').split(".");
@@ -489,6 +484,8 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     
     function process()
     {
+        var biomass_available = biomassSupply*1000;
+    
         excessGeneration = 0;
         onWindGeneration = 0;
         offWindGeneration = 0;
@@ -539,22 +536,37 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         transportDemand = transportDemand_TWh*1000/8760;
         industryDemand = industryDemand_TWh*1000/8760;
 
-        store_max_capacity = store_max_capacity_GWh;
-        store_start_capacity = store_start_capacity_GWh;
+        elecstore_SOC = elecstore_capacity*0.5;
         //------------------------------------------------
         // Variables to record utilisation of store
-        store_used_discharge_rate = 0;
-        store_used_charge_rate = 0;
-        store_used_min_capacity = store_max_capacity;
-        store_used_max_capacity = 0;
-        store_total_charge = 0;
-        store_total_discharge = 0;
-        store_total_loss = 0;
+        elecstore_used_discharge_rate = 0;
+        elecstore_used_charge_rate = 0;
+        elecstore_used_min_capacity = elecstore_capacity;
+        elecstore_used_max_capacity = 0;
+        elecstore_total_charge = 0;
+        elecstore_total_discharge = 0;
+        elecstore_total_loss = 0;
         //------------------------------------------------
-        store_hourly_capacity = [];
+        elecstore_hourly_capacity = [];
         storageChange = [];
         storageSupply = [];
-        store_capacity = store_start_capacity;
+        // -----------------------------------------------
+        
+        elecstore_SOC = elecstore_capacity / 2;
+        
+        total_hydrogen_produced = 0;
+        
+        // Hydrogen store
+        hydrogen_store_capacity = 1000;
+        hydrogen_store_SOC = hydrogen_store_capacity / 2;
+        
+        // Methane store
+        methane_store_capacity = 10000;
+        methane_store_SOC = methane_store_capacity / 2;
+        methane_store_SOC_hourly = [];
+        
+        
+        
                
         x=0;
         var lines = csvfile.split(/\r\n|\n/);
@@ -650,43 +662,224 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             // 1) Initial electricity balance
             var balance = totalGeneration[i] - energyDemand[i];
             
-            // 2) Electricity store
-            var elecstore_demand = model.elecstore(balance);
-            balance -= elecstore_demand                             // elecstore_demand is negative when discharging
+            // ------------------------------------------------------------------------------------------------------
+            // ELECTRICITY STORE
+            // ------------------------------------------------------------------------------------------------------
+            var elecstore_demand = 0;
+            var elecstore_capacity_remaining = elecstore_capacity - elecstore_SOC;
+
+            if (balance>0)
+            {
+                // STORE CHARGING
+                //            Loss
+                //             ^
+                //             |
+                // Surplus -l1---l2-> Store 
+                //         
+                // - l1 Rate limit
+                // - l2 Capacity limit
+
+                // Supply exceed's demand, excess energy fed into store
+                var surplus_available = balance;
+                
+                //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                var elecstore_charge_rate_pre_loss = surplus_available;
+                if (elecstore_charge_rate_pre_loss>elecstore_max_charge_rate) elecstore_charge_rate_pre_loss = elecstore_max_charge_rate;           // 1. Charge rate limit
+                var elecstore_charge_rate_after_loss = elecstore_charge_rate_pre_loss * elecstore_charge_efficiency;                            // 2. Calculate charge rate after losses
+                if (elecstore_charge_rate_after_loss>elecstore_capacity_remaining) elecstore_charge_rate_after_loss = elecstore_capacity_remaining; // 3. Capacity limit
+                elecstore_charge_rate_pre_loss = elecstore_charge_rate_after_loss / elecstore_charge_efficiency;                                // 4. Work backwards to obtain pre loss charge rate again
+                var elecstore_loss = elecstore_charge_rate_pre_loss - elecstore_charge_rate_after_loss;                                         // 5. Calculate energy lost in charging
+                elecstore_SOC += elecstore_charge_rate_after_loss;                                                                // 6. Calculate new store capacity level
+     
+     
+                elecstore_total_charge += elecstore_charge_rate_pre_loss;
+                storageChange[i] = -elecstore_charge_rate_pre_loss;
+                storageSupply[i] = 0;
+                if (elecstore_charge_rate_pre_loss > elecstore_used_charge_rate) 
+                    elecstore_used_charge_rate = elecstore_charge_rate_pre_loss;
+                
+                elecstore_total_loss += elecstore_loss;
+                elecstore_demand = elecstore_charge_rate_pre_loss;
+            }
+            else
+            {
+                // STORE DISCHARGE
+                //            Loss
+                //             ^
+                //             |
+                // Store -l2------l1-> Output 
+                //         
+                // - l1 Rate limit
+                // - l2 Capacity limit
             
-            // 3) Hydrogen production
+                var shortfall = -balance;
+
+                //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                var elecstore_discharge_rate_after_loss = shortfall;
+                if (elecstore_discharge_rate_after_loss>elecstore_max_discharge_rate) elecstore_discharge_rate_after_loss = elecstore_max_discharge_rate;   // 1. Discharge rate limit
+                var elecstore_discharge_rate_pre_loss = elecstore_discharge_rate_after_loss / elecstore_discharge_efficiency;                           // 2. Calculate discharge rate pre losses
+                if (elecstore_discharge_rate_pre_loss > elecstore_SOC) elecstore_discharge_rate_pre_loss = elecstore_SOC;                 // 3. Empty store limit
+                elecstore_discharge_rate_after_loss = elecstore_discharge_rate_pre_loss * elecstore_discharge_efficiency;                               // 4. Work backwards to obtain after loss charge rate again
+                var elecstore_loss = elecstore_discharge_rate_pre_loss - elecstore_discharge_rate_after_loss;                                           // 5. Calculate energy lost in charging
+                elecstore_SOC -= elecstore_discharge_rate_pre_loss;                                                                       // 6. Calculate new store capacity level
+                
+                elecstore_total_discharge += elecstore_discharge_rate_after_loss;
+                storageChange[i] += elecstore_discharge_rate_pre_loss;
+                storageSupply[i] = elecstore_discharge_rate_after_loss;
+                if (elecstore_discharge_rate_after_loss > elecstore_used_discharge_rate) 
+                    elecstore_used_discharge_rate = elecstore_discharge_rate_after_loss;
+                
+                elecstore_total_loss += elecstore_loss; // global scope!!
+                
+                elecstore_demand = -elecstore_discharge_rate_after_loss;
+            }
+            
+            // ------------------------------------------------------------------------------------------------------
+            // ELECTRICITY BALANCE: AFTER ELEC STORE
+            // ------------------------------------------------------------------------------------------------------
+            balance -= elecstore_demand;                             // elecstore_demand is negative when discharging
+            
+            // ------------------------------------------------------------------------------------------------------
+            // HYDROGEN PRODUCTION
+            // ------------------------------------------------------------------------------------------------------
+            //
+            // PARAMETERS
+            // - electrolysisCap
+            // - hydrogen_store_capacity
+            //
+            // THE INPUT VARIABLES FOR THIS SECTION ARE:
+            // - balance
+            // - hydrogen_demand
+            // - hydrogen_store_SOC
+            // - hydrogen_shortfall
+            // 
+            // THE OUTPUT VARIABLES ARE:
+            // - electricity_for_electrolysis
+            // - hydrogen_store_SOC
+            // - hydrogen_shortfall
+            
+            var hydrogen_demand = 0;
+            var hydrogen_produced = 0;
+            var electricity_for_electrolysis = 0;
+            
             if (balance>0) {
                 // positive balance == surplus electricity
-                var electricity_for_electrolysis = balance;             // max available electricity for electrolysis
+                electricity_for_electrolysis = balance;             // max available electricity for electrolysis
                 
                 if (electricity_for_electrolysis > electrolysisCap)     // is then limited by electrolysis capacity
                     electricity_for_electrolysis = electrolysisCap;
                     
-                hydrogenProduced += electricity_for_electrolysis * 0.7; // resulting in produced hydrogen
+                var hydrogen_produced = electricity_for_electrolysis * 0.7; // resulting in produced hydrogen
                 
-                balance -= electricity_for_electrolysis;
-                energyDemand[i] += electricity_for_electrolysis;
+                // subtract hydrogen demand from production
+                var hydrogen_balance = hydrogen_produced - hydrogen_demand;
+                
+                // ------------------------------------------------------------------------------------------------------
+                // BIOMETHANE PRODUCTION FROM EXESS HYDROGEN
+                // ------------------------------------------------------------------------------------------------------
+                var H2_for_sabatier = 0;
+                
+                if (hydrogen_balance>0) {
+                    // Generate biomethane
+                    var H2_for_sabatier = hydrogen_balance;
+                    var biomass_for_sabatier = H2_for_sabatier / 0.5;
+                    
+                    if (biomass_for_sabatier > biomass_available)   // Limit by biomass available
+                        biomass_for_sabatier = biomass_available;
+                    
+                    H2_for_sabatier = biomass_for_sabatier * 0.5;   // re-calculate H2 requirement after biomass limit
+                    var biomethane = biomass_for_sabatier;          // for every 1 unit of biomethane 1 unit of biomass is used (+0.5 unit of hydrogen)
+                    
+                    // Limit biomethane production by biomethane store
+                    if (methane_store_SOC + biomethane > methane_store_capacity) {
+                        biomethane = methane_store_capacity - methane_store_SOC;
+                        biomass_for_sabatier = biomethane;
+                        H2_for_sabatier = biomass_for_sabatier * 0.5;
+                    }  
+                    methane_store_SOC += biomethane;
+                }
+                hydrogen_balance -= H2_for_sabatier;
+                
+                hydrogen_store_SOC += hydrogen_balance;
+                
+                // if hydrogen_balance is negative and subtracting the required hydrogen 
+                // from the hydrogen store results in negative SOC (virtual defecit) then the store is empty
+                // and the defecit in hydrogen production is the extent of the overshoot.
+                if (hydrogen_store_SOC<0) {
+                    hydrogen_shortfall += -1*hydrogen_store_SOC;
+                    hydrogen_store_SOC = 0; 
+                }
+
+                // if calculated hydrogen SOC is in exess of capacity
+                // then we need to limit hydrogen production in this itteration
+                // so as not to fill the store
+                if (hydrogen_store_SOC>hydrogen_store_capacity) {
+                    var exess = hydrogen_store_SOC - hydrogen_store_capacity;       // 'virtual exess'
+                    hydrogen_produced -= exess;                                     // actual hydrogen produced
+                    electricity_for_electrolysis = hydrogen_produced / 0.7;         // actual electricity used
+                    hydrogen_store_SOC = hydrogen_store_capacity;                   // store is full
+                }
             }
             
-            // SYNTHETIC GAS PRODUCTION FROM H2 + BIOMASS goes here
+            total_hydrogen_produced += hydrogen_produced;
             
-            // 4) Backup generation (needs to draw synthetic FT gas from gas store)
+            // ------------------------------------------------------------------------------------------------------
+            // ELECTRICITY BALANCE: AFTER ELECTROLYSIS
+            // ------------------------------------------------------------------------------------------------------
+            balance -= electricity_for_electrolysis;
+            energyDemand[i] += electricity_for_electrolysis;
+            
+            // ------------------------------------------------------------------------------------------------------
+            // BACKUP GENERATION FROM METHANE
+            // ------------------------------------------------------------------------------------------------------
+            // INPUTS:
+            // - balance
+            // - methane_store_SOC
+            //
+            // OUTPUTS:
+            // - backupgen_delivered
+            //
+            
+            var backupgen_delivered = 0;
+            var backupgen_before_gridloss = 0;
+            
             if (balance<0) {
-                backupgen = -balance;                                                               // assign backup generation to shortfall
-                if (backupgen>backupCap*(1-grid_loss)) backupgen = backupCap*(1-grid_loss);         // backup generation capacity limit
-                balance += backupgen;                                                               // calculate remaining balance
+                backupgen_delivered = -balance;
+                backupgen_before_gridloss = backupgen_delivered * (1+grid_loss);
+                if (backupgen_before_gridloss > backupCap) backupgen_before_gridloss = backupCap;
+                var backupgen_gas_demand = backupgen_before_gridloss / 0.5;
+                
+                // Limit to gas available in methane store
+                if (backupgen_gas_demand > methane_store_SOC) {
+                    backupgen_gas_demand = methane_store_SOC;
+                    backupgen_before_gridloss = backupgen_gas_demand * 0.5;
+                    backupgen_delivered = backupgen_before_gridloss / (1+grid_loss);
+                }
+                methane_store_SOC -= backupgen_gas_demand;
             }
+
+            // ------------------------------------------------------------------------------------------------------
+            // ELECTRICITY BALANCE: AFTER BACKUP GENERATION
+            // ------------------------------------------------------------------------------------------------------
+            balance += backupgen_delivered;
             
-            // 5) Exess generation or
+            // ------------------------------------------------------------------------------------------------------
+            // FINAL BALANCE: RECORD EXESS OR SHORTFALL
+            // ------------------------------------------------------------------------------------------------------
             if (balance>0) {
                 excessGeneration += balance;
                 shortfall = 0;
             } else {
-                // Shortfall
                 shortfall = -balance;
-                unmetDemand += shortfall;                                                           // record unmet demand
-                if (shortfall>max_shortfall) max_shortfall = shortfall;                             // record max shortfall}
+                unmetDemand += shortfall;                                                      // record unmet demand
+                if (shortfall>max_shortfall) max_shortfall = shortfall;                        // record max shortfall
             }
+            
+            // ------------------------------------------------------------------------------------------------------
+            //                                             END OF MODEL
+            // ------------------------------------------------------------------------------------------------------
+            
+            
             
             totalGenerationWithStorage[i] = totalGeneration[i];
             if (elecstore_demand<0) {
@@ -698,18 +891,22 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             
             
             
-            if (model.elecstore_SOC > store_used_max_capacity) store_used_max_capacity = model.elecstore_SOC;
-            if (model.elecstore_SOC < store_used_min_capacity) store_used_min_capacity = model.elecstore_SOC;
-            store_hourly_capacity[i] = model.elecstore_SOC;
+            if (elecstore_SOC > elecstore_used_max_capacity) elecstore_used_max_capacity = elecstore_SOC;
+            if (elecstore_SOC < elecstore_used_min_capacity) elecstore_used_min_capacity = elecstore_SOC;
+            elecstore_hourly_capacity[i] = elecstore_SOC;
             
-            backupUsed[i] = backupgen/(1-grid_loss); // Backup capacity used
-            backupGeneration += backupgen/(1-grid_loss);
-            if (backupgen/(1-grid_loss)>backupCapUsed) backupCapUsed = backupgen/(1-grid_loss); //Max backup capacity used
+            methane_store_SOC_hourly[i] = methane_store_SOC;
+            
+            backupUsed[i] = backupgen_before_gridloss;            // Backup capacity used
+            backupGeneration += backupgen_before_gridloss;
+            if (backupgen_before_gridloss > backupCapUsed) 
+                backupCapUsed = backupgen_before_gridloss;        // Max backup capacity used
             
             unmet[i] = shortfall;
                      
         }
         
+        /*
         solidDemand += (appliancesSolidDemand + transportSolidDemand + industrySolidDemand + industryCHPSolidDemand)*1000;
         gasDemand += (appliancesGasDemand + transportGasDemand + industryGasDemand + industryCHPGasDemand)*1000 + (backupGeneration/0.5);
         liquidDemand += (appliancesLiquidDemand + transportLiquidDemand + industryLiquidDemand + industryCHPLiquidDemand)*1000;
@@ -739,10 +936,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             unmet_hydrogen = transportHydrogenDemand + industryHydrogenDemand - hydrogenProduced;
         }
         
-        residual_emissions = unmet_solid_demand*0.4 + gasliquid.unmet_gas_demand*0.2 + gasliquid.unmet_liquid_demand*0.3 + 1000*unmet_hydrogen*0.2;
-        
-        
-        
+        residual_emissions = unmet_solid_demand*0.4 + gasliquid.unmet_gas_demand*0.2 + gasliquid.unmet_liquid_demand*0.3 + 1000*unmet_hydrogen*0.2;*/
         
         //-------------------------------------------------------------------------------------------
         
@@ -753,8 +947,11 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             if (dp==undefined) dp = 5;
             var scale = $(this).attr('scale');
             if (scale==undefined) scale = 1;
-            if (keyparts[0]=='out' && keyparts.length==2) $(this).html((window[keyparts[1]]*scale).toFixed(dp));
-            if (keyparts[0]=='out' && keyparts.length==3) $(this).html((window[keyparts[1]][keyparts[2]]*scale).toFixed(dp));
+            if (keyparts[0]=='out' && keyparts.length==2 && window[keyparts[1]]!=undefined) 
+                $(this).html((window[keyparts[1]]*scale).toFixed(dp));
+                
+            if (keyparts[0]=='out' && keyparts.length==3 && window[keyparts[1]]!=undefined) 
+                $(this).html((window[keyparts[1]][keyparts[2]]*scale).toFixed(dp));
         });
         
         draw_graph();
@@ -985,22 +1182,37 @@ You can also download the full ten year hourly model used for ZCB <a href="https
                 ctx.stroke();
                               
             }
-        }//Draw store graph 
+        } //Draw store graph 
         else if(graph_mode == 'store'){
             for(var p=1;p<8760;p++){
                 
-                cap = Math.round(store_hourly_capacity[p-1]*(200/store_max_capacity));
+                var maxallstores = elecstore_capacity + methane_store_capacity;
+                
+                var elecstore_pos = Math.round((elecstore_hourly_capacity[p-1]/maxallstores)*200);
+                var methane_and_elecstore_pos = Math.round(((elecstore_hourly_capacity[p-1]+methane_store_SOC_hourly[p-1])/maxallstores)*200);
                 
                 ctx.strokeStyle = "#ffcc00"; // orange
                 ctx.beginPath();
-                ctx.moveTo(p+25, 25+(200-cap));
+                ctx.moveTo(p+25, 25+(200-elecstore_pos));
                 ctx.lineTo(p+25, 225);
                 ctx.stroke();
                 
-                ctx.strokeStyle = "#000"; // orange
+                ctx.strokeStyle = "#ffee00"; // orange
                 ctx.beginPath();
-                ctx.moveTo(p+25, 24+(200-cap));
-                ctx.lineTo(p+25, 26+(200-cap));
+                ctx.moveTo(p+25, 25+(200-elecstore_pos));
+                ctx.lineTo(p+25, 25+(200-methane_and_elecstore_pos));
+                ctx.stroke();
+                
+                ctx.strokeStyle = "#000"; // black line
+                ctx.beginPath();
+                ctx.moveTo(p+25, 24+(200-elecstore_pos));
+                ctx.lineTo(p+25, 26+(200-elecstore_pos));
+                ctx.stroke();
+                
+                ctx.strokeStyle = "#000"; // black line
+                ctx.beginPath();
+                ctx.moveTo(p+25, 24+(200-methane_and_elecstore_pos));
+                ctx.lineTo(p+25, 26+(200-methane_and_elecstore_pos));
                 ctx.stroke();
             }        
         }
