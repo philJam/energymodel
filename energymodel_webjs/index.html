@@ -200,20 +200,28 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         <td COLSPAN=2>Store start capacity (GWh)</td><td><input type="text" key="input.elecstore_start_capacity"></td>
     </tr>
     </table>
-    <hr><h3>HYDROGEN</h3><hr>
-    <table>
-    <tr>
-        <td COLSPAN=2>Electrolysis capacity</td><td><input type="text" key="input.electrolysisCap"></td><td>GW</td>
-        <td COLSPAN=3>Use hydrogen for synthetic fuels</td>
-        <td><select type = "text" key="input.useH2ForSynthFuels">
-            <option value="0">Yes</option>
-            <option value="1" selected>No</option>
-            </select>
-        </td>
-    </tr>
-    <tr><td><BR></td></tr>
     
-</table>
+    <hr><h3>HYDROGEN, SYNTHETIC FUEL AND METHANE</h3><hr>
+    <table>
+        <tr>
+            <td COLSPAN=2>Electrolysis capacity</td><td><input type="text" key="input.electrolysisCap"></td><td>GW</td>
+            <td COLSPAN=3>Use hydrogen for synthetic fuels</td>
+            <td><select type = "text" key="input.useH2ForSynthFuels">
+                <option value="1" selected>Yes</option>
+                <option value="0">No</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td COLSPAN=2>Hydrogen store capacity</td><td><input type="text" key="input.hydrogen_store_capacity"></td><td>GWh</td>
+        </tr>
+        <tr>
+            <td COLSPAN=2>Liquid store capacity</td><td><input type="text" key="input.synthfuel_store_capacity"></td><td>GWh</td>
+        </tr>
+        <tr>
+            <td COLSPAN=2>Gas store capacity</td><td><input type="text" key="input.methane_store_capacity"></td><td>GWh</td>
+        </tr>
+    </table>
 
 <br>
 <hr><h3>OUTPUT</h3><hr>
@@ -411,7 +419,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     var industryCHPGasDemand = 0;
     var industryCHPLiquidDemand = 0;
     var industryHydrogenDemand = 0;
-    var useH2ForSynthFuels = 0;
+    var useH2ForSynthFuels = 1;
     
     var solidBiofuel = 0;
     var gasBiofuel = 0;
@@ -841,64 +849,67 @@ You can also download the full ten year hourly model used for ZCB <a href="https
                 var hydrogen_balance = hydrogen_produced - hydrogen_demand;
                 total_hydrogen_demand += hydrogen_demand;
                 
-                // ------------------------------------------------------------------------------------------------------
-                // SYNTHETIC FUEL PRODUCTION FROM EXESS HYDROGEN
-                // ------------------------------------------------------------------------------------------------------
-                var H2_for_FT = 0;
-                
-                if (hydrogen_balance>0) {
-                    var H2_for_FT = hydrogen_balance;
-                    var biomass_for_FT = H2_for_FT / 0.5;
+                if (useH2ForSynthFuels) 
+                {
+                    // ------------------------------------------------------------------------------------------------------
+                    // SYNTHETIC FUEL PRODUCTION FROM EXESS HYDROGEN
+                    // ------------------------------------------------------------------------------------------------------
+                    var H2_for_FT = 0;
                     
-                    if (biomass_for_FT > biomass_available)   // Limit by biomass available
-                        biomass_for_FT = biomass_available;
+                    if (hydrogen_balance>0) {
+                        var H2_for_FT = hydrogen_balance;
+                        var biomass_for_FT = H2_for_FT / 0.5;
+                        
+                        if (biomass_for_FT > biomass_available)   // Limit by biomass available
+                            biomass_for_FT = biomass_available;
+                        
+                        H2_for_FT = biomass_for_FT * 0.5;              // re-calculate H2 requirement after biomass limit
+                        var synthfuel = biomass_for_FT * 0.8;          // for every 0.8 unit of synth fuel 1 unit of biomass is used (+0.5 unit of hydrogen)
+                        
+                        // Limit synthfuel production by synthfuel store
+                        if (synthfuel_store_SOC + synthfuel > synthfuel_store_capacity) {
+                            synthfuel = synthfuel_store_capacity - synthfuel_store_SOC;
+                            biomass_for_FT = synthfuel/0.8;
+                            H2_for_FT = biomass_for_FT * 0.5;
+                        }  
+                        synthfuel_store_SOC += synthfuel;
+                        biomass_available -= biomass_for_FT;
+                        total_liquid_produced += synthfuel;
+                        total_solid_demand += biomass_for_FT;
+                        total_hydrogen_demand += H2_for_FT;
+                    }
+                    hydrogen_balance -= H2_for_FT;
+                                    
+                    // ------------------------------------------------------------------------------------------------------
+                    // BIOMETHANE PRODUCTION FROM EXESS HYDROGEN
+                    // ------------------------------------------------------------------------------------------------------
+                    var H2_for_sabatier = 0;
                     
-                    H2_for_FT = biomass_for_FT * 0.5;              // re-calculate H2 requirement after biomass limit
-                    var synthfuel = biomass_for_FT * 0.8;          // for every 0.8 unit of synth fuel 1 unit of biomass is used (+0.5 unit of hydrogen)
-                    
-                    // Limit synthfuel production by synthfuel store
-                    if (synthfuel_store_SOC + synthfuel > synthfuel_store_capacity) {
-                        synthfuel = synthfuel_store_capacity - synthfuel_store_SOC;
-                        biomass_for_FT = synthfuel/0.8;
-                        H2_for_FT = biomass_for_FT * 0.5;
-                    }  
-                    synthfuel_store_SOC += synthfuel;
-                    biomass_available -= biomass_for_FT;
-                    total_liquid_produced += synthfuel;
-                    total_solid_demand += biomass_for_FT;
-                    total_hydrogen_demand += H2_for_FT;
+                    if (hydrogen_balance>0) {
+                        // Generate biomethane
+                        var H2_for_sabatier = hydrogen_balance;
+                        var biomass_for_sabatier = H2_for_sabatier / 0.5;
+                        
+                        if (biomass_for_sabatier > biomass_available)   // Limit by biomass available
+                            biomass_for_sabatier = biomass_available;
+                        
+                        H2_for_sabatier = biomass_for_sabatier * 0.5;   // re-calculate H2 requirement after biomass limit
+                        var biomethane = biomass_for_sabatier;          // for every 1 unit of biomethane 1 unit of biomass is used (+0.5 unit of hydrogen)
+                        
+                        // Limit biomethane production by biomethane store
+                        if (methane_store_SOC + biomethane > methane_store_capacity) {
+                            biomethane = methane_store_capacity - methane_store_SOC;
+                            biomass_for_sabatier = biomethane;
+                            H2_for_sabatier = biomass_for_sabatier * 0.5;
+                        }  
+                        methane_store_SOC += biomethane;
+                        biomass_available -= biomass_for_sabatier;
+                        total_gas_produced += biomethane;
+                        total_solid_demand += biomass_for_sabatier;
+                        total_hydrogen_demand += H2_for_sabatier;
+                    }
+                    hydrogen_balance -= H2_for_sabatier;
                 }
-                hydrogen_balance -= H2_for_FT;
-                                
-                // ------------------------------------------------------------------------------------------------------
-                // BIOMETHANE PRODUCTION FROM EXESS HYDROGEN
-                // ------------------------------------------------------------------------------------------------------
-                var H2_for_sabatier = 0;
-                
-                if (hydrogen_balance>0) {
-                    // Generate biomethane
-                    var H2_for_sabatier = hydrogen_balance;
-                    var biomass_for_sabatier = H2_for_sabatier / 0.5;
-                    
-                    if (biomass_for_sabatier > biomass_available)   // Limit by biomass available
-                        biomass_for_sabatier = biomass_available;
-                    
-                    H2_for_sabatier = biomass_for_sabatier * 0.5;   // re-calculate H2 requirement after biomass limit
-                    var biomethane = biomass_for_sabatier;          // for every 1 unit of biomethane 1 unit of biomass is used (+0.5 unit of hydrogen)
-                    
-                    // Limit biomethane production by biomethane store
-                    if (methane_store_SOC + biomethane > methane_store_capacity) {
-                        biomethane = methane_store_capacity - methane_store_SOC;
-                        biomass_for_sabatier = biomethane;
-                        H2_for_sabatier = biomass_for_sabatier * 0.5;
-                    }  
-                    methane_store_SOC += biomethane;
-                    biomass_available -= biomass_for_sabatier;
-                    total_gas_produced += biomethane;
-                    total_solid_demand += biomass_for_sabatier;
-                    total_hydrogen_demand += H2_for_sabatier;
-                }
-                hydrogen_balance -= H2_for_sabatier;
                 
                 hydrogen_store_SOC += hydrogen_balance;
                 
