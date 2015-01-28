@@ -299,7 +299,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     <tr>
         <td>Hydrogen produced</td><td><span key="out.total_hydrogen_produced" scale=0.001 dp=1></span> TWh/yr</td>
         <td>Hydrogen demand</td><td><span key="out.total_hydrogen_demand" scale=0.001 dp=1></span> TWh/yr</td>
-        <td>Hydrogen surplus/defecit</td><td><span key="out.hydrogen_final_balance" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Unmet hydrogen demand</td><td><span key="out.unmet_hydrogen_demand" scale=0.001 dp=1></span> TWh/yr</td>
     </tr>    
     <tr>
         <td>Biomass produced</td><td><span key="out.total_biomass_produced" scale=1 dp=1></span> TWh/yr</td>
@@ -309,12 +309,12 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     <tr>
         <td>Biogas/synthetic gas</td><td><span key="out.total_gas_produced" scale=0.001 dp=1></span> TWh/yr</td>
         <td>Gas fuel demand</td><td><span key="out.total_gas_demand" scale=0.001 dp=1></span> TWh/yr</td>
-        <td>Gas surplus/defecit</td><td><span key="out.methane_final_balance" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Unmet gas demand</td><td><span key="out.unmet_gas_demand" scale=0.001 dp=1></span> TWh/yr</td>
     </tr>
     <tr>
         <td>Biofuel/synthetic liquid</td><td><span key="out.total_liquid_produced" scale=0.001 dp=1></span> TWh/yr</td>
         <td>Liquid fuel demand</td><td><span key="out.total_liquid_demand" scale=0.001 dp=1></span> TWh/yr</td>
-        <td>Liquid surplus/defecit</td><td><span key="out.liquid_final_balance" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Unmet liquid demand</td><td><span key="out.unmet_liquid_demand" scale=0.001 dp=1></span> TWh/yr</td>
     </tr>
     <tr><td><BR></td></tr>
     <tr>
@@ -361,7 +361,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     var tidal_capacity = 20;                // GW
     var nuclear_capacity = 0;               // GW
     var backupCap = 45;                     // GW
-    var total_biomass_produced = 200;       // TWh/yr
+    var total_biomass_produced = 240;       // TWh/yr
     var biomass_available = total_biomass_produced*1000;
 
     // accumulated totals for UI stats
@@ -422,9 +422,13 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     var methane_final_balance = 0;
     
     var totalDemandInProfile = 307111.8;        // FROM CSV!!!!
-        
-    var heatLossCoefficient = 4.4; // GW/degC
+    
+    var number_of_buildings = 32*1000000;
+    var average_heatloss_WK = 120;
+    var heatLossCoefficient = (number_of_buildings * average_heatloss_WK) / 1000000000; // 4.4; // GW/degC
     var baseTemp = 16-(385/((heatLossCoefficient/4.398)*119)); //Gains need linking to appliances energy reduction
+    var average_heatpump_COP = 0;
+    
     var totalHeatDemand = 0;
     var heatPumpCoP = 2.5;
     var hotWaterDemand_TWh = 96;
@@ -557,7 +561,9 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         // ------------------------------
         baseTemp = 16-(385/((heatLossCoefficient/4.398)*119)); //Gains need linking to appliances energy reduction
         annual_hotwater_demand = hotWaterDemand_TWh*1000;
-        hourly_transport_demand = transportDemand_TWh*1000 / (365*24);
+        average_heatpump_COP = 0;
+        
+        hourly_transport_demand = transportDemand_TWh*1000 / (365*24);        
         industryDemand = industryDemand_TWh*1000;
         
         // accumulated totals
@@ -599,6 +605,9 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         hydrogen_store_SOC = hydrogen_store_capacity / 2;
         synthfuel_store_SOC = synthfuel_store_capacity / 2;
         methane_store_SOC = methane_store_capacity / 2;
+        
+        min_cop = 10000;
+        max_cop = -10000;
        
         x=0;
         var lines = csvfile.split(/\r\n|\n/);
@@ -657,11 +666,12 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             // ------------------------------------------------------------------------------------------------------
             // SPACE & WATER HEATING DEMAND
             // ------------------------------------------------------------------------------------------------------
-            hourlySpaceHeatDemand[i] = 0;
-            if((baseTemp - temperatureData[i]) > 0){
-                hourlySpaceHeatDemand[i] = ((baseTemp - temperatureData[i]) * heatLossCoefficient);
-            }
-            hourlySpaceHeatDemand[i] *= 24*spaceHeatingDailyProfile[x]/100;
+            
+            var deltaT = baseTemp - temperatureData[i];
+            if (deltaT<0) deltaT = 0;
+            var daily_heat_demand = (deltaT * heatLossCoefficient) * 24;
+            
+            hourlySpaceHeatDemand[i] = daily_heat_demand * spaceHeatingDailyProfile[x] / 100;
 
             // profiles are in percent of daily heating demand (0-100), / 100 converts to 0-1;
             // demand is in GWh per year so we need to divide by 365 to obtain GWh per day
@@ -669,7 +679,19 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             hourlyHeatDemand[i] = hourlySpaceHeatDemand[i] + hourlyWaterHeatDemand[i];
             totalHeatDemand += hourlyHeatDemand[i];
             
-            hourlyElecForHeatDemand[i] = (hourlyHeatDemand[i] * percentHeatHeatpumps / 100 / heatPumpCoP) + (hourlyHeatDemand[i] * percentHeatDirectelec / 100);
+            // var T_condensing = baseTemp + 8;
+            // var T_evaporating = temperatureData[i] - 6;
+            // hourly_heatpump_COP = ((T_condensing + 273) / ((T_condensing+273) - (T_evaporating + 273))) * 0.1;
+            // if (hourly_heatpump_COP<1) hourly_heatpump_COP = 1;
+            
+            var hourly_heatpump_COP = 4.0 - deltaT * 0.2;
+            if (hourly_heatpump_COP<1) hourly_heatpump_COP = 1;
+            
+            average_heatpump_COP += hourly_heatpump_COP;
+            if (hourly_heatpump_COP<min_cop) min_cop = hourly_heatpump_COP; 
+            if (hourly_heatpump_COP>max_cop) max_cop = hourly_heatpump_COP; 
+            
+            hourlyElecForHeatDemand[i] = (hourlyHeatDemand[i] * (percentHeatHeatpumps / 100.0) / hourly_heatpump_COP) + (hourlyHeatDemand[i] * percentHeatDirectelec / 100);
             
             // Calculate demand for solid, gas & liquid fuel for heat
             var solid_for_heat = (hourlyHeatDemand[i]*(percentHeatSolid/100))/0.9;
@@ -822,10 +844,6 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             // - hydrogen_store_SOC
             // - hydrogen_shortfall
             
-            
-            
-            
-        
             var hydrogen_demand = 0;
             hydrogen_demand += transportHydrogenDemand*1000 / (365*24);
             hydrogen_demand += industryHydrogenDemand*1000 / (365*24);
@@ -960,7 +978,12 @@ You can also download the full ten year hourly model used for ZCB <a href="https
                 methane_store_SOC -= gas_demand;
             } else {
                 methane_store_SOC = 0;
-                unmet_gas_demand += gas_demand - methane_store_SOC;
+                
+                var gas_remainder = gas_demand - methane_store_SOC;
+                // direct biomass to liquid 60% efficient
+                total_solid_demand += gas_remainder/0.6;
+                biomass_available -= gas_remainder/0.6;
+                // unmet_gas_demand += gas_demand - methane_store_SOC;
             }
 
             var liquid_demand = liquid_for_heat;
@@ -975,7 +998,12 @@ You can also download the full ten year hourly model used for ZCB <a href="https
                 synthfuel_store_SOC -= liquid_demand;
             } else {
                 synthfuel_store_SOC = 0;
-                unmet_liquid_demand += liquid_demand - synthfuel_store_SOC;
+                
+                var liquid_remainder = liquid_demand - synthfuel_store_SOC;
+                // direct biomass to liquid 50% efficient
+                total_solid_demand += liquid_remainder/0.5;
+                biomass_available -= liquid_remainder/0.5;
+                // unmet_liquid_demand += liquid_demand - synthfuel_store_SOC;
             } 
             
             
@@ -1057,13 +1085,13 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             if(x==23) x=0;
         }
         
-        hydrogen_final_balance = hydrogen_store_SOC - (hydrogen_store_capacity / 2) - unmet_hydrogen_demand;
-        methane_final_balance = methane_store_SOC - (methane_store_capacity / 2) - unmet_gas_demand;
-        liquid_final_balance = synthfuel_store_SOC - unmet_liquid_demand;
-        
+        // hydrogen_final_balance = hydrogen_store_SOC - (hydrogen_store_capacity / 2) - unmet_hydrogen_demand;
+        // methane_final_balance = methane_store_SOC - (methane_store_capacity / 2) - unmet_gas_demand;
+        // liquid_final_balance = synthfuel_store_SOC - unmet_liquid_demand;
         biomass_surplus = biomass_available;
+        console.log(unmet_solid_demand+" "+unmet_gas_demand+" "+unmet_liquid_demand+" "+unmet_hydrogen_demand)
         
-        residual_emissions = unmet_solid_demand*0.4 + unmet_gas_demand*0.2 + unmet_liquid_demand*0.3 + 1000*unmet_hydrogen_demand*0.2;
+        residual_emissions = unmet_solid_demand*0.4 + unmet_gas_demand*0.2 + unmet_liquid_demand*0.3 + unmet_hydrogen_demand*0.2;
         
         //-------------------------------------------------------------------------------------------
         
