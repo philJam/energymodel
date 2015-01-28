@@ -469,9 +469,14 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     var hydrogenProduced = 0;
     
     // Hydrogen
-    var hydrogen_store_capacity = 1000;
+    var hydrogen_store_capacity = 2000;
     var hydrogen_store_SOC = hydrogen_store_capacity / 2;
     
+    var synthfuel_store_capacity = 2000;
+    var synthfuel_store_SOC = synthfuel_store_capacity / 2;
+    
+    var methane_store_capacity = 10000;
+    var methane_store_SOC = methane_store_capacity / 2;
     
     $("[key]").each(function(){
         var keyparts = $(this).attr('key').split(".");
@@ -577,16 +582,14 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         
         total_hydrogen_produced = 0;
         
-        // Hydrogen store
-        hydrogen_store_capacity = 1000;
         hydrogen_store_SOC = hydrogen_store_capacity / 2;
+        hydrogen_store_SOC_hourly = [];
         
-        // Methane store
-        methane_store_capacity = 10000;
         methane_store_SOC = methane_store_capacity / 2;
         methane_store_SOC_hourly = [];
         
-        synthfuel_SOC = 0;
+        synthfuel_store_SOC = synthfuel_store_capacity / 2;
+        synthfuel_store_SOC_hourly = [];
         
         totalDemandInProfile = 0;
         totalHeatDemand = 0;
@@ -675,10 +678,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             solid_for_heat += (hourlyHeatDemand[i]*(percentHeatCHPSolid/100))/0.6;
             gas_for_heat += (hourlyHeatDemand[i]*(percentHeatCHPGas/100))/0.6;
             liquid_for_heat += (hourlyHeatDemand[i]*(percentHeatCHPLiquid/100))/0.6;
-                
             
-            CHPPower[i] = 0;
-            /*
             // CHP assumes efficiency of 30% for electricity, 60% for heat
             CHPPower[i] = (hourlyHeatDemand[i]*(percentHeatCHPSolid/100))*(0.3/0.6) + 
                       (hourlyHeatDemand[i]*(percentHeatCHPGas/100))*(0.3/0.6) + 
@@ -686,7 +686,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
                       ((industryCHPSolidDemand/8760)*1000 * 24 * (industrialDailyProfile[x]/100))*0.3 + 
                       ((industryCHPGasDemand/8760)*1000 * 24 * (industrialDailyProfile[x]/100))*0.3 +
                       ((industryCHPLiquidDemand/8760)*1000 * 24 * (industrialDailyProfile[x]/100))*0.3 ;
-            */
+            
 
             hourlyElecForAppliances[i] = traditional_electricity_demand_profile * (appliancesDemand_TWh*1000);
             hourlyElecForIndustry[i] = (industryDemand/365.0) * (industrialDailyProfile[x]/100);
@@ -821,7 +821,10 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             // - hydrogen_store_SOC
             // - hydrogen_shortfall
         
-            var hydrogen_demand = 0;                // transportHydrogenDemand + industryHydrogenDemand, used by hydrogen vehicles, synthetic fuel
+            var hydrogen_demand = 0;
+            hydrogen_demand += transportHydrogenDemand*1000 / (365*24);
+            hydrogen_demand += industryHydrogenDemand*1000 / (365*24);
+            
             var hydrogen_produced = 0;
             var electricity_for_electrolysis = 0;
             
@@ -837,6 +840,36 @@ You can also download the full ten year hourly model used for ZCB <a href="https
                 // subtract hydrogen demand from production
                 var hydrogen_balance = hydrogen_produced - hydrogen_demand;
                 total_hydrogen_demand += hydrogen_demand;
+                
+                // ------------------------------------------------------------------------------------------------------
+                // SYNTHETIC FUEL PRODUCTION FROM EXESS HYDROGEN
+                // ------------------------------------------------------------------------------------------------------
+                var H2_for_FT = 0;
+                
+                if (hydrogen_balance>0) {
+                    var H2_for_FT = hydrogen_balance;
+                    var biomass_for_FT = H2_for_FT / 0.5;
+                    
+                    if (biomass_for_FT > biomass_available)   // Limit by biomass available
+                        biomass_for_FT = biomass_available;
+                    
+                    H2_for_FT = biomass_for_FT * 0.5;              // re-calculate H2 requirement after biomass limit
+                    var synthfuel = biomass_for_FT * 0.8;          // for every 0.8 unit of synth fuel 1 unit of biomass is used (+0.5 unit of hydrogen)
+                    
+                    // Limit synthfuel production by synthfuel store
+                    if (synthfuel_store_SOC + synthfuel > synthfuel_store_capacity) {
+                        synthfuel = synthfuel_store_capacity - synthfuel_store_SOC;
+                        biomass_for_FT = synthfuel/0.8;
+                        H2_for_FT = biomass_for_FT * 0.5;
+                    }  
+                    synthfuel_store_SOC += synthfuel;
+                    biomass_available -= biomass_for_FT;
+                    total_liquid_produced += synthfuel;
+                    total_solid_demand += biomass_for_FT;
+                    total_hydrogen_demand += H2_for_FT;
+                }
+                hydrogen_balance -= H2_for_FT;
+                                
                 // ------------------------------------------------------------------------------------------------------
                 // BIOMETHANE PRODUCTION FROM EXESS HYDROGEN
                 // ------------------------------------------------------------------------------------------------------
@@ -905,8 +938,12 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             // ------------------------------------------------------------------------------------------------------
             // METHANE + LIQUID DEMAND
             // ------------------------------------------------------------------------------------------------------
-            // gasDemand += (appliancesGasDemand + transportGasDemand + industryGasDemand + industryCHPGasDemand)*1000
             var gas_demand = gas_for_heat;
+            gas_demand += appliancesGasDemand * 1000 / (365*24);
+            gas_demand += transportGasDemand * 1000 / (365*24);
+            gas_demand += industryGasDemand * 1000 / (365*24);
+            gas_demand += industryCHPGasDemand * 1000 / (365*24);
+            
             total_gas_demand += gas_demand;
                  
             if (methane_store_SOC > gas_demand) {
@@ -916,15 +953,19 @@ You can also download the full ten year hourly model used for ZCB <a href="https
                 unmet_gas_demand += gas_demand - methane_store_SOC;
             }
 
-            // liquidDemand += (appliancesLiquidDemand + transportLiquidDemand + industryLiquidDemand + industryCHPLiquidDemand)*1000;
             var liquid_demand = liquid_for_heat;
+            liquid_demand += appliancesLiquidDemand * 1000 / (365*24);
+            liquid_demand += transportLiquidDemand * 1000 / (365*24);
+            liquid_demand += industryLiquidDemand * 1000 / (365*24);
+            liquid_demand += industryCHPLiquidDemand * 1000 / (365*24);
+            
             total_liquid_demand += liquid_demand;
                  
-            if (synthfuel_SOC > liquid_demand) {
-                synthfuel_SOC -= liquid_demand;
+            if (synthfuel_store_SOC > liquid_demand) {
+                synthfuel_store_SOC -= liquid_demand;
             } else {
-                synthfuel_SOC = 0;
-                unmet_liquid_demand += liquid_demand - synthfuel_SOC;
+                synthfuel_store_SOC = 0;
+                unmet_liquid_demand += liquid_demand - synthfuel_store_SOC;
             } 
             
             
@@ -993,7 +1034,9 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             if (elecstore_SOC < elecstore_used_min_capacity) elecstore_used_min_capacity = elecstore_SOC;
             elecstore_hourly_capacity[i] = elecstore_SOC;
             
+            hydrogen_store_SOC_hourly[i] = hydrogen_store_SOC;
             methane_store_SOC_hourly[i] = methane_store_SOC;
+            synthfuel_store_SOC_hourly[i] = synthfuel_store_SOC;
             
             backupUsed[i] = backupgen_before_gridloss;            // Backup capacity used
             backupGeneration += backupgen_before_gridloss;
@@ -1008,7 +1051,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         
         hydrogen_final_balance = hydrogen_store_SOC - (hydrogen_store_capacity / 2) - unmet_hydrogen_demand;
         methane_final_balance = methane_store_SOC - (methane_store_capacity / 2) - unmet_gas_demand;
-        liquid_final_balance = synthfuel_SOC - unmet_liquid_demand;
+        liquid_final_balance = synthfuel_store_SOC - unmet_liquid_demand;
         
         biomass_surplus = biomass_available;
         
@@ -1262,33 +1305,64 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         else if(graph_mode == 'store'){
             for(var p=1;p<8760;p++){
                 
-                var maxallstores = elecstore_capacity + methane_store_capacity;
+                var maxallstores = elecstore_capacity + hydrogen_store_capacity + methane_store_capacity + synthfuel_store_capacity;
                 
-                var elecstore_pos = Math.round((elecstore_hourly_capacity[p-1]/maxallstores)*200);
-                var methane_and_elecstore_pos = Math.round(((elecstore_hourly_capacity[p-1]+methane_store_SOC_hourly[p-1])/maxallstores)*200);
+                var l1 = elecstore_hourly_capacity[p-1];
+                var l2 = l1 + hydrogen_store_SOC_hourly[p-1];
+                var l3 = l2 + synthfuel_store_SOC_hourly[p-1];
+                var l4 = l3 + methane_store_SOC_hourly[p-1];
+                
+                var l1pos = (l1/maxallstores)*200;
+                var l2pos = (l2/maxallstores)*200;
+                var l3pos = (l3/maxallstores)*200;
+                var l4pos = (l4/maxallstores)*200;
                 
                 ctx.strokeStyle = "#ffcc00"; // orange
                 ctx.beginPath();
-                ctx.moveTo(p+25, 25+(200-elecstore_pos));
+                ctx.moveTo(p+25, 25+(200-l1pos));
                 ctx.lineTo(p+25, 225);
+                ctx.stroke();
+                
+                ctx.strokeStyle = "#ffccff";
+                ctx.beginPath();
+                ctx.moveTo(p+25, 25+(200-l2pos));
+                ctx.lineTo(p+25, 25+(200-l1pos));
+                ctx.stroke();
+                
+                ctx.strokeStyle = "#ccccff";
+                ctx.beginPath();
+                ctx.moveTo(p+25, 25+(200-l3pos));
+                ctx.lineTo(p+25, 25+(200-l2pos));
                 ctx.stroke();
                 
                 ctx.strokeStyle = "#ffee00"; // orange
                 ctx.beginPath();
-                ctx.moveTo(p+25, 25+(200-elecstore_pos));
-                ctx.lineTo(p+25, 25+(200-methane_and_elecstore_pos));
+                ctx.moveTo(p+25, 25+(200-l4pos));
+                ctx.lineTo(p+25, 25+(200-l3pos));
                 ctx.stroke();
                 
                 ctx.strokeStyle = "#000"; // black line
                 ctx.beginPath();
-                ctx.moveTo(p+25, 24+(200-elecstore_pos));
-                ctx.lineTo(p+25, 26+(200-elecstore_pos));
+                ctx.moveTo(p+25, 24+(200-l1pos));
+                ctx.lineTo(p+25, 26+(200-l1pos));
                 ctx.stroke();
                 
                 ctx.strokeStyle = "#000"; // black line
                 ctx.beginPath();
-                ctx.moveTo(p+25, 24+(200-methane_and_elecstore_pos));
-                ctx.lineTo(p+25, 26+(200-methane_and_elecstore_pos));
+                ctx.moveTo(p+25, 24+(200-l2pos));
+                ctx.lineTo(p+25, 26+(200-l2pos));
+                ctx.stroke();
+                
+                ctx.strokeStyle = "#000"; // black line
+                ctx.beginPath();
+                ctx.moveTo(p+25, 24+(200-l3pos));
+                ctx.lineTo(p+25, 26+(200-l3pos));
+                ctx.stroke();
+                
+                ctx.strokeStyle = "#000"; // black line
+                ctx.beginPath();
+                ctx.moveTo(p+25, 24+(200-l4pos));
+                ctx.lineTo(p+25, 26+(200-l4pos));
                 ctx.stroke();
             }        
         }
