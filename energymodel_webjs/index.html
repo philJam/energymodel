@@ -116,8 +116,11 @@ You can also download the full ten year hourly model used for ZCB <a href="https
 <button id="supply">Supply</button>
 <button id="demand">Demand</button>
 <button id="store">Store</button>
+<button id="run">Run</button>
 
-<hr><h3>INPUT</h3><hr>
+
+<hr><h3>SUPPLY</h3><hr>
+
 <table style="width:100%">
 
     <tr>
@@ -125,21 +128,23 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     </tr>
     <tr><td>GW</td></tr>
     <tr>
-        <td>Onshore wind</td><td><input type="text" key="input.onWindCap"></td>        
-        <td>Solar</td><td><input type="text" key="input.solarCap"></td>
-        <td>Wave</td><td><input type="text" key="input.waveCap"></td>
-        <td>Nuclear</td><td><input type="text" key="input.nuclearCap"></td>       
+        <td>Onshore wind</td><td><input type="text" key="input.onshore_wind_capacity"></td>        
+        <td>Solar</td><td><input type="text" key="input.solar_capacity"></td>
+        <td>Wave</td><td><input type="text" key="input.wave_capacity"></td>
+        <td>Nuclear</td><td><input type="text" key="input.nuclear_capacity"></td>       
     </tr>
     <tr>
-        <td>Offshore wind</td><td><input type="text" key="input.offWindCap"></td>
+        <td>Offshore wind</td><td><input type="text" key="input.offshore_wind_capacity"></td>
         <td>Hydro</td><td><input type="text" key="input.hydroCap"></td>
-        <td>Tidal</td><td><input type="text" key="input.tidalCap"></td>
+        <td>Tidal</td><td><input type="text" key="input.tidal_capacity"></td>
     </tr>
     <tr><td>Backup capacity</td><td><input type="text" key="input.backupCap"></td></tr>
     <tr><td><BR></td></tr>
-    <tr><td>Biomass</td><td><input type="text" key="input.biomassSupply"></td><td>TWh/yr</td></tr>
+    <tr><td>Biomass</td><td><input type="text" key="input.total_biomass_produced"></td><td>TWh/yr</td></tr>
     <tr><td><BR></td></tr>
-    
+    </table>
+    <hr><h3>DEMAND</h3><hr>
+    <table>
     <tr>
         <th style="text-align:left">Demand</th><th></th>
     </tr>
@@ -180,27 +185,23 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         <td><input type="text" key="input.industryHydrogenDemand"></td><td>
     </tr>
     <tr><td COLSPAN=2><BR></td></tr>
-    
+    </table>
+    <hr><h3>ELECTRIC STORE</h3><hr>
+    <table>
+
     <tr>
-        <th style="text-align:left">Storage</th><th></th>
+        <td COLSPAN=2>Store max discharge rate (GW)</td><td><input type="text" key="input.elecstore_max_discharge_rate"></td>    
+        <td COLSPAN=2>Store max charge rate (GW)</td><td><input type="text" key="input.elecstore_max_charge_rate"></td>
+        <td COLSPAN=2>Store max capacity (GWh)</td><td><input type="text" key="input.elecstore_capacity"></td>
     </tr>
     <tr>
-        <td>Electricity store</td>
+        <td COLSPAN=2>Store discharge efficiency</td><td><input type="text" key="input.elecstore_discharge_efficiency"></td>
+        <td COLSPAN=2>Store charge efficiency</td><td><input type="text" key="input.elecstore_charge_efficiency"></td>
+        <td COLSPAN=2>Store start capacity (GWh)</td><td><input type="text" key="input.elecstore_start_capacity"></td>
     </tr>
-    <tr>
-        <td COLSPAN=2>Store max discharge rate (GW)</td><td><input type="text" key="input.store_max_discharge_rate"></td>    
-        <td COLSPAN=2>Store max charge rate (GW)</td><td><input type="text" key="input.store_max_charge_rate"></td>
-        <td COLSPAN=2>Store max capacity (GWh)</td><td><input type="text" key="input.store_max_capacity_GWh"></td>
-    </tr>
-    <tr>
-        <td COLSPAN=2>Store discharge efficiency</td><td><input type="text" key="input.store_discharge_efficiency"></td>
-        <td COLSPAN=2>Store charge efficiency</td><td><input type="text" key="input.store_charge_efficiency"></td>
-        <td COLSPAN=2>Store start capacity (GWh)</td><td><input type="text" key="input.store_start_capacity_GWh"></td>
-    </tr>
-    <tr><td><BR></td></tr>
-    <tr>
-        <td>Hydrogen</td>
-    </tr>
+    </table>
+    <hr><h3>HYDROGEN</h3><hr>
+    <table>
     <tr>
         <td COLSPAN=2>Electrolysis capacity</td><td><input type="text" key="input.electrolysisCap"></td><td>GW</td>
         <td COLSPAN=3>Use hydrogen for synthetic fuels</td>
@@ -214,7 +215,6 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     
 </table>
 
-<button id="run">Run</button>
 <br>
 <hr><h3>OUTPUT</h3><hr>
 <table style="width:100%">
@@ -227,43 +227,43 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     </tr>
 
     <tr>
-        <td>Offshore wind</td><td><span key="out.offWindGeneration" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Offshore wind</td><td><span key="out.offshore_wind_generation_total" scale=0.001 dp=1></span> TWh/yr</td>
         <td>Total heat demand</td><td><span key="out.totalHeatDemand" scale=0.001 dp=1></span> TWh/yr</td>
         <td>Max discharge rate</td><td><span key="out.elecstore_used_discharge_rate" dp=1></span> GW</td>
     </tr>
 
     <tr>
-        <td>Onshore wind</td><td><span key="out.onWindGeneration" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Onshore wind</td><td><span key="out.onshore_wind_generation_total" scale=0.001 dp=1></span> TWh/yr</td>
         <td></td><td></td>
         <td>Max charge rate</td><td><span key="out.elecstore_used_charge_rate" dp=1></span> GW</td>
     </tr>
     
     <tr>
-        <td>Solar</td><td><span key="out.solarGeneration" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Solar</td><td><span key="out.solar_generation_total" scale=0.001 dp=1></span> TWh/yr</td>
         <td>Total electricity demand</td><td><span key="out.demandGWh" scale=0.001 dp=1></span> TWh/yr</td>
         <td>Lowest capacity</td><td><span key="out.elecstore_used_min_capacity" dp=1></span> GWh</td>
     </tr>
     
     <tr>
-        <td>Hydro</td><td><span key="out.hydroGeneration" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Hydro</td><td><span key="out.hydro_generation_total" scale=0.001 dp=1></span> TWh/yr</td>
         <td></td><td></td>
         <td>Highest capacity</td><td><span key="out.elecstore_used_max_capacity" dp=1></span> GWh</td>
     </tr>
     
     <tr>
-        <td>Wave</td><td><span key="out.waveGeneration" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Wave</td><td><span key="out.wave_generation_total" scale=0.001 dp=1></span> TWh/yr</td>
         <td>Unmet electricity demand</td><td><span key="out.unmetDemand" scale=0.001 dp=1></span> TWh/yr</td>    
         <td>Total charge</td><td><span key="out.elecstore_total_charge" scale=0.001 dp=1></span> TWh</td>
     </tr>
     
     <tr>
-        <td>Tidal</td><td><span key="out.tidalGeneration" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Tidal</td><td><span key="out.tidal_generation_total" scale=0.001 dp=1></span> TWh/yr</td>
         <td>Max shortfall</td><td><span key="out.max_shortfall" dp=1></span> GW</td>
         <td>Total discharge</td><td><span key="out.elecstore_total_discharge" scale=0.001 dp=1></span> TWh</td>
     </tr>
     
     <tr>
-        <td>Nuclear</td><td><span key="out.nuclearGeneration" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Nuclear</td><td><span key="out.nuclear_generation_total" scale=0.001 dp=1></span> TWh/yr</td>
         <td></td><td></td>
         <td>Total loss</td><td><span key="out.elecstore_total_loss" scale=0.001 dp=1></span> TWh</td>
     </tr>
@@ -287,36 +287,28 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     </tr>
     
     <tr><td><BR></td></tr>
-    
+
     <tr>
-        <td>Solid biomass fuel</td><td><span key="out.solidBiomassUsed" scale=0.001 dp=1></span> TWh/yr</td>
-        <td>Solid fuel</td><td><span key="out.solidDemand" scale=0.001 dp=1></span> TWh/yr</td>
         <td>Hydrogen produced</td><td><span key="out.total_hydrogen_produced" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Hydrogen demand</td><td><span key="out.total_hydrogen_demand" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Hydrogen surplus/defecit</td><td><span key="out.hydrogen_final_balance" scale=0.001 dp=1></span> TWh/yr</td>
+    </tr>    
     <tr>
-        <td>Biogas/synthetic gas</td><td><span key="out.gasBiofuel" scale=0.001 dp=1></span> TWh/yr</td>
-        <td>Gas fuel</td><td><span key="out.gasDemand" scale=0.001 dp=1></span> TWh/yr</td>
-        <td>Hydrogen surplus</td><td><span key="out.gasliquid.hydrogen_surplus" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Biomass produced</td><td><span key="out.total_biomass_produced" scale=1 dp=1></span> TWh/yr</td>
+        <td>Solid fuel demand</td><td><span key="out.total_solid_demand" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Solid fuel surplus/defecit</td><td><span key="out.biomass_surplus" scale=0.001 dp=1></span> TWh/yr</td>
     </tr>
     <tr>
-        <td>Biofuel/synthetic liquid</td><td><span key="out.liquidBiofuel" scale=0.001 dp=1></span> TWh/yr</td>
-        <td>Liquid fuel</td><td><span key="out.liquidDemand" scale=0.001 dp=1></span> TWh/yr</td>
-        <td>Biomass surplus</td><td><span key="out.gasliquid.biomass_surplus" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Biogas/synthetic gas</td><td><span key="out.total_gas_produced" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Gas fuel demand</td><td><span key="out.total_gas_demand" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Gas surplus/defecit</td><td><span key="out.methane_final_balance" scale=0.001 dp=1></span> TWh/yr</td>
     </tr>
     <tr>
-        <td>Unmet solid demand</td><td><span key="out.unmet_solid_demand" scale=0.001 dp=1></span> TWh/yr</td>        
-        <td></td><td></td>  
-        <td></td><td></td>
+        <td>Biofuel/synthetic liquid</td><td><span key="out.total_liquid_produced" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Liquid fuel demand</td><td><span key="out.total_liquid_demand" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Liquid surplus/defecit</td><td><span key="out.liquid_final_balance" scale=0.001 dp=1></span> TWh/yr</td>
     </tr>
-    <tr>
-        <td>Unmet gas demand</td><td><span key="out.gasliquid.unmet_gas_demand" scale=0.001 dp=1></span> TWh/yr</td>
-        <td></td><td></td>
-        <td></td><td></td>        
-    </tr>
-    <tr>
-        <td>Unmet liquid demand</td><td><span key="out.gasliquid.unmet_liquid_demand" scale=0.001 dp=1></span> TWh/yr</td>
-        <td></td><td></td>
-        <td></td><td></td>        
-    </tr>
+    <tr><td><BR></td></tr>
     <tr>
         <td><h3>Residual Emissions</td><td><span key="out.residual_emissions" scale=0.001 dp=1></span> MtCO2/yr</h3></td>
         <td></td><td></td>
@@ -345,11 +337,11 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     var unmetDemand = 0;
     
     var energyDemand = [];
-    var onWindPower = [];
-    var offWindPower = [];
-    var solarPower = [];
-    var wavePower = [];
-    var tidalPower = [];
+    var onshore_wind_power = [];
+    var offshore_wind_power = [];
+    var solar_power = [];
+    var wave_power = [];
+    var tidal_power = [];
     var hourlyHeatDemand = [];
     var hourlyElecForHeatDemand = [];
     var hourlySpaceHeatDemand = [];
@@ -359,16 +351,33 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     var totalGeneration = [];
     var unmet = [];
     var backupUsed = [];
+
+    var total_hydrogen_demand = 0;
+    var total_solid_demand = 0;
+    var total_gas_demand = 0;
+    var total_liquid_demand = 0;
     
-    var onWindCap = 20; // GW
-    var offWindCap = 140; // GW
-    var solarCap = 70; // GW
+    var total_liquid_produced = 0;
+    var total_gas_produced = 0;
+    
+    var unmet_hydrogen_demand = 0;
+    var unmet_solid_demand = 0;
+    var unmet_liquid_demand = 0;
+    var unmet_gas_demand = 0;
+    
+    var hydrogen_final_balance = 0;
+    var methane_final_balance = 0;
+    
+    var onshore_wind_capacity = 20; // GW
+    var offshore_wind_capacity = 140; // GW
+    var solar_capacity = 70; // GW
     var hydroCap = 3; // GW
-    var waveCap = 10; // GW
-    var tidalCap = 20; // GW
-    var nuclearCap = 0; // GW
+    var wave_capacity = 10; // GW
+    var tidal_capacity = 20; // GW
+    var nuclear_capacity = 0; // GW
     var backupCap = 45; // GW
-    var biomassSupply = 400; // TWh/yr
+    var total_biomass_produced = 200; // TWh/yr
+    var biomass_available = total_biomass_produced*1000;
     
     var demandProfile = 0;
     var heatLossCoefficient = 4.4; // GW/degC
@@ -404,9 +413,6 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     var industryHydrogenDemand = 0;
     var useH2ForSynthFuels = 0;
     
-    var solidDemand = 0;
-    var gasDemand = 0;
-    var liquidDemand = 0;
     var solidBiofuel = 0;
     var gasBiofuel = 0;
     var liquidBiofuel = 0;
@@ -416,13 +422,13 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     var biomassForSynthGas = 0;
     var biomassForLiquid = 0;
     
-    var onWindGeneration = 0;
-    var offWindGeneration = 0;
-    var solarGeneration = 0;
-    var hydroGeneration = 0;
-    var waveGeneration = 0;
-    var tidalGeneration = 0;
-    var nuclearGeneration = 0;
+    var onshore_wind_generation_total = 0;
+    var offshore_wind_generation_total = 0;
+    var solar_generation_total = 0;
+    var hydro_generation_total = 0;
+    var wave_generation_total = 0;
+    var tidal_generation_total = 0;
+    var nuclear_generation_total = 0;
     var backupGeneration = 0;
     var backupCapUsed = 0;
     var demandGWh = 0;
@@ -451,7 +457,8 @@ You can also download the full ten year hourly model used for ZCB <a href="https
 
     var elecstore_hourly_capacity = [];
     var elecstore_change = [];
-    elecstore_SOC = elecstore_capacity / 2;
+    var elecstore_start_capacity = elecstore_capacity / 2;
+    elecstore_SOC = elecstore_start_capacity;
 
     //------------------------------------------------   
     
@@ -472,7 +479,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     });
     
     
-    var spaceHeatingDailyProfile = [0.8,0.8,0.9,0.9,1.7,6.5,7.7,8.3,7.5,6.0,4.6,4.0,3.5,3.3,3.3,3.4,3.7,4.1,5.2,6.3,6.4,6.1,4.2,0.8];
+    var spaceHeatingDailyProfile = [0.8,0.8,0.9,0.9,1.7,6.5,7.7,8.3,7.5,6.0,4.6,4.0,3.5,3.3,3.3,3.4,3.7,4.1,5.2,6.3,6.4,6.1,4.2,0.8];   // percent adds up to 100
     var hotWaterDailyProfile = [4.1,4.1,4.1,4.1,4.1,4.1,4.1,4.1,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2];
     // [0.1,0.1,0.1,0.5,1.5,3.5,7.6,10.2,11.2,6.9,4.6,3.0,1.9,1.9,2.1,3.0,7.0,7.8,7.1,5.8,4.5,3.7,3.2,2.7];
     var industrialDailyProfile = [4.1,4.1,4.1,4.1,4.1,4.1,4.1,4.1,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2];
@@ -484,16 +491,14 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     
     function process()
     {
-        var biomass_available = biomassSupply*1000;
-    
         excessGeneration = 0;
-        onWindGeneration = 0;
-        offWindGeneration = 0;
-        solarGeneration = 0;
-        hydroGeneration = 0;
-        waveGeneration = 0;
-        tidalGeneration = 0;
-        nuclearGeneration = 0;
+        onshore_wind_generation_total = 0;
+        offshore_wind_generation_total = 0;
+        solar_generation_total = 0;
+        hydro_generation_total = 0;
+        wave_generation_total = 0;
+        tidal_generation_total = 0;
+        nuclear_generation_total = 0;
         backupGeneration = 0;
         backupCapUsed = 0;
         
@@ -505,7 +510,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     
         energyDemand = [];
         windPower = [];
-        solarPower = [];
+        solar_power = [];
         CHPPower = [];
         hourlyHeatDemand = [];
         hourlyElecForHeatDemand = [];
@@ -520,10 +525,26 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         backupUsed = [];
         unmet = [];
 
+        total_hydrogen_demand = 0;
+        total_solid_demand = 0;
+        total_gas_demand = 0;
+        total_liquid_demand = 0;
+    
+        total_gas_produced = 0; 
+        total_liquid_produced = 0;
+        
+        unmet_hydrogen_demand = 0;
+        unmet_solid_demand = 0;
+        unmet_liquid_demand = 0;
+        unmet_gas_demand = 0;
+
         $("[key]").each(function(){
             var keyparts = $(this).attr('key').split(".");
             if (keyparts[0]=='input') window[keyparts[1]] = parseFloat($(this).val());
         });
+        
+        biomass_available = total_biomass_produced*1000;
+        console.log("start:" +biomass_available);
 
         demandProfile = 0;
         totalDemand = parseFloat($('input[key="input.appliancesDemand_TWh"]').val());
@@ -532,9 +553,9 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         totalDemandInProfile = 0;
         
         heatPumpCoP = 2.5;
-        hotWaterDemand = hotWaterDemand_TWh*1000/8760;
-        transportDemand = transportDemand_TWh*1000/8760;
-        industryDemand = industryDemand_TWh*1000/8760;
+        annual_hotwater_demand = hotWaterDemand_TWh*1000;
+        hourly_transport_demand = transportDemand_TWh*1000 / (365*24);
+        industryDemand = industryDemand_TWh*1000;
 
         elecstore_SOC = elecstore_capacity*0.5;
         //------------------------------------------------
@@ -565,71 +586,99 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         methane_store_SOC = methane_store_capacity / 2;
         methane_store_SOC_hourly = [];
         
-        
-        
-               
-        x=0;
-        var lines = csvfile.split(/\r\n|\n/);
-        
-        for (var i=0; i<lines.length-1; i++) {
-            var splitarray = lines[i].split(',');
-            
-            energyDemand[x] = parseFloat(splitarray[0]);
-            
-            onWindPower[x] = parseFloat(splitarray[1]) * onWindCap * 0.9;
-            offWindPower[x] = parseFloat(splitarray[2]) * offWindCap * 0.9;
-            wavePower[x] = parseFloat(splitarray[3]) * waveCap;
-            tidalPower[x] = parseFloat(splitarray[4]) * tidalCap;
-            solarPower[x] = parseFloat(splitarray[5]) * solarCap;
-            
-            temperatureData[x] = parseFloat(splitarray[6]);
-            
-            onWindGeneration += onWindPower[x];
-            offWindGeneration += offWindPower[x];
-            solarGeneration += solarPower[x];
-            hydroGeneration += hydroCap*0.3;
-            waveGeneration += wavePower[x];
-            tidalGeneration += tidalPower[x];
-            nuclearGeneration += nuclearCap*0.9;
-            
-            if((baseTemp - temperatureData[x]) > 0){
-                hourlySpaceHeatDemand[x] = ((baseTemp - temperatureData[x]) * heatLossCoefficient);
-            }
-            else{
-                hourlySpaceHeatDemand[x] = 0;
-            }
-            
-            x++;
-        }     
+        synthfuel_SOC = 0;
         
         totalDemandInProfile = 0;
         totalHeatDemand = 0;
-        solidDemand = 0;
-        gasDemand = 0;
-        liquidDemand = 0;
         
+        
+         hydrogenProduced = 0;
+               
         x=0;
-        for(var i=0; i<8760; i++)
-        {
-            totalDemandInProfile += energyDemand[i];
+        var lines = csvfile.split(/\r\n|\n/);
+        var totalDemandInProfile = 307111.8; // ------------------------------
+        
+        for (var i=0; i<8760; i++) {
+        
+            var splitarray = lines[i].split(',');  
 
-            hourlyWaterHeatDemand[i] = hotWaterDemand * 24 * (hotWaterDailyProfile[x]/100);
-            hourlySpaceHeatDemand[i] = hourlySpaceHeatDemand[i] * 24 * (spaceHeatingDailyProfile[x]/100);
-            hourlyElecForIndustry[i] = industryDemand * 24 * (industrialDailyProfile[x]/100);
-                  
+            // ------------------------------------------------------------------------------------------------------
+            //                                             START OF MODEL
+            // ------------------------------------------------------------------------------------------------------
+            // Model contents:
+            // - variable supply
+            // - demand
+            // - heatstore                  todo
+            // - electric transport         todo
+            // - elecstore
+            // - hydrogen production
+            //   - biomethane production
+            // - backup generation
+            // - final balance
+            // 
+            // Demand types:
+            // - electricity
+            // - gas: methane
+            // - liquid: synthetic fuel
+            // - solid: biomass
+            
+            // The model starts by calculating energy demand for:
+            // - appliances
+            // - heating
+            // - transport
+            
+            // ------------------------------------------------------------------------------------------------------
+            // SUPPLY
+            // ------------------------------------------------------------------------------------------------------            
+            onshore_wind_power[i] = parseFloat(splitarray[1]) * onshore_wind_capacity * 0.9;
+            offshore_wind_power[i] = parseFloat(splitarray[2]) * offshore_wind_capacity * 0.9;
+            wave_power[i] = parseFloat(splitarray[3]) * wave_capacity;
+            tidal_power[i] = parseFloat(splitarray[4]) * tidal_capacity;
+            solar_power[i] = parseFloat(splitarray[5]) * solar_capacity;
+            temperatureData[i] = parseFloat(splitarray[6]);
+            
+            onshore_wind_generation_total += onshore_wind_power[i];
+            offshore_wind_generation_total += offshore_wind_power[i];
+            wave_generation_total += wave_power[i];
+            tidal_generation_total += tidal_power[i];
+            solar_generation_total += solar_power[i];
+            hydro_generation_total += hydroCap*0.3;
+            nuclear_generation_total += nuclear_capacity*0.9;
+
+            // ------------------------------------------------------------------------------------------------------
+            // DEMAND
+            // ------------------------------------------------------------------------------------------------------
+            var traditional_electricity_demand_profile = parseFloat(splitarray[0]) / totalDemandInProfile;
+            
+            // ------------------------------------------------------------------------------------------------------
+            // SPACE & WATER HEATING DEMAND
+            // ------------------------------------------------------------------------------------------------------
+            hourlySpaceHeatDemand[i] = 0;
+            if((baseTemp - temperatureData[i]) > 0){
+                hourlySpaceHeatDemand[i] = ((baseTemp - temperatureData[i]) * heatLossCoefficient);
+            }
+            hourlySpaceHeatDemand[i] *= 24*spaceHeatingDailyProfile[x]/100;
+
+            // profiles are in percent of daily heating demand (0-100), / 100 converts to 0-1;
+            // demand is in GWh per year so we need to divide by 365 to obtain GWh per day
+            hourlyWaterHeatDemand[i] = (annual_hotwater_demand/365.0) * (hotWaterDailyProfile[x]/100);
             hourlyHeatDemand[i] = hourlySpaceHeatDemand[i] + hourlyWaterHeatDemand[i];
             totalHeatDemand += hourlyHeatDemand[i];
+            
             hourlyElecForHeatDemand[i] = (hourlyHeatDemand[i] * percentHeatHeatpumps / 100 / heatPumpCoP) + (hourlyHeatDemand[i] * percentHeatDirectelec / 100);
             
             // Calculate demand for solid, gas & liquid fuel for heat
-            solidDemand += (hourlyHeatDemand[i]*(percentHeatSolid/100))/0.9;
-            gasDemand += (hourlyHeatDemand[i]*(percentHeatGas/100))/0.9;
-            liquidDemand += (hourlyHeatDemand[i]*(percentHeatLiquid/100))/0.9;
+            var solid_for_heat = (hourlyHeatDemand[i]*(percentHeatSolid/100))/0.9;
+            var gas_for_heat = (hourlyHeatDemand[i]*(percentHeatGas/100))/0.9;
+            var liquid_for_heat = (hourlyHeatDemand[i]*(percentHeatLiquid/100))/0.9;
               
-            solidDemand += (hourlyHeatDemand[i]*(percentHeatCHPSolid/100))/0.6;
-            gasDemand += (hourlyHeatDemand[i]*(percentHeatCHPGas/100))/0.6;
-            liquidDemand += (hourlyHeatDemand[i]*(percentHeatCHPLiquid/100))/0.6;
+            solid_for_heat += (hourlyHeatDemand[i]*(percentHeatCHPSolid/100))/0.6;
+            gas_for_heat += (hourlyHeatDemand[i]*(percentHeatCHPGas/100))/0.6;
+            liquid_for_heat += (hourlyHeatDemand[i]*(percentHeatCHPLiquid/100))/0.6;
+                
             
+            CHPPower[i] = 0;
+            /*
             // CHP assumes efficiency of 30% for electricity, 60% for heat
             CHPPower[i] = (hourlyHeatDemand[i]*(percentHeatCHPSolid/100))*(0.3/0.6) + 
                       (hourlyHeatDemand[i]*(percentHeatCHPGas/100))*(0.3/0.6) + 
@@ -637,30 +686,30 @@ You can also download the full ten year hourly model used for ZCB <a href="https
                       ((industryCHPSolidDemand/8760)*1000 * 24 * (industrialDailyProfile[x]/100))*0.3 + 
                       ((industryCHPGasDemand/8760)*1000 * 24 * (industrialDailyProfile[x]/100))*0.3 +
                       ((industryCHPLiquidDemand/8760)*1000 * 24 * (industrialDailyProfile[x]/100))*0.3 ;
+            */
+
+            hourlyElecForAppliances[i] = traditional_electricity_demand_profile * (appliancesDemand_TWh*1000);
+            hourlyElecForIndustry[i] = (industryDemand/365.0) * (industrialDailyProfile[x]/100);
             
-            x++;
-            if(x==23) x=0;
-        }
-        
-        hydrogenProduced = 0;
-        
-        for(var i=0;i<8760;i++)
-        {
-            var backupgen = 0;
-            // energyDemand and totalGeneration in GW
-            hourlyElecForAppliances[i] = energyDemand[i] / (totalDemandInProfile/1000) * appliancesDemand_TWh;
-            energyDemand[i] = hourlyElecForAppliances[i] + hourlyElecForHeatDemand[i] + transportDemand + hourlyElecForIndustry[i];
-            totalGeneration[i] = onWindPower[i] + offWindPower[i] + solarPower[i] + hydroCap*0.3 + wavePower[i] + tidalPower[i] + (nuclearCap*0.9) + CHPPower[i];
+            energyDemand[i] = hourlyElecForAppliances[i] + hourlyElecForHeatDemand[i] + hourly_transport_demand + hourlyElecForIndustry[i];
+            totalGeneration[i] = onshore_wind_power[i] + offshore_wind_power[i] + solar_power[i] + hydroCap*0.3 + wave_power[i] + tidal_power[i] + (nuclear_capacity*0.9) + CHPPower[i];
            
+            // variables used for graph.
             demandGWh += energyDemand[i];
             totalGenerationTWh += totalGeneration[i];
             
             // supplied after grid losses
-            totalGeneration[i] = (onWindPower[i] + offWindPower[i] + hydroCap*0.3
-                    + wavePower[i] + tidalPower[i] + (nuclearCap*0.9))*(1-grid_loss) + solarPower[i] + CHPPower[i]; 
+            totalGeneration[i] = (onshore_wind_power[i] + offshore_wind_power[i] + hydroCap*0.3
+                    + wave_power[i] + tidal_power[i] + (nuclear_capacity*0.9))*(1-grid_loss) + solar_power[i] + CHPPower[i];
             
+            // ------------------------------------------------------------------------------------------------------
             // 1) Initial electricity balance
+            // ------------------------------------------------------------------------------------------------------
             var balance = totalGeneration[i] - energyDemand[i];
+            
+            // Add here:
+            // Heat store
+            // Electric transport
             
             // ------------------------------------------------------------------------------------------------------
             // ELECTRICITY STORE
@@ -740,6 +789,20 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             balance -= elecstore_demand;                             // elecstore_demand is negative when discharging
             
             // ------------------------------------------------------------------------------------------------------
+            // DIRECT SOLID BIOMASS DEMAND (priority before methane production)
+            // ------------------------------------------------------------------------------------------------------
+            // appliancesSolidDemand + transportSolidDemand + industrySolidDemand + industryCHPSolidDemand
+            var solid_demand = solid_for_heat;
+            total_solid_demand += solid_demand;
+            
+            if (biomass_available>solid_demand) {
+                biomass_available -= solid_demand;
+            } else {
+                biomass_available = 0;
+                unmet_solid_demand += solid_demand - biomass_available;
+            }  
+            
+            // ------------------------------------------------------------------------------------------------------
             // HYDROGEN PRODUCTION
             // ------------------------------------------------------------------------------------------------------
             //
@@ -757,8 +820,8 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             // - electricity_for_electrolysis
             // - hydrogen_store_SOC
             // - hydrogen_shortfall
-            
-            var hydrogen_demand = 0;
+        
+            var hydrogen_demand = 0;                // transportHydrogenDemand + industryHydrogenDemand, used by hydrogen vehicles, synthetic fuel
             var hydrogen_produced = 0;
             var electricity_for_electrolysis = 0;
             
@@ -773,7 +836,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
                 
                 // subtract hydrogen demand from production
                 var hydrogen_balance = hydrogen_produced - hydrogen_demand;
-                
+                total_hydrogen_demand += hydrogen_demand;
                 // ------------------------------------------------------------------------------------------------------
                 // BIOMETHANE PRODUCTION FROM EXESS HYDROGEN
                 // ------------------------------------------------------------------------------------------------------
@@ -797,6 +860,10 @@ You can also download the full ten year hourly model used for ZCB <a href="https
                         H2_for_sabatier = biomass_for_sabatier * 0.5;
                     }  
                     methane_store_SOC += biomethane;
+                    biomass_available -= biomass_for_sabatier;
+                    total_gas_produced += biomethane;
+                    total_solid_demand += biomass_for_sabatier;
+                    total_hydrogen_demand += H2_for_sabatier;
                 }
                 hydrogen_balance -= H2_for_sabatier;
                 
@@ -806,7 +873,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
                 // from the hydrogen store results in negative SOC (virtual defecit) then the store is empty
                 // and the defecit in hydrogen production is the extent of the overshoot.
                 if (hydrogen_store_SOC<0) {
-                    hydrogen_shortfall += -1*hydrogen_store_SOC;
+                    unmet_hydrogen_demand += -1*hydrogen_store_SOC;
                     hydrogen_store_SOC = 0; 
                 }
 
@@ -828,6 +895,38 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             // ------------------------------------------------------------------------------------------------------
             balance -= electricity_for_electrolysis;
             energyDemand[i] += electricity_for_electrolysis;
+            
+            // ------------------------------------------------------------------------------------------------------
+            // METHANE FROM ANAEROBIC DIGESTION
+            // ------------------------------------------------------------------------------------------------------
+            var biogas = 0;
+            total_gas_produced += biogas;
+            
+            // ------------------------------------------------------------------------------------------------------
+            // METHANE + LIQUID DEMAND
+            // ------------------------------------------------------------------------------------------------------
+            // gasDemand += (appliancesGasDemand + transportGasDemand + industryGasDemand + industryCHPGasDemand)*1000
+            var gas_demand = gas_for_heat;
+            total_gas_demand += gas_demand;
+                 
+            if (methane_store_SOC > gas_demand) {
+                methane_store_SOC -= gas_demand;
+            } else {
+                methane_store_SOC = 0;
+                unmet_gas_demand += gas_demand - methane_store_SOC;
+            }
+
+            // liquidDemand += (appliancesLiquidDemand + transportLiquidDemand + industryLiquidDemand + industryCHPLiquidDemand)*1000;
+            var liquid_demand = liquid_for_heat;
+            total_liquid_demand += liquid_demand;
+                 
+            if (synthfuel_SOC > liquid_demand) {
+                synthfuel_SOC -= liquid_demand;
+            } else {
+                synthfuel_SOC = 0;
+                unmet_liquid_demand += liquid_demand - synthfuel_SOC;
+            } 
+            
             
             // ------------------------------------------------------------------------------------------------------
             // BACKUP GENERATION FROM METHANE
@@ -856,6 +955,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
                     backupgen_delivered = backupgen_before_gridloss / (1+grid_loss);
                 }
                 methane_store_SOC -= backupgen_gas_demand;
+                total_gas_demand += backupgen_gas_demand;
             }
 
             // ------------------------------------------------------------------------------------------------------
@@ -879,8 +979,6 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             //                                             END OF MODEL
             // ------------------------------------------------------------------------------------------------------
             
-            
-            
             totalGenerationWithStorage[i] = totalGeneration[i];
             if (elecstore_demand<0) {
                 // when elecstore_demand is negative the elecstore is discharging and so adds to supply
@@ -903,40 +1001,18 @@ You can also download the full ten year hourly model used for ZCB <a href="https
                 backupCapUsed = backupgen_before_gridloss;        // Max backup capacity used
             
             unmet[i] = shortfall;
-                     
+
+            x++;
+            if(x==23) x=0;
         }
         
-        /*
-        solidDemand += (appliancesSolidDemand + transportSolidDemand + industrySolidDemand + industryCHPSolidDemand)*1000;
-        gasDemand += (appliancesGasDemand + transportGasDemand + industryGasDemand + industryCHPGasDemand)*1000 + (backupGeneration/0.5);
-        liquidDemand += (appliancesLiquidDemand + transportLiquidDemand + industryLiquidDemand + industryCHPLiquidDemand)*1000;
-
-        var biomass = biomassSupply*1000;                           // available biomass
-        var hydrogen = hydrogenProduced;                            // available hydrogen
-
-        solidBiomassUsed = solidDemand;                         
-        if(solidBiomassUsed>biomass) solidBiomassUsed = biomass;    // limit by amount of biomass available
-        unmet_solid_demand = solidDemand - solidBiomassUsed;
+        hydrogen_final_balance = hydrogen_store_SOC - (hydrogen_store_capacity / 2) - unmet_hydrogen_demand;
+        methane_final_balance = methane_store_SOC - (methane_store_capacity / 2) - unmet_gas_demand;
+        liquid_final_balance = synthfuel_SOC - unmet_liquid_demand;
         
-        biomass -= solidBiomassUsed;                    // Biomass solid demand here is prioritiezed over gas and liquid
-        hydrogen -= transportHydrogenDemand;            // H2 to transport
-        hydrogen -= industryHydrogenDemand;             // H2 to industry are also both prioritiezed over gas and liquid
-    
-        // Call synthetic gas liquid module
-        gasliquid = model.gasliquid(biomass, hydrogen, gasDemand, liquidDemand);
+        biomass_surplus = biomass_available;
         
-        // Totals of direct biomass to gas/liquid for UI
-        gasBiofuel = gasliquid.biomethane + gasliquid.biogas;
-        
-        // Totals of synthetic h2+biomass to gas/liquid for UI
-        liquidBiofuel = gasliquid.synthfuel + gasliquid.biofuel;
-
-        var unmet_hydrogen = 0;
-        if(hydrogenProduced<(transportHydrogenDemand + industryHydrogenDemand)){
-            unmet_hydrogen = transportHydrogenDemand + industryHydrogenDemand - hydrogenProduced;
-        }
-        
-        residual_emissions = unmet_solid_demand*0.4 + gasliquid.unmet_gas_demand*0.2 + gasliquid.unmet_liquid_demand*0.3 + 1000*unmet_hydrogen*0.2;*/
+        residual_emissions = unmet_solid_demand*0.4 + unmet_gas_demand*0.2 + unmet_liquid_demand*0.3 + 1000*unmet_hydrogen_demand*0.2;
         
         //-------------------------------------------------------------------------------------------
         
@@ -1059,7 +1135,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
                 ctx.lineTo(p+25, 225);
                 ctx.stroke();  // Draw heat in red
                 
-                demandSquarePos1 = transportDemand;
+                demandSquarePos1 = hourly_transport_demand;
                 ctx.strokeStyle = "#FFFF00";
                 ctx.beginPath();
                 ctx.moveTo(p+25, 25+(200-demandSquarePos));
@@ -1103,14 +1179,14 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             for(var p=1;p<8760;p++){ 
                 
                 ctx.strokeStyle = "#00ff00";
-                onWindSquarePos = Math.round(onWindPower[p-1]*(1-grid_loss));
-                offWindSquarePos = Math.round(offWindPower[p-1]*(1-grid_loss));
-                solarPos = Math.round(solarPower[p-1]);
-                wavePos = Math.round(wavePower[p-1]*(1-grid_loss));
-                tidalPos = Math.round(tidalPower[p-1]*(1-grid_loss));
+                onWindSquarePos = Math.round(onshore_wind_power[p-1]*(1-grid_loss));
+                offWindSquarePos = Math.round(offshore_wind_power[p-1]*(1-grid_loss));
+                solarPos = Math.round(solar_power[p-1]);
+                wavePos = Math.round(wave_power[p-1]*(1-grid_loss));
+                tidalPos = Math.round(tidal_power[p-1]*(1-grid_loss));
                 CHPPos = Math.round(CHPPower[p-1]);
                 hydroPos = Math.round((hydroCap * 0.3)*(1-grid_loss));
-                nuclearPos = Math.round((nuclearCap * 0.9)*(1-grid_loss));
+                nuclearPos = Math.round((nuclear_capacity * 0.9)*(1-grid_loss));
                 storePos = Math.round(storageSupply[p-1]);
                 backupPos = Math.round(backupUsed[p-1]*(1-grid_loss));
                 unmetPos = Math.round(unmet[p-1]);
