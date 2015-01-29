@@ -168,11 +168,12 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         <td>Average heat loss rate</td><td><input type="text" key="input.average_heatloss_WK"> W/K</td>
         <td>Total heat loss rate</td><td><span key="out.heatLossCoefficient" scale=1 dp=1></span></td><td>GW/°C</td>
     </tr>
-    </table><br>
-    <table>
     <tr>
         <td>Hot water (heat)</td><td><input type="text" key="input.hotWaterDemand_TWh"></td><td>TWh/yr</td>
     </tr>
+    </table>
+    <br>
+    <table>
     <tr>
         <td></td><td>Direct electric</td><td>Heat pumps</td><td>Solid</td><td>Gas</td><td>Liquid</td><td>CHP(s)</td><td>CHP(g)</td><td>CHP(l)</td>
         <tr>    
@@ -181,6 +182,11 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         <td><input type="text" key="input.percentHeatLiquid"></td><td><input type="text" key="input.percentHeatCHPSolid"></td>
         <td><input type="text" key="input.percentHeatCHPGas"></td><td><input type="text" key="input.percentHeatCHPLiquid"></td>
         </tr>
+    </tr>
+    <tr>  
+        <td>Heatpump COP</td><td></td><td><input type="text" key="input.hourly_heatpump_COP"></td>
+        <td></td><td></td>
+        <td></td><td></td>
     </tr>
     </table>
     
@@ -495,10 +501,9 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     var average_heatloss_WK = 120;
     var heatLossCoefficient = (number_of_buildings * 1000000 * average_heatloss_WK) / 1000000000; // 4.4; // GW/degC
     var baseTemp = 16-(385/((heatLossCoefficient/4.398)*119)); //Gains need linking to appliances energy reduction
-    var average_heatpump_COP = 0;
+    var hourly_heatpump_COP = 3.0;
     
     var totalHeatDemand = 0;
-    var heatPumpCoP = 2.5;
     var hotWaterDemand_TWh = 96;
     var percentHeatDirectelec = 10;
     var percentHeatHeatpumps = 85;
@@ -793,6 +798,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             // demand is in GWh per year so we need to divide by 365 to obtain GWh per day
             hourlyWaterHeatDemand[i] = (annual_hotwater_demand/365.0) * (hotWaterDailyProfile[hour]/100);
             hourlyHeatDemand[i] = hourlySpaceHeatDemand[i] + hourlyWaterHeatDemand[i] - solarthermal_supply - geothermal_heat_supply;
+            if (hourlyHeatDemand[i]<0) hourlyHeatDemand[i] = 0;
             totalHeatDemand += hourlyHeatDemand[i];
             
             // Heatstore here...
@@ -805,7 +811,6 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             // var hourly_heatpump_COP = 4.0 - deltaT * 0.2;
             // if (hourly_heatpump_COP<1) hourly_heatpump_COP = 1;
             
-            hourly_heatpump_COP = 3.0;
             
             average_heatpump_COP += hourly_heatpump_COP;
             if (hourly_heatpump_COP<min_cop) min_cop = hourly_heatpump_COP; 
@@ -1181,6 +1186,9 @@ You can also download the full ten year hourly model used for ZCB <a href="https
                 }
                 methane_store_SOC -= backupgen_gas_demand;
                 total_gas_demand += backupgen_gas_demand;
+                
+                backupgen_before_gridloss = backupgen_gas_demand * 0.5;
+                backupgen_delivered = backupgen_before_gridloss / (1+grid_loss);
             }
 
             // ------------------------------------------------------------------------------------------------------
@@ -1237,7 +1245,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         biomass_surplus = biomass_available;
         console.log(unmet_solid_demand+" "+unmet_gas_demand+" "+unmet_liquid_demand+" "+unmet_hydrogen_demand)
         
-        residual_emissions = unmet_solid_demand*0.4 + unmet_gas_demand*0.2 + unmet_liquid_demand*0.3 + unmet_hydrogen_demand*0.2;
+        residual_emissions = unmet_electricity_demand*0.5 + unmet_solid_demand*0.4 + unmet_gas_demand*0.2 + unmet_liquid_demand*0.3 + unmet_hydrogen_demand*0.2;
         
         //-------------------------------------------------------------------------------------------
         
