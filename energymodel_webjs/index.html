@@ -116,7 +116,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
 <button id="supply">Supply</button>
 <button id="demand">Demand</button>
 <button id="store">Store</button>
-<button id="run">Run</button>
+<button class="run">Run</button>
 
 
 <hr><h3>SUPPLY</h3><hr>
@@ -150,14 +150,26 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     <tr><td>Biomass</td><td><input type="text" key="input.total_biomass_produced"></td><td>TWh/yr</td></tr>
     <tr><td><BR></td></tr>
     </table>
-    <hr><h3>DEMAND</h3><hr>
+    
+    <hr><h3>APPLIANCES, LIGHTING & COOKING</h3><hr>
     <table>
+    <tr><td>Electricity</td><td>Solid</td><td>Gas</td><td>Liquid</td></tr>
     <tr>
-        <th style="text-align:left">Demand</th><th></th>
+        <td><input type="text" key="input.appliancesDemand_TWh"></td>
+        <td><input type="text" key="input.appliancesSolidDemand"></td><td><input type="text" key="input.appliancesGasDemand"></td>
+        <td><input type="text" key="input.appliancesLiquidDemand"></td><td> all TWh/yr</td>
     </tr>
-    <tr>    
-        <td>Heat loss of buildings</td><td><input type="text" key="input.heatLossCoefficient"></td><td>GW/°C</td>
+    </table>
+    
+    <hr><h3>HEATING</h3><hr>
+    <table>
+    <tr>  
+        <td>Number of buildings (millions)</td><td><input type="text" key="input.number_of_buildings"></td>
+        <td>Average heat loss rate</td><td><input type="text" key="input.average_heatloss_WK"> W/K</td>
+        <td>Total heat loss rate</td><td><span key="out.heatLossCoefficient" scale=1 dp=1></span></td><td>GW/°C</td>
     </tr>
+    </table><br>
+    <table>
     <tr>
         <td>Hot water (heat)</td><td><input type="text" key="input.hotWaterDemand_TWh"></td><td>TWh/yr</td>
     </tr>
@@ -170,50 +182,68 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         <td><input type="text" key="input.percentHeatCHPGas"></td><td><input type="text" key="input.percentHeatCHPLiquid"></td>
         </tr>
     </tr>
-    <tr><td><BR></td></tr>
-    
-    <tr><td>TWh/yr</td><td>Electricity</td><td>Solid</td><td>Gas</td><td>Liquid</td><td>CHP(s)</td><td>CHP(g)</td><td>CHP(l)</td><td>Hydrogen</td></tr>
-    <tr>
-        <td>Appliances, lighting & cooking</td><td><input type="text" key="input.appliancesDemand_TWh"></td>
-        <td><input type="text" key="input.appliancesSolidDemand"></td><td><input type="text" key="input.appliancesGasDemand"></td>
-        <td><input type="text" key="input.appliancesLiquidDemand"></td>
-    </tr>
-    <tr>
-        <td>Transport</td><td></td>
-        <td><input type="text" key="input.transportSolidDemand"></td><td><input type="text" key="input.transportGasDemand"></td>
-        <td><input type="text" key="input.transportLiquidDemand"></td><td></td><td></td><td></td>
-        <td><input type="text" key="input.transportHydrogenDemand"></td><td>
-    </tr>
-    <tr>
-        <td>Industry</td><td><input type="text" key="input.industryDemand_TWh"></td>
-        <td><input type="text" key="input.industrySolidDemand"></td><td><input type="text" key="input.industryGasDemand"></td>
-        <td><input type="text" key="input.industryLiquidDemand"></td><td><input type="text" key="input.industryCHPSolidDemand"></td>
-        <td><input type="text" key="input.industryCHPGasDemand"></td><td><input type="text" key="input.industryCHPLiquidDemand"></td>
-        <td><input type="text" key="input.industryHydrogenDemand"></td><td>
-    </tr>
-    <tr><td COLSPAN=2><BR></td></tr>
     </table>
     
-    <hr><h3>ELECTRIC TRANSPORT</h3><hr>
+    <hr><h3>TRANSPORT</h3><hr>
     <table>
     <tr>
         <th style="text-align:left">Electric trains</th><th></th>
         <th style="text-align:left">Electric vehicles</th><th></th>
+        <th style="text-align:left">Hydrogen vehicles</th><th></th>
     </tr><tr>
         <td>Number of passengers (million)</td><td><input type="text" key="input.electrains_passengers"></td>
-        <td>Number of vehicles (million)</td><td><input type="text" key="input.elecvehicles_number"></td>    
+        <td>Number of vehicles (million)</td><td><input type="text" key="input.elecvehicles_number"></td>  
+        <td>Number of vehicles (million)</td><td><input type="text" key="input.hydrogenvehicles_number"></td>    
     </tr><tr>
         <td>Average annual train miles</td><td><input type="text" key="input.electrains_miles"></td>
         <td>Average annual miles driven</td><td><input type="text" key="input.elecvehicles_miles_driven"></td>
+        <td>Average annual miles driven</td><td><input type="text" key="input.hydrogenvehicles_miles_driven"></td>
     </tr><tr>
         <td>Average kwh per 100 p-km</td><td><input type="text" key="input.electrains_performance"></td>
         <td>Average miles per kWh</td><td><input type="text" key="input.elecvehicles_miles_per_kwh"></td>
+        <td>Average miles per kWh</td><td><input type="text" key="input.hydrogenvehicles_miles_per_kwh"></td>
     </tr><tr>
         <td>Electric train energy demand:</td><td><span key="out.electrains_energy_demand" scale=1 dp=1></span> TWh/yr</td>
         <td>Electric vehicle energy demand:</td><td><span key="out.elecvehicles_energy_demand" scale=1 dp=1></span> TWh/yr</p></td>
+        <td>Hydrogen energy demand:</td><td><span key="out.hydrogenvehicles_H2_energy_demand" scale=1 dp=1></span> TWh/yr</p></td>
+    </tr><tr>
+        <th><br></th><th></th>
+        <th><br></th><th></th>
+        <th><br></th><th></th>
+    </tr><tr>
+        <th style="text-align:left">Biofuel aircraft</th><th></th>
+        <th style="text-align:left">Biofuel vehicles</th><th></th>
+        <th style="text-align:left">Other</th><th></th>
+    </tr><tr>
+        <td>Number of passengers (million)</td><td><input type="text" key="input.biofuelaircraft_passengers"></td>
+        <td>Number of vehicles (million)</td><td><input type="text" key="input.biofuelvehicles_number"></td>  
+        <td>Transport solid demand</td><td><input type="text" key="input.transportSolidDemand"></td></td>    
+    </tr><tr>
+        <td>Average annual air miles</td><td><input type="text" key="input.biofuelaircraft_miles"></td>
+        <td>Average annual miles driven</td><td><input type="text" key="input.biofuelvehicles_miles"></td>
+        <td>Transport gas demand</td><td><input type="text" key="input.transportGasDemand"></td></td>  
+    </tr><tr>
+        <td>Average kwh per 100 p-km</td><td><input type="text" key="input.biofuelaircraft_performance"></td>
+        <td>Average miles per kWh</td><td><input type="text" key="input.biofuelvehicles_miles_per_kwh"></td>
+        <td>Transport liquid demand</td><td><input type="text" key="input.other_transportLiquidDemand"></td></td>  
+    </tr><tr>
+        <td>Biofuel aircraft energy demand:</td><td><span key="out.biofuelaircraft_energy_demand" scale=1 dp=1></span> TWh/yr</td>
+        <td>Electric vehicle energy demand:</td><td><span key="out.biofuelvehicles_energy_demand" scale=1 dp=1></span> TWh/yr</p></td>
+        <td></td><td></td>
     </tr>
     </table>
     
+    <hr><h3>INDUSTRY</h3><hr>
+    <table>
+        <tr><td>Electricity</td><td>Solid</td><td>Gas</td><td>Liquid</td><td>CHP(s)</td><td>CHP(g)</td><td>CHP(l)</td><td>Hydrogen</td></tr>
+        <tr>
+        <td><input type="text" key="input.industryDemand_TWh"></td>
+        <td><input type="text" key="input.industrySolidDemand"></td><td><input type="text" key="input.industryGasDemand"></td>
+        <td><input type="text" key="input.industryLiquidDemand"></td><td><input type="text" key="input.industryCHPSolidDemand"></td>
+        <td><input type="text" key="input.industryCHPGasDemand"></td><td><input type="text" key="input.industryCHPLiquidDemand"></td>
+        <td><input type="text" key="input.industryHydrogenDemand"></td><td> all TWh/yr</td>
+    </tr>
+    </table>
     
     <hr><h3>ELECTRIC STORE</h3><hr>
     <table>
@@ -253,6 +283,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     </table>
 
 <br>
+<button class="run">Run</button>
 <hr><h3>OUTPUT</h3><hr>
 <table style="width:100%">
 
@@ -333,7 +364,12 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     <tr>
         <td>Biomass produced</td><td><span key="out.total_biomass_produced" scale=1 dp=1></span> TWh/yr</td>
         <td>Solid fuel demand</td><td><span key="out.total_solid_demand" scale=0.001 dp=1></span> TWh/yr</td>
-        <td>Solid fuel surplus/defecit</td><td><span key="out.biomass_surplus" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Solid fuel surplus</td><td><span key="out.biomass_surplus" scale=0.001 dp=1></span> TWh/yr</td>
+    </tr>
+    <tr>
+        <td></td><td></td> 
+        <td></td><td></td> 
+        <td>Unmet solid demand</td><td><span key="out.unmet_solid_demand" scale=0.001 dp=1></span> TWh/yr</td>
     </tr>
     <tr>
         <td>Biogas/synthetic gas</td><td><span key="out.total_gas_produced" scale=0.001 dp=1></span> TWh/yr</td>
@@ -390,7 +426,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     var tidal_capacity = 20;                // GW
     var nuclear_capacity = 0;               // GW
     var backupCap = 45;                     // GW
-    var total_biomass_produced = 240;       // TWh/yr
+    var total_biomass_produced = 0;       // TWh/yr
     var biomass_available = total_biomass_produced*1000;
     
     var solarthermal_capacity = 30;
@@ -455,9 +491,9 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     
     var totalDemandInProfile = 307111.8;        // FROM CSV!!!!
     
-    var number_of_buildings = 32*1000000;
+    var number_of_buildings = 32;
     var average_heatloss_WK = 120;
-    var heatLossCoefficient = (number_of_buildings * average_heatloss_WK) / 1000000000; // 4.4; // GW/degC
+    var heatLossCoefficient = (number_of_buildings * 1000000 * average_heatloss_WK) / 1000000000; // 4.4; // GW/degC
     var baseTemp = 16-(385/((heatLossCoefficient/4.398)*119)); //Gains need linking to appliances energy reduction
     var average_heatpump_COP = 0;
     
@@ -478,28 +514,43 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     var appliancesLiquidDemand = 0;
 
     var electrains_miles = 8000;
-    var electrains_performance = 3;
-    var electrains_passengers = 30;
+    var electrains_performance = 2.5;
+    var electrains_passengers = 40;
     var electrains_energy_demand = ( (electrains_miles * 1.609/100) * electrains_performance * electrains_passengers * 1000000)/1000000000;
             
     var elecvehicles_miles_driven = 8000;
     var elecvehicles_miles_per_kwh = 4;
-    var elecvehicles_number = 30;
+    var elecvehicles_number = 20;
     var elecvehicles_energy_demand = ((elecvehicles_miles_driven / elecvehicles_miles_per_kwh) * elecvehicles_number * 1000000)/1000000000;
     
     var transportDemand_TWh = elecvehicles_energy_demand + electrains_energy_demand; // 42
-
     var hourlyElecForTransportDemand = [];
+    
+    var hydrogenvehicles_miles_driven = 8000;
+    var hydrogenvehicles_miles_per_kwh = 1.1;
+    var hydrogenvehicles_number = 2;
+    var hydrogenvehicles_H2_energy_demand = ((hydrogenvehicles_miles_driven / hydrogenvehicles_miles_per_kwh) * hydrogenvehicles_number * 1000000)/1000000000;
+    
+    var transportHydrogenDemand = hydrogenvehicles_H2_energy_demand;
+    
+    var other_transportLiquidDemand = 0;
+    
+    var biofuelaircraft_passengers = 20;
+    var biofuelaircraft_miles = 1200;
+    var biofuelaircraft_performance = 50;
+    var biofuelaircraft_energy_demand = (((biofuelaircraft_miles*1.609/100)*biofuelaircraft_performance) * biofuelaircraft_passengers*1000000)/1000000000;
 
-    var average_miles_flown = 1200;         // 1 short haul flight manchester -> geneva return ...
-    var average_miles_per_kwh = 1.32;       // 50 kWh / per 100 person km
-    var number_of_flights = 20*1000000;     // 20 million people flying once per year
-    var airtravel_liquid_demand = ((average_miles_flown / average_miles_per_kwh) * number_of_flights)/1000000000; // 42;
+    var biofuelvehicles_number = 2;
+    var biofuelvehicles_miles = 3000;
+    var biofuelvehicles_miles_per_kwh = 1.0;
+    var biofuelvehicles_energy_demand = ((biofuelvehicles_miles * biofuelvehicles_miles_per_kwh) * biofuelvehicles_number*1000000)/1000000000;
+    
+    var transportLiquidDemand = biofuelaircraft_energy_demand + biofuelvehicles_energy_demand + other_transportLiquidDemand;
     
     var transportSolidDemand = 0;
     var transportGasDemand = 0;
-    var transportLiquidDemand = airtravel_liquid_demand;
-    var transportHydrogenDemand = 13;
+    
+
     var industryDemand_TWh = 171;
     var industrySolidDemand = 0;
     var industryGasDemand = 61;
@@ -609,12 +660,21 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         // ------------------------------
         // Demand
         // ------------------------------
+        heatLossCoefficient = (number_of_buildings * 1000000 * average_heatloss_WK) / 1000000000; // 4.4; // GW/degC
+        
         baseTemp = 16-(385/((heatLossCoefficient/4.398)*119)); //Gains need linking to appliances energy reduction
         annual_hotwater_demand = hotWaterDemand_TWh*1000;
         average_heatpump_COP = 0;
         
         electrains_energy_demand = ((electrains_miles * 1.609 / 100)* electrains_performance * electrains_passengers * 1000000)/1000000000;
         elecvehicles_energy_demand = ((elecvehicles_miles_driven / elecvehicles_miles_per_kwh) * elecvehicles_number * 1000000)/1000000000;
+        
+        hydrogenvehicles_H2_energy_demand = ((hydrogenvehicles_miles_driven / hydrogenvehicles_miles_per_kwh) * hydrogenvehicles_number * 1000000)/1000000000;
+        transportHydrogenDemand = hydrogenvehicles_H2_energy_demand;
+        
+        biofuelaircraft_energy_demand = (((biofuelaircraft_miles*1.609/100)*biofuelaircraft_performance) * biofuelaircraft_passengers*1000000)/1000000000;
+        biofuelvehicles_energy_demand = ((biofuelvehicles_miles * biofuelvehicles_miles_per_kwh) * biofuelvehicles_number*1000000)/1000000000;
+        transportLiquidDemand = biofuelaircraft_energy_demand + biofuelvehicles_energy_demand + other_transportLiquidDemand;
         
         industryDemand = industryDemand_TWh*1000;
         
@@ -882,8 +942,12 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             // ------------------------------------------------------------------------------------------------------
             // DIRECT SOLID BIOMASS DEMAND (priority before methane production)
             // ------------------------------------------------------------------------------------------------------
-            // appliancesSolidDemand + transportSolidDemand + industrySolidDemand + industryCHPSolidDemand
             var solid_demand = solid_for_heat;
+            solid_demand += appliancesSolidDemand*1000/(24*365);
+            solid_demand += transportSolidDemand*1000/(24*365);
+            solid_demand += industrySolidDemand*1000/(24*365);
+            solid_demand += industryCHPSolidDemand*1000/(24*365);
+            
             total_solid_demand += solid_demand;
             
             if (biomass_available>solid_demand) {
@@ -1049,9 +1113,16 @@ You can also download the full ten year hourly model used for ZCB <a href="https
                 
                 var gas_remainder = gas_demand - methane_store_SOC;
                 // direct biomass to liquid 60% efficient
-                total_solid_demand += gas_remainder/0.6;
-                biomass_available -= gas_remainder/0.6;
-                // unmet_gas_demand += gas_demand - methane_store_SOC;
+                var direct_biomass_used = gas_remainder/0.6;
+                
+                if (direct_biomass_used>biomass_available)
+                    direct_biomass_used = biomass_available;
+                    
+                total_solid_demand += direct_biomass_used;
+                biomass_available -= direct_biomass_used;
+                
+                var gas_produced = direct_biomass_used * 0.6;
+                unmet_gas_demand += gas_demand - gas_produced;
             }
 
             var liquid_demand = liquid_for_heat;
@@ -1069,9 +1140,16 @@ You can also download the full ten year hourly model used for ZCB <a href="https
                 
                 var liquid_remainder = liquid_demand - synthfuel_store_SOC;
                 // direct biomass to liquid 50% efficient
-                total_solid_demand += liquid_remainder/0.5;
-                biomass_available -= liquid_remainder/0.5;
-                // unmet_liquid_demand += liquid_demand - synthfuel_store_SOC;
+                var direct_biomass_used = liquid_remainder/0.5;
+                
+                if (direct_biomass_used>biomass_available)
+                    direct_biomass_used = biomass_available;
+                    
+                total_solid_demand += direct_biomass_used;
+                biomass_available -= direct_biomass_used;
+                
+                var liquid_produced = direct_biomass_used * 0.5;
+                unmet_liquid_demand += liquid_demand - liquid_produced;
             } 
             
             
@@ -1189,7 +1267,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
          });
     });
     
-    $("#run").click(function(){
+    $(".run").click(function(){
         process();
     });
     
