@@ -217,8 +217,8 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         <th><br></th><th></th>
         <th><br></th><th></th>
     </tr><tr>
-        <th style="text-align:left">Biofuel aircraft</th><th></th>
-        <th style="text-align:left">Biofuel vehicles</th><th></th>
+        <th style="text-align:left">Aircraft</th><th></th>
+        <th style="text-align:left">Liquid fuel surface vehicles</th><th></th>
         <th style="text-align:left">Other</th><th></th>
     </tr><tr>
         <td>Number of passengers (million)</td><td><input type="text" key="input.biofuelaircraft_passengers"></td>
@@ -233,8 +233,8 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         <td>Average miles per kWh</td><td><input type="text" key="input.biofuelvehicles_miles_per_kwh"></td>
         <td>Transport liquid demand</td><td><input type="text" key="input.other_transportLiquidDemand"></td></td>  
     </tr><tr>
-        <td>Biofuel aircraft energy demand:</td><td><span key="out.biofuelaircraft_energy_demand" scale=1 dp=1></span> TWh/yr</td>
-        <td>Electric vehicle energy demand:</td><td><span key="out.biofuelvehicles_energy_demand" scale=1 dp=1></span> TWh/yr</p></td>
+        <td>Aircraft liquid fuel demand:</td><td><span key="out.biofuelaircraft_energy_demand" scale=1 dp=1></span> TWh/yr</td>
+        <td>Vehicle liquid fuel demand:</td><td><span key="out.biofuelvehicles_energy_demand" scale=1 dp=1></span> TWh/yr</p></td>
         <td></td><td></td>
     </tr>
     </table>
@@ -297,7 +297,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     <tr>
         <th style="text-align:left">Supply</th><th></th>
         <th style="text-align:left">Demand</th><th></th>
-        <th style="text-align:left">Store</th><th></th>
+        <th style="text-align:left">Electric store</th><th></th>
     </tr>
 
     <tr>
@@ -369,12 +369,15 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     </tr>    
     <tr>
         <td>Biomass produced</td><td><span key="out.total_biomass_produced" scale=1 dp=1></span> TWh/yr</td>
-        <td>Solid fuel demand</td><td><span key="out.total_solid_demand" scale=0.001 dp=1></span> TWh/yr</td>
-        <td>Solid fuel surplus</td><td><span key="out.biomass_surplus" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Biomass demand</td><td><span key="out.total_biomass_demand" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Biomass surplus</td><td><span key="out.biomass_surplus" scale=0.001 dp=1></span> TWh/yr</td>
     </tr>
+    
+    <tr><td><BR></td></tr>
+    
     <tr>
-        <td></td><td></td> 
-        <td></td><td></td> 
+        <td>Solid biomass fuel</td><td><span key="out.total_solid_produced" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Solid fuel demand</td><td><span key="out.total_solid_demand" scale=0.001 dp=1></span> TWh/yr</td>
         <td>Unmet solid demand</td><td><span key="out.unmet_solid_demand" scale=0.001 dp=1></span> TWh/yr</td>
     </tr>
     <tr>
@@ -449,6 +452,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     var backupGeneration = 0;
     var backupCapUsed = 0;
     
+    var total_solid_produced = 0;
     var total_liquid_produced = 0;
     var total_gas_produced = 0;
     
@@ -482,6 +486,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
 
     // accumulated totals
     var total_hydrogen_demand = 0;
+    var total_biomass_demand = 0;
     var total_solid_demand = 0;
     var total_gas_demand = 0;
     var total_liquid_demand = 0;
@@ -656,6 +661,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         backupCapUsed = 0;
         
         biomass_available = total_biomass_produced*1000;
+        total_solid_produced = 0;
         total_liquid_produced = 0;
         total_gas_produced = 0;
         
@@ -686,6 +692,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         // accumulated totals
         total_electricity_demand = 0;
         total_hydrogen_demand = 0;
+        total_biomass_demand = 0;
         total_solid_demand = 0;
         total_gas_demand = 0;
         total_liquid_demand = 0;
@@ -725,6 +732,10 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         
         min_cop = 10000;
         max_cop = -10000;
+        
+        var solid_for_heat = 0;
+        var gas_for_heat = 0;
+        var liquid_for_heat = 0;
        
         hour=0;
         var lines = csvfile.split(/\r\n|\n/);
@@ -819,9 +830,9 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             hourlyElecForHeatDemand[i] = (hourlyHeatDemand[i] * (percentHeatHeatpumps / 100.0) / hourly_heatpump_COP) + (hourlyHeatDemand[i] * percentHeatDirectelec / 100);
             
             // Calculate demand for solid, gas & liquid fuel for heat
-            var solid_for_heat = (hourlyHeatDemand[i]*(percentHeatSolid/100))/0.9;
-            var gas_for_heat = (hourlyHeatDemand[i]*(percentHeatGas/100))/0.9;
-            var liquid_for_heat = (hourlyHeatDemand[i]*(percentHeatLiquid/100))/0.9;
+            solid_for_heat += (hourlyHeatDemand[i]*(percentHeatSolid/100))/0.9;
+            gas_for_heat += (hourlyHeatDemand[i]*(percentHeatGas/100))/0.9;
+            liquid_for_heat += (hourlyHeatDemand[i]*(percentHeatLiquid/100))/0.9;
               
             solid_for_heat += (hourlyHeatDemand[i]*(percentHeatCHPSolid/100))/0.6;
             gas_for_heat += (hourlyHeatDemand[i]*(percentHeatCHPGas/100))/0.6;
@@ -944,23 +955,34 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             // ------------------------------------------------------------------------------------------------------
             balance -= elecstore_demand;                             // elecstore_demand is negative when discharging
             
-            // ------------------------------------------------------------------------------------------------------
-            // DIRECT SOLID BIOMASS DEMAND (priority before methane production)
-            // ------------------------------------------------------------------------------------------------------
-            var solid_demand = solid_for_heat;
-            solid_demand += appliancesSolidDemand*1000/(24*365);
-            solid_demand += transportSolidDemand*1000/(24*365);
-            solid_demand += industrySolidDemand*1000/(24*365);
-            solid_demand += industryCHPSolidDemand*1000/(24*365);
-            
-            total_solid_demand += solid_demand;
-            
-            if (biomass_available>solid_demand) {
-                biomass_available -= solid_demand;
-            } else {
-                biomass_available = 0;
-                unmet_solid_demand += solid_demand - biomass_available;
-            }  
+            hour++;
+            if(hour==23) hour=0;
+        }    
+
+        // ------------------------------------------------------------------------------------------------------
+        // DIRECT SOLID BIOMASS DEMAND (priority before methane production)
+        // ------------------------------------------------------------------------------------------------------
+        var solid_demand = solid_for_heat;
+        solid_demand += appliancesSolidDemand*1000;
+        solid_demand += transportSolidDemand*1000;
+        solid_demand += industrySolidDemand*1000;
+        solid_demand += industryCHPSolidDemand*1000;
+
+        total_solid_demand = solid_demand;
+        total_biomass_demand = solid_demand;
+
+        if (biomass_available>solid_demand) {
+            biomass_available -= solid_demand;
+            total_solid_produced = solid_demand;
+        } 
+        else {
+            total_solid_produced = biomass_available;
+            unmet_solid_demand = solid_demand - biomass_available;
+            biomass_available = 0;
+        }             
+        // got to here, biogas / bioliquid produced is wrong    
+        hour=0;
+        for (var i=0; i<8760; i++) {
             
             // ------------------------------------------------------------------------------------------------------
             // HYDROGEN PRODUCTION
@@ -1028,7 +1050,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
                         synthfuel_store_SOC += synthfuel;
                         biomass_available -= biomass_for_FT;
                         total_liquid_produced += synthfuel;
-                        total_solid_demand += biomass_for_FT;
+                        total_biomass_demand += biomass_for_FT;
                         total_hydrogen_demand += H2_for_FT;
                     }
                     hydrogen_balance -= H2_for_FT;
@@ -1058,7 +1080,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
                         methane_store_SOC += biomethane;
                         biomass_available -= biomass_for_sabatier;
                         total_gas_produced += biomethane;
-                        total_solid_demand += biomass_for_sabatier;
+                        total_biomass_demand += biomass_for_sabatier;
                         total_hydrogen_demand += H2_for_sabatier;
                     }
                     hydrogen_balance -= H2_for_sabatier;
@@ -1123,7 +1145,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
                 if (direct_biomass_used>biomass_available)
                     direct_biomass_used = biomass_available;
                     
-                total_solid_demand += direct_biomass_used;
+                total_biomass_demand += direct_biomass_used;
                 biomass_available -= direct_biomass_used;
                 
                 var gas_produced = direct_biomass_used * 0.6;
@@ -1150,7 +1172,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
                 if (direct_biomass_used>biomass_available)
                     direct_biomass_used = biomass_available;
                     
-                total_solid_demand += direct_biomass_used;
+                total_biomass_demand += direct_biomass_used;
                 biomass_available -= direct_biomass_used;
                 
                 var liquid_produced = direct_biomass_used * 0.5;
