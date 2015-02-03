@@ -280,9 +280,9 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         <tr>
             <td COLSPAN=2>Hydrogen store capacity</td><td><input type="text" key="input.hydrogen_store_capacity"></td><td>GWh</td>
         </tr>
-        <tr>
+<!--        <tr>
             <td COLSPAN=2>Liquid store capacity</td><td><input type="text" key="input.synthfuel_store_capacity"></td><td>GWh</td>
-        </tr>
+        </tr>-->
         <tr>
             <td COLSPAN=2>Gas store capacity</td><td><input type="text" key="input.methane_store_capacity"></td><td>GWh</td>
         </tr>
@@ -364,12 +364,12 @@ You can also download the full ten year hourly model used for ZCB <a href="https
 
     <tr>
         <td>Hydrogen produced</td><td><span key="out.total_hydrogen_produced" scale=0.001 dp=1></span> TWh/yr</td>
-        <td>Hydrogen demand</td><td><span key="out.total_hydrogen_demand" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Hydrogen used</td><td><span key="out.total_hydrogen_demand" scale=0.001 dp=1></span> TWh/yr</td>
         <td>Unmet hydrogen demand</td><td><span key="out.unmet_hydrogen_demand" scale=0.001 dp=1></span> TWh/yr</td>
     </tr>    
     <tr>
         <td>Biomass produced</td><td><span key="out.total_biomass_produced" scale=1 dp=1></span> TWh/yr</td>
-        <td>Biomass demand</td><td><span key="out.total_biomass_demand" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Biomass used</td><td><span key="out.total_biomass_demand" scale=0.001 dp=1></span> TWh/yr</td>
         <td>Biomass surplus</td><td><span key="out.biomass_surplus" scale=0.001 dp=1></span> TWh/yr</td>
     </tr>
     
@@ -469,6 +469,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     var excess_electricity_generation = 0;
 
     var totalGenerationWithStorage = [];
+    var balance_array = [];
     // ------------------------------
     // Demand
     // ------------------------------
@@ -949,12 +950,15 @@ You can also download the full ten year hourly model used for ZCB <a href="https
                 
                 elecstore_demand = -elecstore_discharge_rate_after_loss;
             }
-            
+            if (elecstore_SOC > elecstore_used_max_capacity) elecstore_used_max_capacity = elecstore_SOC;
+            if (elecstore_SOC < elecstore_used_min_capacity) elecstore_used_min_capacity = elecstore_SOC;
+            elecstore_hourly_capacity[i] = elecstore_SOC;
             // ------------------------------------------------------------------------------------------------------
             // ELECTRICITY BALANCE: AFTER ELEC STORE
             // ------------------------------------------------------------------------------------------------------
             balance -= elecstore_demand;                             // elecstore_demand is negative when discharging
-            
+            balance_array[i] = balance;
+        
             hour++;
             if(hour==23) hour=0;
         }    
@@ -969,18 +973,19 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         solid_demand += industryCHPSolidDemand*1000;
 
         total_solid_demand = solid_demand;
-        total_biomass_demand = solid_demand;
 
         if (biomass_available>solid_demand) {
             biomass_available -= solid_demand;
             total_solid_produced = solid_demand;
+            total_biomass_demand = solid_demand;
         } 
         else {
             total_solid_produced = biomass_available;
+            total_biomass_demand = biomass_available;
             unmet_solid_demand = solid_demand - biomass_available;
             biomass_available = 0;
         }             
-        // got to here, biogas / bioliquid produced is wrong    
+            
         hour=0;
         for (var i=0; i<8760; i++) {
             
@@ -1003,14 +1008,14 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             // - hydrogen_store_SOC
             // - hydrogen_shortfall
             
-            var hydrogen_demand = 0;
-            hydrogen_demand += transportHydrogenDemand*1000 / (365*24);
-            hydrogen_demand += industryHydrogenDemand*1000 / (365*24);
+            balance = balance_array[i];
             
+            var hydrogen_demand = 0;
             var hydrogen_produced = 0;
             var electricity_for_electrolysis = 0;
-            var hydrogen_balance = -hydrogen_demand;
-            total_hydrogen_demand += hydrogen_demand;
+            
+            hydrogen_demand += transportHydrogenDemand*1000 / (365*24);
+            hydrogen_demand += industryHydrogenDemand*1000 / (365*24);
             
             if (balance>0) {
                 // positive balance == surplus electricity
@@ -1018,96 +1023,45 @@ You can also download the full ten year hourly model used for ZCB <a href="https
                 
                 if (electricity_for_electrolysis > electrolysisCap)     // is then limited by electrolysis capacity
                     electricity_for_electrolysis = electrolysisCap;
-                    
-                var hydrogen_produced = electricity_for_electrolysis * 0.7; // resulting in produced hydrogen
                 
-                // subtract hydrogen demand from production
-                hydrogen_balance += hydrogen_produced;
-                
-                if (useH2ForSynthFuels) 
-                {
-                    // ------------------------------------------------------------------------------------------------------
-                    // SYNTHETIC FUEL PRODUCTION FROM EXESS HYDROGEN
-                    // ------------------------------------------------------------------------------------------------------
-                    var H2_for_FT = 0;
+                if (electricity_for_electrolysis * 0.7 > hydrogen_store_capacity - hydrogen_store_SOC)
+                    electricity_for_electrolysis = (hydrogen_store_capacity - hydrogen_store_SOC) / 0.7;
+            }
                     
-                    if (hydrogen_balance>0) {
-                        var H2_for_FT = hydrogen_balance;
-                        var biomass_for_FT = H2_for_FT / 0.5;
-                        
-                        if (biomass_for_FT > biomass_available)   // Limit by biomass available
-                            biomass_for_FT = biomass_available;
-                        
-                        H2_for_FT = biomass_for_FT * 0.5;              // re-calculate H2 requirement after biomass limit
-                        var synthfuel = biomass_for_FT * 0.8;          // for every 0.8 unit of synth fuel 1 unit of biomass is used (+0.5 unit of hydrogen)
-                        
-                        // Limit synthfuel production by synthfuel store
-                        if (synthfuel_store_SOC + synthfuel > synthfuel_store_capacity) {
-                            synthfuel = synthfuel_store_capacity - synthfuel_store_SOC;
-                            biomass_for_FT = synthfuel/0.8;
-                            H2_for_FT = biomass_for_FT * 0.5;
-                        }  
-                        synthfuel_store_SOC += synthfuel;
-                        biomass_available -= biomass_for_FT;
-                        total_liquid_produced += synthfuel;
-                        total_biomass_demand += biomass_for_FT;
-                        total_hydrogen_demand += H2_for_FT;
-                    }
-                    hydrogen_balance -= H2_for_FT;
-                                    
-                    // ------------------------------------------------------------------------------------------------------
-                    // BIOMETHANE PRODUCTION FROM EXESS HYDROGEN
-                    // ------------------------------------------------------------------------------------------------------
-                    var H2_for_sabatier = 0;
-                    
-                    if (hydrogen_balance>0) {
-                        // Generate biomethane
-                        var H2_for_sabatier = hydrogen_balance;
-                        var biomass_for_sabatier = H2_for_sabatier / 0.5;
-                        
-                        if (biomass_for_sabatier > biomass_available)   // Limit by biomass available
-                            biomass_for_sabatier = biomass_available;
-                        
-                        H2_for_sabatier = biomass_for_sabatier * 0.5;   // re-calculate H2 requirement after biomass limit
-                        var biomethane = biomass_for_sabatier;          // for every 1 unit of biomethane 1 unit of biomass is used (+0.5 unit of hydrogen)
-                        
-                        // Limit biomethane production by biomethane store
-                        if (methane_store_SOC + biomethane > methane_store_capacity) {
-                            biomethane = methane_store_capacity - methane_store_SOC;
-                            biomass_for_sabatier = biomethane;
-                            H2_for_sabatier = biomass_for_sabatier * 0.5;
-                        }  
-                        methane_store_SOC += biomethane;
-                        biomass_available -= biomass_for_sabatier;
-                        total_gas_produced += biomethane;
-                        total_biomass_demand += biomass_for_sabatier;
-                        total_hydrogen_demand += H2_for_sabatier;
-                    }
-                    hydrogen_balance -= H2_for_sabatier;
-                }
+            hydrogen_produced = electricity_for_electrolysis * 0.7; // resulting in produced hydrogen
+            total_hydrogen_produced += hydrogen_produced;
+            hydrogen_store_SOC += hydrogen_produced;
+            if (hydrogen_store_SOC < hydrogen_demand) {
+                unmet_hydrogen_demand += hydrogen_demand - hydrogen_store_SOC;
+                total_hydrogen_demand += hydrogen_store_SOC;
+                hydrogen_store_SOC = 0;
+            }
+            else{
+                hydrogen_store_SOC -= hydrogen_demand;
+                total_hydrogen_demand += hydrogen_demand;
             }
                 
-            hydrogen_store_SOC += hydrogen_balance;
+            // subtract hydrogen demand from production
+            //hydrogen_balance += hydrogen_produced;
+            
+            //var hydrogen_balance = -hydrogen_demand;
+            
+            //hydrogen_store_SOC += hydrogen_balance;
             
             // if hydrogen_balance is negative and subtracting the required hydrogen 
             // from the hydrogen store results in negative SOC (virtual defecit) then the store is empty
             // and the defecit in hydrogen production is the extent of the overshoot.
-            if (hydrogen_store_SOC<0) {
-                unmet_hydrogen_demand += -1*hydrogen_store_SOC;
-                hydrogen_store_SOC = 0; 
-            }
+
 
             // if calculated hydrogen SOC is in exess of capacity
             // then we need to limit hydrogen production in this itteration
             // so as not to fill the store
-            if (hydrogen_store_SOC>hydrogen_store_capacity) {
-                var exess = hydrogen_store_SOC - hydrogen_store_capacity;       // 'virtual exess'
-                hydrogen_produced -= exess;                                     // actual hydrogen produced
-                electricity_for_electrolysis = hydrogen_produced / 0.7;         // actual electricity used
-                hydrogen_store_SOC = hydrogen_store_capacity;                   // store is full
-            }
-            
-            total_hydrogen_produced += hydrogen_produced;
+            //if (hydrogen_store_SOC>hydrogen_store_capacity) {
+            //    var exess = hydrogen_store_SOC - hydrogen_store_capacity;       // 'virtual exess'
+            //    hydrogen_produced -= exess;                                     // actual hydrogen produced
+            //    electricity_for_electrolysis = hydrogen_produced / 0.7;         // actual electricity used
+            //    hydrogen_store_SOC = hydrogen_store_capacity;                   // store is full
+            //}
             
             // ------------------------------------------------------------------------------------------------------
             // ELECTRICITY BALANCE: AFTER ELECTROLYSIS
@@ -1116,29 +1070,145 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             balance -= electricity_for_electrolysis;
             energyDemand[i] += electricity_for_electrolysis;
             hourly_electrolysis_demand[i] = electricity_for_electrolysis;
+            
             // ------------------------------------------------------------------------------------------------------
-            // METHANE FROM ANAEROBIC DIGESTION
+            // LIQUID DEMAND
+            // ------------------------------------------------------------------------------------------------------      
+            var liquid_demand = liquid_for_heat;
+            liquid_demand += appliancesLiquidDemand * 1000 / (365*24);
+            liquid_demand += transportLiquidDemand * 1000 / (365*24);
+            liquid_demand += industryLiquidDemand * 1000 / (365*24);
+            liquid_demand += industryCHPLiquidDemand * 1000 / (365*24);
+            
+            total_liquid_demand += liquid_demand;
+            
             // ------------------------------------------------------------------------------------------------------
-            var biogas = 0;
+            // LIQUID FUEL PRODUCTION
+            // ------------------------------------------------------------------------------------------------------
+            var synthfuel = 0;
+            
+            if (useH2ForSynthFuels) 
+            {
+                // ------------------------------------------------------------------------------------------------------
+                // SYNTHETIC LIQUID FUEL PRODUCTION USING HYDROGEN
+                // ------------------------------------------------------------------------------------------------------
+                var H2_for_FT = 0;
+
+                if (hydrogen_store_SOC>0) {
+                    var H2_for_FT = hydrogen_store_SOC;       // Limit by H2 available
+                    var biomass_for_FT = H2_for_FT / 0.5;
+
+                    if (biomass_for_FT > biomass_available)   // Limit by biomass available
+                        biomass_for_FT = biomass_available;
+                    
+                    if (liquid_demand < biomass_for_FT * 0.8) // Limit by liquid fuel demand
+                        biomass_for_FT = liquid_demand / 0.8;
+
+                    H2_for_FT = biomass_for_FT * 0.5;              // re-calculate H2 requirement after biomass limit
+                    var synthfuel = biomass_for_FT * 0.8;          // for every 0.8 unit of synth fuel 1 unit of biomass is used (+0.5 unit of hydrogen)
+
+                    // Limit synthfuel production by synthfuel store
+                    /*if (synthfuel_store_SOC + synthfuel > synthfuel_store_capacity) {
+                        synthfuel = synthfuel_store_capacity - synthfuel_store_SOC;
+                        biomass_for_FT = synthfuel/0.8;
+                        H2_for_FT = biomass_for_FT * 0.5;
+                    }  
+                    synthfuel_store_SOC += synthfuel;*/
+                    liquid_demand -= synthfuel;
+                    biomass_available -= biomass_for_FT;
+                    
+                    total_biomass_demand += biomass_for_FT;
+                    total_hydrogen_demand += H2_for_FT;
+                }
+                hydrogen_store_SOC -= H2_for_FT;
+            }
+            // ------------------------------------------------------------------------------------------------------
+            // SYNTHETIC LIQUID FUEL PRODUCTION WITHOUT USING HYDROGEN
+            // ------------------------------------------------------------------------------------------------------
+            var biofuel = 0;
+            if(biomass_available < liquid_demand / 0.5){
+                biofuel += biomass_available*0.5;
+                biomass_available = 0;
+            }
+            else{
+                biofuel += liquid_demand; 
+                biomass_available -= liquid_demand / 0.5;
+            }
+            total_liquid_produced += synthfuel + biofuel;
+            total_biomass_demand += biofuel / 0.5;
+            liquid_demand -= biofuel;
+            unmet_liquid_demand += liquid_demand;
+
+            // ------------------------------------------------------------------------------------------------------
+            // GAS FUEL PRODUCTION
+            // ------------------------------------------------------------------------------------------------------
+            var biomass_available_for_gas = biomass_available / (8760 - i)
+            
+            if (useH2ForSynthFuels) 
+            {
+                // ------------------------------------------------------------------------------------------------------
+                // BIOMETHANE PRODUCTION FROM USING HYDROGEN
+                // ------------------------------------------------------------------------------------------------------
+                var H2_for_sabatier = 0;
+
+                if (hydrogen_store_SOC>0) {
+                    // Generate biomethane
+                    var H2_for_sabatier = hydrogen_store_SOC;               // Limit by H2 available
+                    var biomass_for_sabatier = H2_for_sabatier / 0.5;
+
+                    if (biomass_for_sabatier > biomass_available_for_gas)   // Limit by biomass available
+                        biomass_for_sabatier = biomass_available_for_gas;
+
+                    H2_for_sabatier = biomass_for_sabatier * 0.5;   // re-calculate H2 requirement after biomass limit
+                    var biomethane = biomass_for_sabatier;          // for every 1 unit of biomethane 1 unit of biomass is used (+0.5 unit of hydrogen)
+
+                    // Limit biomethane production by biomethane store
+                    if (methane_store_SOC + biomethane > methane_store_capacity) {
+                        biomethane = methane_store_capacity - methane_store_SOC;
+                        biomass_for_sabatier = biomethane;
+                        H2_for_sabatier = biomass_for_sabatier * 0.5;
+                    }  
+                    methane_store_SOC += biomethane;
+                    biomass_available_for_gas -= biomass_for_sabatier;
+                    biomass_available -= biomass_for_sabatier;
+                    total_gas_produced += biomethane;
+                    total_biomass_demand += biomass_for_sabatier;
+                    total_hydrogen_demand += H2_for_sabatier;
+                }
+                hydrogen_store_SOC -= H2_for_sabatier;                
+            }
+            
+            // ------------------------------------------------------------------------------------------------------
+            // METHANE FROM ANAEROBIC DIGESTION (AD)
+            // ------------------------------------------------------------------------------------------------------
+            var biogas = biomass_available_for_gas * 0.6;
+            
+            if (methane_store_SOC + biogas > methane_store_capacity) {  // Limit methane from AD by store
+                biogas = methane_store_capacity - methane_store_SOC;
+            }
+            methane_store_SOC += biogas;
+            biomass_available -= biogas / 0.6;
+            total_biomass_demand += biogas / 0.6;
             total_gas_produced += biogas;
             
             // ------------------------------------------------------------------------------------------------------
-            // METHANE + LIQUID DEMAND
-            // ------------------------------------------------------------------------------------------------------
+            // GAS DEMAND
+            // ------------------------------------------------------------------------------------------------------     
             var gas_demand = gas_for_heat;
             gas_demand += appliancesGasDemand * 1000 / (365*24);
             gas_demand += transportGasDemand * 1000 / (365*24);
             gas_demand += industryGasDemand * 1000 / (365*24);
             gas_demand += industryCHPGasDemand * 1000 / (365*24);
-            
+
             total_gas_demand += gas_demand;
-                 
+            
             if (methane_store_SOC > gas_demand) {
                 methane_store_SOC -= gas_demand;
-            } else {
+            } 
+            else {
                 methane_store_SOC = 0;
                 
-                var gas_remainder = gas_demand - methane_store_SOC;
+                /*var gas_remainder = gas_demand - methane_store_SOC;
                 // direct biomass to liquid 60% efficient
                 var direct_biomass_used = gas_remainder/0.6;
                 
@@ -1148,19 +1218,11 @@ You can also download the full ten year hourly model used for ZCB <a href="https
                 total_biomass_demand += direct_biomass_used;
                 biomass_available -= direct_biomass_used;
                 
-                var gas_produced = direct_biomass_used * 0.6;
-                unmet_gas_demand += gas_demand - gas_produced;
+                var gas_produced = direct_biomass_used * 0.6;*/
+                unmet_gas_demand += gas_demand - methane_store_SOC;
             }
-
-            var liquid_demand = liquid_for_heat;
-            liquid_demand += appliancesLiquidDemand * 1000 / (365*24);
-            liquid_demand += transportLiquidDemand * 1000 / (365*24);
-            liquid_demand += industryLiquidDemand * 1000 / (365*24);
-            liquid_demand += industryCHPLiquidDemand * 1000 / (365*24);
-            
-            total_liquid_demand += liquid_demand;
-                 
-            if (synthfuel_store_SOC > liquid_demand) {
+               
+            /*if (synthfuel_store_SOC > liquid_demand) {
                 synthfuel_store_SOC -= liquid_demand;
             } else {
                 synthfuel_store_SOC = 0;
@@ -1177,7 +1239,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
                 
                 var liquid_produced = direct_biomass_used * 0.5;
                 unmet_liquid_demand += liquid_demand - liquid_produced;
-            } 
+            } */
             
             
             // ------------------------------------------------------------------------------------------------------
@@ -1199,15 +1261,16 @@ You can also download the full ten year hourly model used for ZCB <a href="https
                 backupgen_before_gridloss = backupgen_delivered * (1+grid_loss);
                 if (backupgen_before_gridloss > backupCap) backupgen_before_gridloss = backupCap;
                 var backupgen_gas_demand = backupgen_before_gridloss / 0.5;
+                total_gas_demand += backupgen_gas_demand;
                 
                 // Limit to gas available in methane store
                 if (backupgen_gas_demand > methane_store_SOC) {
+                    unmet_gas_demand += backupgen_gas_demand - methane_store_SOC;
                     backupgen_gas_demand = methane_store_SOC;
                     backupgen_before_gridloss = backupgen_gas_demand * 0.5;
                     backupgen_delivered = backupgen_before_gridloss / (1+grid_loss);
                 }
                 methane_store_SOC -= backupgen_gas_demand;
-                total_gas_demand += backupgen_gas_demand;
                 
                 backupgen_before_gridloss = backupgen_gas_demand * 0.5;
                 backupgen_delivered = backupgen_before_gridloss / (1+grid_loss);
@@ -1241,10 +1304,6 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             } else {
                 energyDemand[i] += elecstore_demand;
             }
-            
-            if (elecstore_SOC > elecstore_used_max_capacity) elecstore_used_max_capacity = elecstore_SOC;
-            if (elecstore_SOC < elecstore_used_min_capacity) elecstore_used_min_capacity = elecstore_SOC;
-            elecstore_hourly_capacity[i] = elecstore_SOC;
             
             hydrogen_store_SOC_hourly[i] = hydrogen_store_SOC;
             methane_store_SOC_hourly[i] = methane_store_SOC;
@@ -1325,6 +1384,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     {
         var c = document.getElementById("graph");  
         var ctx = c.getContext("2d");
+        var hr = 0; var day = 0; var week = 1;
         
         ctx.clearRect(0,0,8760,250);
         
@@ -1332,10 +1392,40 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         ctx.strokeStyle = "#000";
         ctx.moveTo(25,5); ctx.lineTo(25, 225);
         ctx.moveTo(25,226); ctx.lineTo(8785, 226);
+        ctx.fillText("Week",25,240);
         ctx.stroke();
-        
+        for(var p=1;p<8760;p++){
+            if (day == 7){
+                ctx.strokeRect(p+25,226,1, 2);
+                ctx.fillText(week,p+25,240);
+                day = 0;
+                week++;
+            }
+            if(hr == 24) {day++; hr = 0;}
+            hr++;
+        }
         // Draw balance graph
         if(graph_mode == 'balance'){
+            
+            var level_colors = ["#00ff00","#ff0000"];
+            var level_labels = ["Surplus of electricity","Shortfall of electricity"];
+            
+            ctx.strokeRect(23,25,1, 2);
+            ctx.strokeRect(23,125,1, 2);
+            ctx.fillText("GW",2,10);
+            ctx.fillText("200",2,28);
+            ctx.fillText("100",2,128);
+            
+            for (var i=0; i<2; i++)
+            {
+                ctx.fillStyle = level_colors[i];
+                ctx.fillRect(40,i*15,10,10);
+                ctx.strokeStyle = "#000";
+                ctx.fillStyle = "#000";
+                ctx.strokeRect(40,i*15,10,10);
+                ctx.fillText(level_labels[i],60,10+i*15);
+            }
+            
             for(var p=1;p<8760;p++){
             
                 ctx.beginPath();
@@ -1369,10 +1459,55 @@ You can also download the full ten year hourly model used for ZCB <a href="https
                     ctx.lineTo(p+25, 25+(200-demandSquarePos+1));
                     ctx.stroke();
                 }
+                
             }
         }
         //Draw supply graph 
         else if(graph_mode == 'supply'){
+            
+            var level_colors = ["#ff9900","#990099","#663300","#336666"];
+            var level_labels = ["CHP","Nuclear","Hydro","Wave"];
+            
+            ctx.strokeRect(23,25,1, 2);
+            ctx.strokeRect(23,125,1, 2);
+            ctx.fillText("GW",2,10);
+            ctx.fillText("200",2,28);
+            ctx.fillText("100",2,128);
+            
+            for (var i=0; i<level_labels.length; i++)
+            {
+                ctx.fillStyle = level_colors[i];
+                ctx.fillRect(40,i*15,10,10);
+                ctx.strokeStyle = "#000";
+                ctx.fillStyle = "#000";
+                ctx.strokeRect(40,i*15,10,10);
+                ctx.fillText(level_labels[i],60,10+i*15);
+            }            
+            level_colors = ["#33CC66","#f9e117","#0000FF","#00CCFF"];
+            level_labels = ["Tidal","Solar","Offshore wind","Onshore wind"];
+            
+            for (var i=0; i<level_labels.length; i++)
+            {
+                ctx.fillStyle = level_colors[i];
+                ctx.fillRect(100,i*15,10,10);
+                ctx.strokeStyle = "#000";
+                ctx.fillStyle = "#000";
+                ctx.strokeRect(100,i*15,10,10);
+                ctx.fillText(level_labels[i],120,10+i*15);
+            }
+            level_colors = ["#33ff00","#ff0000","#a9a9a9"];
+            level_labels = ["Electric store","Back-up","Unmet"];
+            
+            for (var i=0; i<level_labels.length; i++)
+            {
+                ctx.fillStyle = level_colors[i];
+                ctx.fillRect(200,i*15,10,10);
+                ctx.strokeStyle = "#000";
+                ctx.fillStyle = "#000";
+                ctx.strokeRect(200,i*15,10,10);
+                ctx.fillText(level_labels[i],220,10+i*15);
+            }
+            
             for(var p=1;p<8760;p++){ 
                 
                 ctx.strokeStyle = "#00ff00";
@@ -1458,9 +1593,15 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         } //Draw store graph 
         else if(graph_mode == 'store'){
         
-            var maxallstores = elecstore_capacity + hydrogen_store_capacity + methane_store_capacity + synthfuel_store_capacity;
-            var level_colors = ["#CCCCFF","#ffccff","#ffcc00","#ffee00"];
-            var level_labels = ["Elecstore","Hydrogen","Liquid","Methane"];
+            var maxallstores = elecstore_capacity + hydrogen_store_capacity + methane_store_capacity;
+            var level_colors = ["#CCCCFF","#ffccff","#ffee00"];
+            var level_labels = ["Elecstore","Hydrogen","Methane"];
+            
+            ctx.strokeRect(23,25,1, 2);
+            ctx.strokeRect(23,125,1, 2);
+            ctx.fillText("%",2,10);
+            ctx.fillText("100",2,28);
+            ctx.fillText("50",2,128);
             
             for (var i=0; i<level_labels.length; i++)
             {
@@ -1476,8 +1617,8 @@ You can also download the full ten year hourly model used for ZCB <a href="https
                 var l = [];
                 l[0] = elecstore_hourly_capacity[p-1];
                 l[1] = l[0] + hydrogen_store_SOC_hourly[p-1];
-                l[2] = l[1] + synthfuel_store_SOC_hourly[p-1];
-                l[3] = l[2] + methane_store_SOC_hourly[p-1];
+                //l[2] = l[1] + synthfuel_store_SOC_hourly[p-1];
+                l[2] = l[1] + methane_store_SOC_hourly[p-1];
                 
                 // fill
                 for (var i=0; i<l.length; i++)
@@ -1503,14 +1644,20 @@ You can also download the full ten year hourly model used for ZCB <a href="https
                     ctx.stroke();
                 }
             }        
-        } //Draw store graph 
+        } //Draw demand graph 
         else if(graph_mode == 'demand'){
 
             var ymax = 200;
-            var level_colors = ["#0000cc","#FF0000","#cccc00","#de2bf3","#CCCCFF","#FFCCFF"];
-            var level_labels = ["Appliances","Heat","Transport","Industry","Elecstore charge", "Electrolysis"];
+            var level_colors = ["#0000cc","#FF0000","#cc9900","#de2bf3","#66FF00","#FFFF00"];
+            var level_labels = ["Appliances","Heat","Transport","Industry","Electric store charge", "Electrolysis"];
             
-            for (var i=0; i<level_labels.length; i++)
+            ctx.strokeRect(23,25,1, 2);
+            ctx.strokeRect(23,125,1, 2);
+            ctx.fillText("GW",2,10);
+            ctx.fillText("200",2,28);
+            ctx.fillText("100",2,128);
+            
+            for (var i=0; i<3; i++)
             {
                 ctx.fillStyle = level_colors[i];
                 ctx.fillRect(40,i*15,10,10);
@@ -1518,11 +1665,20 @@ You can also download the full ten year hourly model used for ZCB <a href="https
                 ctx.fillStyle = "#000";
                 ctx.strokeRect(40,i*15,10,10);
                 ctx.fillText(level_labels[i],60,10+i*15);
+            }            
+            for (var i=3; i<level_labels.length; i++)
+            {
+                ctx.fillStyle = level_colors[i];
+                ctx.fillRect(120,(i-3)*15,10,10);
+                ctx.strokeStyle = "#000";
+                ctx.fillStyle = "#000";
+                ctx.strokeRect(120,(i-3)*15,10,10);
+                ctx.fillText(level_labels[i],140,10+(i-3)*15);
             }
             
             for(var p=1;p<8760;p++){
                 var elecstore_charge = 0;
-                if (hourly_elecstore_change[p-1]>0) elecstore_charge = hourly_elecstore_change[p-1];
+                if (hourly_elecstore_change[p-1]<0) elecstore_charge = -1*hourly_elecstore_change[p-1];
                 
                 var l = [];                
                 l[0] = hourlyElecForAppliances[p-1];
