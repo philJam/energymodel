@@ -435,7 +435,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     var tidal_capacity = 20;                // GW
     var nuclear_capacity = 0;               // GW
     var backupCap = 45;                     // GW
-    var total_biomass_produced = 240;       // TWh/yr
+    var total_biomass_produced = 274;       // TWh/yr
     var biomass_available = total_biomass_produced*1000;
     
     var solarthermal_capacity = 30;
@@ -504,7 +504,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     var totalDemandInProfile = 307111.8;        // FROM CSV!!!!
     
     var number_of_buildings = 32;
-    var average_heatloss_WK = 120;
+    var average_heatloss_WK = 135;
     var heatLossCoefficient = (number_of_buildings * 1000000 * average_heatloss_WK) / 1000000000; // 4.4; // GW/degC
     var baseTemp = 16-(385/((heatLossCoefficient/4.398)*119)); //Gains need linking to appliances energy reduction
     var hourly_heatpump_COP = 3.0;
@@ -544,9 +544,9 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     
     var transportHydrogenDemand = hydrogenvehicles_H2_energy_demand;
     
-    var other_transportLiquidDemand = 0;
+    var other_transportLiquidDemand = 53.4;
     
-    var biofuelaircraft_passengers = 20;
+    var biofuelaircraft_passengers = 40;
     var biofuelaircraft_miles = 1200;
     var biofuelaircraft_performance = 50;
     var biofuelaircraft_energy_demand = (((biofuelaircraft_miles*1.609/100)*biofuelaircraft_performance) * biofuelaircraft_passengers*1000000)/1000000000;
@@ -580,9 +580,9 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     //------------------------------------------------
     // Electric storage (in-home & grid scale) capacity, size, performance
     //------------------------------------------------
-    var elecstore_max_discharge_rate   = 100;      // GW
-    var elecstore_max_charge_rate      = 100;      // GW
-    var elecstore_capacity             = 1000;     // GWh
+    var elecstore_max_discharge_rate   = 10;      // GW
+    var elecstore_max_charge_rate      = 10;      // GW
+    var elecstore_capacity             = 500;     // GWh
     var elecstore_discharge_efficiency = 0.9;      // 90%
     var elecstore_charge_efficiency    = 0.9;      // 90%
         
@@ -609,7 +609,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     var hourly_electrolysis_demand = [];
     var total_hydrogen_produced = 0;
     
-    var hydrogen_store_capacity = 2000;
+    var hydrogen_store_capacity = 20000;
     var hydrogen_store_SOC = hydrogen_store_capacity / 2;
     var hydrogen_store_SOC_hourly = [];
     
@@ -809,9 +809,9 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             // profiles are in percent of daily heating demand (0-100), / 100 converts to 0-1;
             // demand is in GWh per year so we need to divide by 365 to obtain GWh per day
             hourlyWaterHeatDemand[i] = (annual_hotwater_demand/365.0) * (hotWaterDailyProfile[hour]/100);
+            totalHeatDemand += hourlySpaceHeatDemand[i] + hourlyWaterHeatDemand[i];
             hourlyHeatDemand[i] = hourlySpaceHeatDemand[i] + hourlyWaterHeatDemand[i] - solarthermal_supply - geothermal_heat_supply;
             if (hourlyHeatDemand[i]<0) hourlyHeatDemand[i] = 0;
-            totalHeatDemand += hourlyHeatDemand[i];
             
             // Heatstore here...
             
