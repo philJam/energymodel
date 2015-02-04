@@ -1303,6 +1303,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     {
         var c = document.getElementById("graph");  
         var ctx = c.getContext("2d");
+        var hr = 0; var day = 0; var week = 1;
         
         ctx.clearRect(0,0,8760,250);
         
@@ -1310,10 +1311,41 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         ctx.strokeStyle = "#000";
         ctx.moveTo(25,5); ctx.lineTo(25, 225);
         ctx.moveTo(25,226); ctx.lineTo(8785, 226);
+        ctx.fillText("Week",25,240);
         ctx.stroke();
+        for(var p=1;p<8760;p++){
+            if (day == 7){
+                ctx.strokeRect(p+25,226,1, 2);
+                ctx.fillText(week,p+25,240);
+                day = 0;
+                week++;
+            }
+            if(hr == 24) {day++; hr = 0;}
+            hr++;
+        }
         
         // Draw balance graph
         if(graph_mode == 'balance'){
+        
+            var level_colors = ["#00ff00","#ff0000"];
+            var level_labels = ["Surplus of electricity","Shortfall of electricity"];
+            
+            ctx.strokeRect(23,25,1, 2);
+            ctx.strokeRect(23,125,1, 2);
+            ctx.fillText("GW",2,10);
+            ctx.fillText("200",2,28);
+            ctx.fillText("100",2,128);
+            
+            for (var i=0; i<2; i++)
+            {
+                ctx.fillStyle = level_colors[i];
+                ctx.fillRect(40,i*15,10,10);
+                ctx.strokeStyle = "#000";
+                ctx.fillStyle = "#000";
+                ctx.strokeRect(40,i*15,10,10);
+                ctx.fillText(level_labels[i],60,10+i*15);
+            }
+            
             for(var p=1;p<8760;p++){
             
                 ctx.beginPath();
@@ -1351,6 +1383,50 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         }
         //Draw supply graph 
         else if(graph_mode == 'supply'){
+
+            var level_colors = ["#ff9900","#990099","#663300","#336666"];
+            var level_labels = ["CHP","Nuclear","Hydro","Wave"];
+            
+            ctx.strokeRect(23,25,1, 2);
+            ctx.strokeRect(23,125,1, 2);
+            ctx.fillText("GW",2,10);
+            ctx.fillText("200",2,28);
+            ctx.fillText("100",2,128);
+            
+            for (var i=0; i<level_labels.length; i++)
+            {
+                ctx.fillStyle = level_colors[i];
+                ctx.fillRect(40,i*15,10,10);
+                ctx.strokeStyle = "#000";
+                ctx.fillStyle = "#000";
+                ctx.strokeRect(40,i*15,10,10);
+                ctx.fillText(level_labels[i],60,10+i*15);
+            }            
+            level_colors = ["#33CC66","#f9e117","#0000FF","#00CCFF"];
+            level_labels = ["Tidal","Solar","Offshore wind","Onshore wind"];
+            
+            for (var i=0; i<level_labels.length; i++)
+            {
+                ctx.fillStyle = level_colors[i];
+                ctx.fillRect(100,i*15,10,10);
+                ctx.strokeStyle = "#000";
+                ctx.fillStyle = "#000";
+                ctx.strokeRect(100,i*15,10,10);
+                ctx.fillText(level_labels[i],120,10+i*15);
+            }
+            level_colors = ["#33ff00","#ff0000","#a9a9a9"];
+            level_labels = ["Electric store","Back-up","Unmet"];
+            
+            for (var i=0; i<level_labels.length; i++)
+            {
+                ctx.fillStyle = level_colors[i];
+                ctx.fillRect(200,i*15,10,10);
+                ctx.strokeStyle = "#000";
+                ctx.fillStyle = "#000";
+                ctx.strokeRect(200,i*15,10,10);
+                ctx.fillText(level_labels[i],220,10+i*15);
+            }
+        
             for(var p=1;p<8760;p++){ 
                 
                 ctx.strokeStyle = "#00ff00";
@@ -1439,7 +1515,13 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             var maxallstores = elecstore_capacity + hydrogen_store_capacity + methane_store_capacity + synthfuel_store_capacity;
             var level_colors = ["#CCCCFF","#ffccff","#ffcc00","#ffee00"];
             var level_labels = ["Elecstore","Hydrogen","Liquid","Methane"];
-            
+
+            ctx.strokeRect(23,25,1, 2);
+            ctx.strokeRect(23,125,1, 2);
+            ctx.fillText("%",2,10);
+            ctx.fillText("100",2,28);
+            ctx.fillText("50",2,128);
+
             for (var i=0; i<level_labels.length; i++)
             {
                 ctx.fillStyle = level_colors[i];
@@ -1488,7 +1570,13 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             var level_colors = ["#0000cc","#FF0000","#cccc00","#de2bf3","#CCCCFF","#FFCCFF"];
             var level_labels = ["Appliances","Heat","Transport","Industry","Elecstore charge", "Electrolysis"];
             
-            for (var i=0; i<level_labels.length; i++)
+            ctx.strokeRect(23,25,1, 2);
+            ctx.strokeRect(23,125,1, 2);
+            ctx.fillText("GW",2,10);
+            ctx.fillText("200",2,28);
+            ctx.fillText("100",2,128);
+            
+            for (var i=0; i<3; i++)
             {
                 ctx.fillStyle = level_colors[i];
                 ctx.fillRect(40,i*15,10,10);
@@ -1496,6 +1584,15 @@ You can also download the full ten year hourly model used for ZCB <a href="https
                 ctx.fillStyle = "#000";
                 ctx.strokeRect(40,i*15,10,10);
                 ctx.fillText(level_labels[i],60,10+i*15);
+            }            
+            for (var i=3; i<level_labels.length; i++)
+            {
+                ctx.fillStyle = level_colors[i];
+                ctx.fillRect(120,(i-3)*15,10,10);
+                ctx.strokeStyle = "#000";
+                ctx.fillStyle = "#000";
+                ctx.strokeRect(120,(i-3)*15,10,10);
+                ctx.fillText(level_labels[i],140,10+(i-3)*15);
             }
             
             for(var p=1;p<8760;p++){
