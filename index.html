@@ -97,7 +97,7 @@
 <body>
 
 <div id="header-bound">
-This model is open source, view the source code and learn how it works on github: <a href="https://github.com/philJam/energymodel">https://github.com/philJam/energymodel</a>.
+This model is open source, view the source code and learn how it works on github: <a href="https://github.com/TrystanLea/energymodel/tree/model3">https://github.com/TrystanLea/energymodel/tree/model3</a>.
 Comment on the model and see what further development is planned <a href="http://zcb.wikispot.org/OpensourceEnergyModel">here</a>.
 You can also download the full ten year hourly model used for ZCB <a href="https://dl.dropboxusercontent.com/u/79311585/ZCB_TYHME_v2.xlsx">here</a>.
 </div>
@@ -402,7 +402,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
 </div>
 
 <div id="header-bound">
-This model is open source, view the source code and learn how it works on github: <a href="https://github.com/philJam/energymodel">https://github.com/philJam/energymodel</a>.
+This model is open source, view the source code and learn how it works on github: <a href="https://github.com/TrystanLea/energymodel/tree/model3">https://github.com/TrystanLea/energymodel/tree/model3</a>.
 Comment on the model and see what further development is planned <a href="http://zcb.wikispot.org/OpensourceEnergyModel">here</a>.
 You can also download the full ten year hourly model used for ZCB <a href="https://dl.dropboxusercontent.com/u/79311585/ZCB_TYHME_v2.xlsx">here</a>.
 </div>
@@ -432,7 +432,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     var tidal_capacity = 20;                // GW
     var nuclear_capacity = 0;               // GW
     var backupCap = 45;                     // GW
-    var total_biomass_produced = 240;       // TWh/yr
+    var total_biomass_produced = 274;       // TWh/yr
     var biomass_available = total_biomass_produced*1000;
     
     var solarthermal_capacity = 30;
@@ -498,7 +498,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     var totalDemandInProfile = 307111.8;        // FROM CSV!!!!
     
     var number_of_buildings = 32;
-    var average_heatloss_WK = 120;
+    var average_heatloss_WK = 135;
     var heatLossCoefficient = (number_of_buildings * 1000000 * average_heatloss_WK) / 1000000000; // 4.4; // GW/degC
     var baseTemp = 16-(385/((heatLossCoefficient/4.398)*119)); //Gains need linking to appliances energy reduction
     var hourly_heatpump_COP = 3.0;
@@ -538,9 +538,9 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     
     var transportHydrogenDemand = hydrogenvehicles_H2_energy_demand;
     
-    var other_transportLiquidDemand = 0;
+    var other_transportLiquidDemand = 53.4;
     
-    var biofuelaircraft_passengers = 20;
+    var biofuelaircraft_passengers = 40;
     var biofuelaircraft_miles = 1200;
     var biofuelaircraft_performance = 50;
     var biofuelaircraft_energy_demand = (((biofuelaircraft_miles*1.609/100)*biofuelaircraft_performance) * biofuelaircraft_passengers*1000000)/1000000000;
@@ -574,9 +574,9 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     //------------------------------------------------
     // Electric storage (in-home & grid scale) capacity, size, performance
     //------------------------------------------------
-    var elecstore_max_discharge_rate   = 100;      // GW
-    var elecstore_max_charge_rate      = 100;      // GW
-    var elecstore_capacity             = 1000;     // GWh
+    var elecstore_max_discharge_rate   = 10;      // GW
+    var elecstore_max_charge_rate      = 10;      // GW
+    var elecstore_capacity             = 500;     // GWh
     var elecstore_discharge_efficiency = 0.9;      // 90%
     var elecstore_charge_efficiency    = 0.9;      // 90%
         
