@@ -28,11 +28,13 @@
     }
     
     h1 { 
-        color: var(--main-color);
+        /*color: var(--main-color);*/
+        color:#0699fa;
     }
     
     h3 { 
-        color: var(--main-color);
+        /*color: var(--main-color);*/
+        color:#0699fa;
         margin:0px;
     }
     
@@ -64,7 +66,8 @@
         padding:3px;
         font-family:"Ubuntu Light";
         font-size: 16px;
-        color: var(--main-color);
+        /*color: var(--main-color);*/
+        color:#0699fa;
         width:80px;
 
     }
@@ -77,7 +80,8 @@
     }
 
     span {
-        color: var(--main-color);
+        /*color: var(--main-color);*/
+        color:#0699fa;
     }
     
     #header-bound {
@@ -674,7 +678,10 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         // ------------------------------
         heatLossCoefficient = (number_of_buildings * 1000000 * average_heatloss_WK) / 1000000000; // 4.4; // GW/degC
         
-        baseTemp = 16-(385/((heatLossCoefficient/4.398)*119)); //Gains need linking to appliances energy reduction
+        baseTemp = 16-((385*((appliancesDemand_TWh + appliancesSolidDemand + appliancesGasDemand + appliancesLiquidDemand)/105))/((heatLossCoefficient/4.398)*119)); 
+        //baseTemp = average internal temp. - (gains / losses)
+        //Assume average household gains of 385 Watts and losses of 119 W/K in ZCB, adjust gains and losses as per inputs
+        
         annual_hotwater_demand = hotWaterDemand_TWh*1000;
         average_heatpump_COP = 0;
         
@@ -860,7 +867,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             energyDemand[i] = hourlyElecForAppliances[i] + hourlyElecForHeatDemand[i] + hourlyElecForTransportDemand[i] + hourlyElecForIndustry[i];
             totalGeneration[i] = onshore_wind_power[i] + offshore_wind_power[i] + solar_power[i] + hydroCap*0.3 + wave_power[i] + tidal_power[i] + (nuclear_capacity*0.9) + CHPPower[i];
            
-            // variables used for graph.
+            // variables used for graph
             total_electricity_demand += energyDemand[i];
             total_electricity_generation += totalGeneration[i];
             
@@ -958,6 +965,15 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             // ------------------------------------------------------------------------------------------------------
             balance -= elecstore_demand;                             // elecstore_demand is negative when discharging
             balance_array[i] = balance;
+                        
+            totalGenerationWithStorage[i] = totalGeneration[i];
+            if (elecstore_demand<0) {
+                // when elecstore_demand is negative the elecstore is discharging and so adds to supply
+                totalGenerationWithStorage[i] -= elecstore_demand;
+            } else {
+                energyDemand[i] += elecstore_demand;
+            }
+        
         
             hour++;
             if(hour==23) hour=0;
@@ -1040,28 +1056,6 @@ You can also download the full ten year hourly model used for ZCB <a href="https
                 hydrogen_store_SOC -= hydrogen_demand;
                 total_hydrogen_demand += hydrogen_demand;
             }
-                
-            // subtract hydrogen demand from production
-            //hydrogen_balance += hydrogen_produced;
-            
-            //var hydrogen_balance = -hydrogen_demand;
-            
-            //hydrogen_store_SOC += hydrogen_balance;
-            
-            // if hydrogen_balance is negative and subtracting the required hydrogen 
-            // from the hydrogen store results in negative SOC (virtual defecit) then the store is empty
-            // and the defecit in hydrogen production is the extent of the overshoot.
-
-
-            // if calculated hydrogen SOC is in exess of capacity
-            // then we need to limit hydrogen production in this itteration
-            // so as not to fill the store
-            //if (hydrogen_store_SOC>hydrogen_store_capacity) {
-            //    var exess = hydrogen_store_SOC - hydrogen_store_capacity;       // 'virtual exess'
-            //    hydrogen_produced -= exess;                                     // actual hydrogen produced
-            //    electricity_for_electrolysis = hydrogen_produced / 0.7;         // actual electricity used
-            //    hydrogen_store_SOC = hydrogen_store_capacity;                   // store is full
-            //}
             
             // ------------------------------------------------------------------------------------------------------
             // ELECTRICITY BALANCE: AFTER ELECTROLYSIS
@@ -1207,41 +1201,9 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             } 
             else {
                 methane_store_SOC = 0;
-                
-                /*var gas_remainder = gas_demand - methane_store_SOC;
-                // direct biomass to liquid 60% efficient
-                var direct_biomass_used = gas_remainder/0.6;
-                
-                if (direct_biomass_used>biomass_available)
-                    direct_biomass_used = biomass_available;
-                    
-                total_biomass_demand += direct_biomass_used;
-                biomass_available -= direct_biomass_used;
-                
-                var gas_produced = direct_biomass_used * 0.6;*/
                 unmet_gas_demand += gas_demand - methane_store_SOC;
             }
                
-            /*if (synthfuel_store_SOC > liquid_demand) {
-                synthfuel_store_SOC -= liquid_demand;
-            } else {
-                synthfuel_store_SOC = 0;
-                
-                var liquid_remainder = liquid_demand - synthfuel_store_SOC;
-                // direct biomass to liquid 50% efficient
-                var direct_biomass_used = liquid_remainder/0.5;
-                
-                if (direct_biomass_used>biomass_available)
-                    direct_biomass_used = biomass_available;
-                    
-                total_biomass_demand += direct_biomass_used;
-                biomass_available -= direct_biomass_used;
-                
-                var liquid_produced = direct_biomass_used * 0.5;
-                unmet_liquid_demand += liquid_demand - liquid_produced;
-            } */
-            
-            
             // ------------------------------------------------------------------------------------------------------
             // BACKUP GENERATION FROM METHANE
             // ------------------------------------------------------------------------------------------------------
@@ -1296,14 +1258,6 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             // ------------------------------------------------------------------------------------------------------
             //                                             END OF MODEL
             // ------------------------------------------------------------------------------------------------------
-            
-            totalGenerationWithStorage[i] = totalGeneration[i];
-            if (elecstore_demand<0) {
-                // when elecstore_demand is negative the elecstore is discharging and so adds to supply
-                totalGenerationWithStorage[i] -= elecstore_demand;
-            } else {
-                energyDemand[i] += elecstore_demand;
-            }
             
             hydrogen_store_SOC_hourly[i] = hydrogen_store_SOC;
             methane_store_SOC_hourly[i] = methane_store_SOC;
