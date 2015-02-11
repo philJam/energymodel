@@ -174,6 +174,8 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     </tr>
     <tr>
         <td>Hot water (heat)</td><td><input type="text" key="input.hotWaterDemand_TWh"></td><td>TWh/yr</td>
+        <td></td>
+        <td>Heat storage</td><td><input type="text" key="input.heatstore_capacity"></td><td>GWh</td>
     </tr>
     </table>
     <br>
@@ -188,7 +190,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         </tr>
     </tr>
     <tr>  
-        <td>Heatpump COP</td><td></td><td><input type="text" key="input.hourly_heatpump_COP"></td>
+        <td>Heatpump COP (at 10°C)</td><td></td><td><input type="text" key="input.heatpump_COP"></td>
         <td></td><td></td>
         <td></td><td></td>
     </tr>
@@ -511,7 +513,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     var average_heatloss_WK = 135;
     var heatLossCoefficient = (number_of_buildings * 1000000 * average_heatloss_WK) / 1000000000; // 4.4; // GW/degC
     var baseTemp = 16-(385/((heatLossCoefficient/4.398)*119)); //Gains need linking to appliances energy reduction
-    var hourly_heatpump_COP = 3.0;
+    var heatpump_COP = 3.0;
     
     var totalHeatDemand = 0;
     var hotWaterDemand_TWh = 96;
@@ -582,6 +584,18 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     var grid_loss = 0.07; // 7% - apply to supply from renewables (except PV & CHP), nuke & backup.
     
     //------------------------------------------------
+    // Heat storage
+    //------------------------------------------------
+    var heatstore_capacity             = 200;     // GWh heat
+    var heatstore_max_discharge_rate   = heatstore_capacity/10;      // GW heat
+    var heatstore_max_charge_rate      = heatstore_capacity/10;      // GW heat
+    // var heatstore_loss_rate = 0.05;  % per hour
+    
+    var heatstore_hourly_capacity = [];
+    var heatstore_start_capacity = heatstore_capacity / 2;
+    var heatstore_SOC = heatstore_start_capacity;
+    
+    //------------------------------------------------
     // Electric storage (in-home & grid scale) capacity, size, performance
     //------------------------------------------------
     var elecstore_max_discharge_rate   = 10;      // GW
@@ -629,6 +643,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     var spaceHeatingDailyProfile = [0.8,0.8,0.9,0.9,1.7,6.5,7.7,8.3,7.5,6.0,4.6,4.0,3.5,3.3,3.3,3.4,3.7,4.1,5.2,6.3,6.4,6.1,4.2,0.8];   // percent adds up to 100
     var hotWaterDailyProfile = [4.1,4.1,4.1,4.1,4.1,4.1,4.1,4.1,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2];
     // [0.1,0.1,0.1,0.5,1.5,3.5,7.6,10.2,11.2,6.9,4.6,3.0,1.9,1.9,2.1,3.0,7.0,7.8,7.1,5.8,4.5,3.7,3.2,2.7];
+    
     var industrialDailyProfile = [4.1,4.1,4.1,4.1,4.1,4.1,4.1,4.1,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2,4.2];
     // [1,1,1,1,1,1,1,1,10.5,10.5,10.5,10.5,10.5,10.5,10.5,10.5,1,1,1,1,1,1,1,1];
 
@@ -714,6 +729,12 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         totalHeatDemand = 0;
         
         max_shortfall = 0
+        
+        // ------------------------------
+        // Heat storage
+        // ------------------------------
+        heatstore_start_capacity = heatstore_capacity / 2;
+        heatstore_SOC = heatstore_start_capacity;
         
         // ------------------------------
         // Electric storage
@@ -820,21 +841,53 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             hourlyHeatDemand[i] = hourlySpaceHeatDemand[i] + hourlyWaterHeatDemand[i] - solarthermal_supply - geothermal_heat_supply;
             if (hourlyHeatDemand[i]<0) hourlyHeatDemand[i] = 0;
             
-            // Heatstore here...
-            
-            // var T_condensing = baseTemp + 8;
-            // var T_evaporating = temperatureData[i] - 6;
-            // hourly_heatpump_COP = ((T_condensing + 273) / ((T_condensing+273) - (T_evaporating + 273))) * 0.1;
+            //Hourly heat pump CoP based on graph in http://www.cibsejournal.com/cpd/2010-02/ 
+            hourly_heatpump_COP = heatpump_COP + ((temperatureData[i] - 10) * (2/30));
             // if (hourly_heatpump_COP<1) hourly_heatpump_COP = 1;
-            
-            // var hourly_heatpump_COP = 4.0 - deltaT * 0.2;
-            // if (hourly_heatpump_COP<1) hourly_heatpump_COP = 1;
-            
-            
+                       
             average_heatpump_COP += hourly_heatpump_COP;
             if (hourly_heatpump_COP<min_cop) min_cop = hourly_heatpump_COP; 
             if (hourly_heatpump_COP>max_cop) max_cop = hourly_heatpump_COP; 
             
+            hourlyElecForHeatDemand[i] = (hourlyHeatDemand[i] * (percentHeatHeatpumps / 100.0) / hourly_heatpump_COP) + (hourlyHeatDemand[i] * percentHeatDirectelec / 100);
+            
+            hourlyElecForAppliances[i] = traditional_electricity_demand_profile * (appliancesDemand_TWh*1000);
+            hourlyElecForIndustry[i] = (industryDemand/365.0) * (industrialDailyProfile[hour]/100);
+            
+            // Electric transport
+            var electric_train_demand = electrains_use_profile[hour] * (electrains_energy_demand/365.0*1000);
+            var electric_car_dumb_charge = BEV_charge_profile[hour] * (elecvehicles_energy_demand/365.0*1000);
+            
+            hourlyElecForTransportDemand[i] = electric_train_demand + electric_car_dumb_charge;
+            
+            // ------------------------------------------------------------------------------------------------------
+            // 1) Initial electricity balance
+            // ------------------------------------------------------------------------------------------------------
+            energyDemand[i] = hourlyElecForAppliances[i] + hourlyElecForHeatDemand[i] + hourlyElecForTransportDemand[i] + hourlyElecForIndustry[i];
+            totalGeneration[i] = (onshore_wind_power[i] + offshore_wind_power[i] + hydroCap*0.3 + wave_power[i] + tidal_power[i] + (nuclear_capacity*0.9))*(1-grid_loss) + solar_power[i];
+            
+            // ------------------------------------------------------------------------------------------------------
+            // Heat storage
+            // ------------------------------------------------------------------------------------------------------
+            var heatstore_demand = 0;
+            if(energyDemand[i]>totalGeneration[i]){  // take from heat store
+                heatstore_demand = hourlyHeatDemand[i]; 
+                if(heatstore_demand>heatstore_SOC/2){heatstore_demand = heatstore_SOC/2;}
+                if(heatstore_demand>heatstore_max_discharge_rate){heatstore_demand = heatstore_max_discharge_rate;}
+                heatstore_SOC -= heatstore_demand;
+                heatstore_hourly_capacity[i] = heatstore_SOC;
+                hourlyHeatDemand[i] -= heatstore_demand;
+            }
+            else{ // Put into store
+                heatstore_demand = (totalGeneration[i] - energyDemand[i])/((percentHeatHeatpumps / 100.0) * hourly_heatpump_COP) + ((percentHeatDirectelec / 100) * 1);
+                if(heatstore_demand>(heatstore_capacity-heatstore_SOC)/2){heatstore_demand = (heatstore_capacity-heatstore_SOC)/2;}
+                if(heatstore_demand>heatstore_max_charge_rate){heatstore_demand = heatstore_max_charge_rate;}
+                heatstore_SOC += heatstore_demand;
+                heatstore_hourly_capacity[i] = heatstore_SOC;
+                hourlyHeatDemand[i] += heatstore_demand;
+            }
+            
+            //Re-calc after heat store
             hourlyElecForHeatDemand[i] = (hourlyHeatDemand[i] * (percentHeatHeatpumps / 100.0) / hourly_heatpump_COP) + (hourlyHeatDemand[i] * percentHeatDirectelec / 100);
             
             // Calculate demand for solid, gas & liquid fuel for heat
@@ -854,16 +907,6 @@ You can also download the full ten year hourly model used for ZCB <a href="https
                       ((industryCHPGasDemand/8760)*1000 * 24 * (industrialDailyProfile[hour]/100))*0.3 +
                       ((industryCHPLiquidDemand/8760)*1000 * 24 * (industrialDailyProfile[hour]/100))*0.3 ;
             
-
-            hourlyElecForAppliances[i] = traditional_electricity_demand_profile * (appliancesDemand_TWh*1000);
-            hourlyElecForIndustry[i] = (industryDemand/365.0) * (industrialDailyProfile[hour]/100);
-            
-            // Electric transport
-            var electric_train_demand = electrains_use_profile[hour] * (electrains_energy_demand/365.0*1000);
-            var electric_car_dumb_charge = BEV_charge_profile[hour] * (elecvehicles_energy_demand/365.0*1000);
-            
-            hourlyElecForTransportDemand[i] = electric_train_demand + electric_car_dumb_charge;
-            
             energyDemand[i] = hourlyElecForAppliances[i] + hourlyElecForHeatDemand[i] + hourlyElecForTransportDemand[i] + hourlyElecForIndustry[i];
             totalGeneration[i] = onshore_wind_power[i] + offshore_wind_power[i] + solar_power[i] + hydroCap*0.3 + wave_power[i] + tidal_power[i] + (nuclear_capacity*0.9) + CHPPower[i];
            
@@ -875,14 +918,11 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             totalGeneration[i] = (onshore_wind_power[i] + offshore_wind_power[i] + hydroCap*0.3
                     + wave_power[i] + tidal_power[i] + (nuclear_capacity*0.9))*(1-grid_loss) + solar_power[i] + CHPPower[i];
             
-            // ------------------------------------------------------------------------------------------------------
-            // 1) Initial electricity balance
-            // ------------------------------------------------------------------------------------------------------
             var balance = totalGeneration[i] - energyDemand[i];
             
             // Add here:
-            // Heat store
             // Electric transport
+            // Industrial demand flexibility
             
             // ------------------------------------------------------------------------------------------------------
             // ELECTRICITY STORE
