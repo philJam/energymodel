@@ -119,7 +119,8 @@ You can also download the full ten year hourly model used for ZCB <a href="https
 <button id="balance">Balance</button>
 <button id="supply">Supply</button>
 <button id="demand">Demand</button>
-<button id="store">Store</button>
+<button id="store1">Store 1</button>
+<button id="store2">Store 2</button>
 <button class="run">Run</button>
 
 
@@ -1369,8 +1370,13 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         draw_graph();
     });
     
-    $("#store").click(function(){
-        graph_mode = 'store';
+    $("#store1").click(function(){
+        graph_mode = 'store1';
+        draw_graph();
+    });
+    
+    $("#store2").click(function(){
+        graph_mode = 'store2';
         draw_graph();
     });
     
@@ -1584,12 +1590,12 @@ You can also download the full ten year hourly model used for ZCB <a href="https
                 ctx.stroke();
                               
             }
-        } //Draw store graph 
-        else if(graph_mode == 'store'){
+        } //Draw store 1 graph 
+        else if(graph_mode == 'store1'){
         
-            var maxallstores = elecstore_capacity + hydrogen_store_capacity + methane_store_capacity;
-            var level_colors = ["#CCCCFF","#ffccff","#ffee00"];
-            var level_labels = ["Elecstore","Hydrogen","Methane"];
+            var maxallstores = hydrogen_store_capacity + methane_store_capacity;
+            var level_colors = ["#ffccff","#ffee00"];
+            var level_labels = ["Hydrogen","Methane"];
             
             ctx.strokeRect(23,25,1, 2);
             ctx.strokeRect(23,125,1, 2);
@@ -1609,10 +1615,8 @@ You can also download the full ten year hourly model used for ZCB <a href="https
                         
             for(var p=1;p<8760;p++){
                 var l = [];
-                l[0] = elecstore_hourly_capacity[p-1];
-                l[1] = l[0] + hydrogen_store_SOC_hourly[p-1];
-                //l[2] = l[1] + synthfuel_store_SOC_hourly[p-1];
-                l[2] = l[1] + methane_store_SOC_hourly[p-1];
+                l[0] = hydrogen_store_SOC_hourly[p-1];
+                l[1] = l[0] + methane_store_SOC_hourly[p-1];
                 
                 // fill
                 for (var i=0; i<l.length; i++)
@@ -1638,7 +1642,59 @@ You can also download the full ten year hourly model used for ZCB <a href="https
                     ctx.stroke();
                 }
             }        
-        } //Draw demand graph 
+        } //Draw store graph 
+        else if(graph_mode == 'store2'){
+        
+            var maxallstores = elecstore_capacity + heatstore_capacity;
+            var level_colors = ["#CCCCFF","#ffccff"];
+            var level_labels = ["Elecstore","Heat store"];
+            
+            ctx.strokeRect(23,25,1, 2);
+            ctx.strokeRect(23,125,1, 2);
+            ctx.fillText("%",2,10);
+            ctx.fillText("100",2,28);
+            ctx.fillText("50",2,128);
+            
+            for (var i=0; i<level_labels.length; i++)
+            {
+                ctx.fillStyle = level_colors[i];
+                ctx.fillRect(40,i*15,10,10);
+                ctx.strokeStyle = "#000";
+                ctx.fillStyle = "#000";
+                ctx.strokeRect(40,i*15,10,10);
+                ctx.fillText(level_labels[i],60,10+i*15);
+            }
+                        
+            for(var p=1;p<8760;p++){
+                var l = [];
+                l[0] = elecstore_hourly_capacity[p-1];
+                l[1] = l[0] + heatstore_hourly_capacity[p-1];
+                
+                // fill
+                for (var i=0; i<l.length; i++)
+                {
+                    var posA = 0;
+                    if (i>0) posA = (l[i-1]/maxallstores)*200;
+                    var posB = (l[i]/maxallstores)*200;
+                    ctx.strokeStyle = level_colors[i];
+                    ctx.beginPath();
+                    ctx.moveTo(p+25, 25+(200-posA));
+                    ctx.lineTo(p+25, 25+(200-posB));
+                    ctx.stroke();
+                }                
+                
+                // black lines
+                for (var i=0; i<l.length; i++)
+                {
+                    var pos = (l[i]/maxallstores)*200;
+                    ctx.strokeStyle = "#000";
+                    ctx.beginPath();
+                    ctx.moveTo(p+25, 24+(200-pos));
+                    ctx.lineTo(p+25, 26+(200-pos));
+                    ctx.stroke();
+                }
+            }        
+        }//Draw demand graph 
         else if(graph_mode == 'demand'){
 
             var ymax = 200;
