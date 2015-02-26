@@ -869,6 +869,15 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             
             // ------------------------------------------------------------------------------------------------------
             // Heat storage
+            // if shortfall - take from store - least of
+            //		half store SOC
+            //		max discharge rate
+            //		heat demand
+            //
+            //if excess - give to store - least of
+            //		half of remaining store space
+            //		max charge rate
+            //		excess electricity converted to heat
             // ------------------------------------------------------------------------------------------------------
             var heatstore_demand = 0;
             if(energyDemand[i]>totalGeneration[i]){  // take from heat store
