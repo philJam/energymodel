@@ -477,6 +477,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
 
     var totalGenerationWithStorage = [];
     var balance_array = [];
+    var balance_12hr = [];
     // ------------------------------
     // Demand
     // ------------------------------
@@ -491,6 +492,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     var hourlyWaterHeatDemand = [];
     var hourlyElecForIndustry = [];
     var temperatureData = [];
+    var hourly_heatpump_COP = [];
 
     // accumulated totals
     var total_hydrogen_demand = 0;
@@ -843,14 +845,14 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             if (hourlyHeatDemand[i]<0) hourlyHeatDemand[i] = 0;
             
             //Hourly heat pump CoP based on graph in http://www.cibsejournal.com/cpd/2010-02/ 
-            hourly_heatpump_COP = heatpump_COP + ((temperatureData[i] - 10) * (2/30));
+            hourly_heatpump_COP[i] = heatpump_COP + ((temperatureData[i] - 10) * (2/30));
             // if (hourly_heatpump_COP<1) hourly_heatpump_COP = 1;
                        
-            average_heatpump_COP += hourly_heatpump_COP;
-            if (hourly_heatpump_COP<min_cop) min_cop = hourly_heatpump_COP; 
-            if (hourly_heatpump_COP>max_cop) max_cop = hourly_heatpump_COP; 
+            average_heatpump_COP += hourly_heatpump_COP[i];
+            if (hourly_heatpump_COP[i]<min_cop) min_cop = hourly_heatpump_COP[i]; 
+            if (hourly_heatpump_COP[i]>max_cop) max_cop = hourly_heatpump_COP[i]; 
             
-            hourlyElecForHeatDemand[i] = (hourlyHeatDemand[i] * (percentHeatHeatpumps / 100.0) / hourly_heatpump_COP) + (hourlyHeatDemand[i] * percentHeatDirectelec / 100);
+            hourlyElecForHeatDemand[i] = (hourlyHeatDemand[i] * (percentHeatHeatpumps / 100.0) / hourly_heatpump_COP[i]) + (hourlyHeatDemand[i] * percentHeatDirectelec / 100);
             
             hourlyElecForAppliances[i] = traditional_electricity_demand_profile * (appliancesDemand_TWh*1000);
             hourlyElecForIndustry[i] = (industryDemand/365.0) * (industrialDailyProfile[hour]/100);
@@ -866,6 +868,32 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             // ------------------------------------------------------------------------------------------------------
             energyDemand[i] = hourlyElecForAppliances[i] + hourlyElecForHeatDemand[i] + hourlyElecForTransportDemand[i] + hourlyElecForIndustry[i];
             totalGeneration[i] = (onshore_wind_power[i] + offshore_wind_power[i] + hydroCap*0.3 + wave_power[i] + tidal_power[i] + (nuclear_capacity*0.9))*(1-grid_loss) + solar_power[i];
+            
+            balance_array[i] = totalGeneration[i] - energyDemand[i];
+            
+            hour++;
+            if(hour==23) hour=0;
+        }
+        for (var i=0; i<8760; i++) {
+            
+            balance_12hr[i] = 0;
+            //Calc +/-12hr 
+            for (var p=0; p<24; p++){
+                if(i<12){
+                    if((i+p-12)<0){balance_12hr[i] += balance_array[(i+p-12)*-1];}
+                    else{balance_12hr[i] += balance_array[i+p-12];}
+                }
+                else if(i>8748){
+                    if((i+p-12)>8759){balance_12hr[i] += balance_array[(i-12)+p*-1];}
+                    else{balance_12hr[i] += balance_array[i+p-12];}
+                }
+                else{balance_12hr[i] += balance_array[i+p-12];}
+            }
+            balance_12hr[i] /= 24;  
+            
+            if(i>8400){
+            if(i<8500){console.log(balance_array[i]+" "+balance_12hr[i]);}
+            }
             
             // ------------------------------------------------------------------------------------------------------
             // Heat storage
@@ -889,7 +917,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
                 hourlyHeatDemand[i] -= heatstore_demand;
             }
             else{ // Put into store
-                heatstore_demand = (totalGeneration[i] - energyDemand[i])/((percentHeatHeatpumps / 100.0) * hourly_heatpump_COP) + ((percentHeatDirectelec / 100) * 1);
+                heatstore_demand = (totalGeneration[i] - energyDemand[i])/((percentHeatHeatpumps / 100.0) * hourly_heatpump_COP[i]) + ((percentHeatDirectelec / 100) * 1);
                 if(heatstore_demand>(heatstore_capacity-heatstore_SOC)/2){heatstore_demand = (heatstore_capacity-heatstore_SOC)/2;}
                 if(heatstore_demand>heatstore_max_charge_rate){heatstore_demand = heatstore_max_charge_rate;}
                 heatstore_SOC += heatstore_demand;
@@ -898,7 +926,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             }
             
             //Re-calc after heat store
-            hourlyElecForHeatDemand[i] = (hourlyHeatDemand[i] * (percentHeatHeatpumps / 100.0) / hourly_heatpump_COP) + (hourlyHeatDemand[i] * percentHeatDirectelec / 100);
+            hourlyElecForHeatDemand[i] = (hourlyHeatDemand[i] * (percentHeatHeatpumps / 100.0) / hourly_heatpump_COP[i]) + (hourlyHeatDemand[i] * percentHeatDirectelec / 100);
             
             // Calculate demand for solid, gas & liquid fuel for heat
             solid_for_heat += (hourlyHeatDemand[i]*(percentHeatSolid/100))/0.9;
@@ -928,11 +956,13 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             totalGeneration[i] = (onshore_wind_power[i] + offshore_wind_power[i] + hydroCap*0.3
                     + wave_power[i] + tidal_power[i] + (nuclear_capacity*0.9))*(1-grid_loss) + solar_power[i] + CHPPower[i];
             
-            var balance = totalGeneration[i] - energyDemand[i];
-            
             // Add here:
             // Electric transport
+            
+            
             // Industrial demand flexibility
+            
+            var balance = totalGeneration[i] - energyDemand[i];
             
             // ------------------------------------------------------------------------------------------------------
             // ELECTRICITY STORE
@@ -1328,7 +1358,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         // methane_final_balance = methane_store_SOC - (methane_store_capacity / 2) - unmet_gas_demand;
         // liquid_final_balance = synthfuel_store_SOC - unmet_liquid_demand;
         biomass_surplus = biomass_available;
-        console.log(unmet_solid_demand+" "+unmet_gas_demand+" "+unmet_liquid_demand+" "+unmet_hydrogen_demand)
+        //console.log(unmet_solid_demand+" "+unmet_gas_demand+" "+unmet_liquid_demand+" "+unmet_hydrogen_demand)
         
         residual_emissions = unmet_electricity_demand*0.5 + unmet_solid_demand*0.4 + unmet_gas_demand*0.2 + unmet_liquid_demand*0.3 + unmet_hydrogen_demand*0.2;
         
