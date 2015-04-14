@@ -102,7 +102,7 @@
 
 <div id="header-bound">
 This model is open source, view the source code and learn how it works on github: <a href="https://github.com/philJam/energymodel">https://github.com/philJam/energymodel</a>.
-Comment on the model and see what further development is planned <a href="http://zcb.wikispot.org/OpensourceEnergyModel">here</a>.
+Comment on the model and see what further development is planned <a href="https://docs.google.com/document/d/1sqbURLyj0QOMYmVYoGPsi_gOJgUVZLdw1LPjy_BcG-U/edit">here</a>.
 You can also download the full ten year hourly model used for ZCB <a href="https://dl.dropboxusercontent.com/u/79311585/ZCB_TYHME_v2.xlsx">here</a>.
 </div>
 
@@ -413,7 +413,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
 
 <div id="header-bound">
 This model is open source, view the source code and learn how it works on github: <a href="https://github.com/philJam/energymodel">https://github.com/philJam/energymodel</a>.
-Comment on the model and see what further development is planned <a href="http://zcb.wikispot.org/OpensourceEnergyModel">here</a>.
+Comment on the model and see what further development is planned <a href="https://docs.google.com/document/d/1sqbURLyj0QOMYmVYoGPsi_gOJgUVZLdw1LPjy_BcG-U/edit">here</a>.
 You can also download the full ten year hourly model used for ZCB <a href="https://dl.dropboxusercontent.com/u/79311585/ZCB_TYHME_v2.xlsx">here</a>.
 </div>
 
@@ -891,9 +891,9 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             }
             balance_12hr[i] /= 24;  
             
-            if(i>8400){
-            if(i<8500){console.log(balance_array[i]+" "+balance_12hr[i]);}
-            }
+            //if(i>8400){
+            //if(i<8500){console.log(balance_array[i]+" "+balance_12hr[i]);}
+            //}
             
             // ------------------------------------------------------------------------------------------------------
             // Heat storage
@@ -908,13 +908,13 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             //		excess electricity converted to heat
             // ------------------------------------------------------------------------------------------------------
             var heatstore_demand = 0;
-            if(energyDemand[i]>totalGeneration[i]){  // take from heat store
-                heatstore_demand = hourlyHeatDemand[i]; 
-                if(heatstore_demand>heatstore_SOC/2){heatstore_demand = heatstore_SOC/2;}
-                if(heatstore_demand>heatstore_max_discharge_rate){heatstore_demand = heatstore_max_discharge_rate;}
-                heatstore_SOC -= heatstore_demand;
-                heatstore_hourly_capacity[i] = heatstore_SOC;
-                hourlyHeatDemand[i] -= heatstore_demand;
+            if(energyDemand[i]>totalGeneration[i]){  // take from heat store balance_array[i]-balance_12hr[i]<0
+                    heatstore_demand = hourlyHeatDemand[i]; 
+                    if(heatstore_demand>heatstore_SOC/2){heatstore_demand = heatstore_SOC/2;}
+                    if(heatstore_demand>heatstore_max_discharge_rate){heatstore_demand = heatstore_max_discharge_rate;}
+                    heatstore_SOC -= heatstore_demand;
+                    heatstore_hourly_capacity[i] = heatstore_SOC;
+                    hourlyHeatDemand[i] -= heatstore_demand;
             }
             else{ // Put into store
                 heatstore_demand = (totalGeneration[i] - energyDemand[i])/((percentHeatHeatpumps / 100.0) * hourly_heatpump_COP[i]) + ((percentHeatDirectelec / 100) * 1);
