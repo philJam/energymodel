@@ -273,7 +273,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     </tr>
     </table>
     
-    <hr><h3>HYDROGEN, SYNTHETIC FUEL AND METHANE</h3><hr>
+    <hr><h3>HYDROGEN & SYNTHETIC FUELS</h3><hr>
     <table>
         <tr>
             <td COLSPAN=2>Electrolysis capacity</td><td><input type="text" key="input.electrolysisCap"></td><td>GW</td>
@@ -289,9 +289,9 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         </tr>
 <!--        <tr>
             <td COLSPAN=2>Liquid store capacity</td><td><input type="text" key="input.synthfuel_store_capacity"></td><td>GWh</td>
-        </tr>-->
-        <tr>
-            <td COLSPAN=2>Gas store capacity</td><td><input type="text" key="input.methane_store_capacity"></td><td>GWh</td>
+        </tr>
+        <tr>-->
+            <td COLSPAN=2>Biogas/synthetic gas store capacity</td><td><input type="text" key="input.methane_store_capacity"></td><td>GWh</td>
         </tr>
     </table>
 
@@ -385,17 +385,17 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     <tr>
         <td>Solid biomass fuel</td><td><span key="out.total_solid_produced" scale=0.001 dp=1></span> TWh/yr</td>
         <td>Solid fuel demand</td><td><span key="out.total_solid_demand" scale=0.001 dp=1></span> TWh/yr</td>
-        <td>Unmet solid demand</td><td><span key="out.unmet_solid_demand" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Solid fossil fuel demand</td><td><span key="out.unmet_solid_demand" scale=0.001 dp=1></span> TWh/yr</td>
     </tr>
     <tr>
         <td>Biogas/synthetic gas</td><td><span key="out.total_gas_produced" scale=0.001 dp=1></span> TWh/yr</td>
         <td>Gas fuel demand</td><td><span key="out.total_gas_demand" scale=0.001 dp=1></span> TWh/yr</td>
-        <td>Unmet gas demand</td><td><span key="out.unmet_gas_demand" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Gas fossil fuel demand</td><td><span key="out.unmet_gas_demand" scale=0.001 dp=1></span> TWh/yr</td>
     </tr>
     <tr>
         <td>Biofuel/synthetic liquid</td><td><span key="out.total_liquid_produced" scale=0.001 dp=1></span> TWh/yr</td>
         <td>Liquid fuel demand</td><td><span key="out.total_liquid_demand" scale=0.001 dp=1></span> TWh/yr</td>
-        <td>Unmet liquid demand</td><td><span key="out.unmet_liquid_demand" scale=0.001 dp=1></span> TWh/yr</td>
+        <td>Liquid fossil fuel demand</td><td><span key="out.unmet_liquid_demand" scale=0.001 dp=1></span> TWh/yr</td>
     </tr>
     <tr><td><BR></td></tr>
     <tr>
@@ -515,7 +515,6 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     var number_of_buildings = 32;
     var average_heatloss_WK = 135;
     var heatLossCoefficient = (number_of_buildings * 1000000 * average_heatloss_WK) / 1000000000; // 4.4; // GW/degC
-    var baseTemp = 16-(385/((heatLossCoefficient/4.398)*119)); //Gains need linking to appliances energy reduction
     var heatpump_COP = 3.0;
     
     var totalHeatDemand = 0;
@@ -761,6 +760,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         hydrogen_store_SOC = hydrogen_store_capacity / 2;
         synthfuel_store_SOC = synthfuel_store_capacity / 2;
         methane_store_SOC = methane_store_capacity / 2;
+        var initial_methane_store_SOC = methane_store_SOC;
         
         min_cop = 10000;
         max_cop = -10000;
@@ -1308,9 +1308,10 @@ You can also download the full ten year hourly model used for ZCB <a href="https
                 // Limit to gas available in methane store
                 if (backupgen_gas_demand > methane_store_SOC) {
                     unmet_gas_demand += backupgen_gas_demand - methane_store_SOC;
-                    backupgen_gas_demand = methane_store_SOC;
-                    backupgen_before_gridloss = backupgen_gas_demand * 0.5;
-                    backupgen_delivered = backupgen_before_gridloss / (1+grid_loss);
+                    //backupgen_gas_demand = methane_store_SOC;
+                    //backupgen_before_gridloss = backupgen_gas_demand * 0.5;
+                    //backupgen_delivered = backupgen_before_gridloss / (1+grid_loss);
+                    methane_store_SOC = 0;
                 }
                 methane_store_SOC -= backupgen_gas_demand;
                 
@@ -1335,10 +1336,6 @@ You can also download the full ten year hourly model used for ZCB <a href="https
                 if (shortfall>max_shortfall) max_shortfall = shortfall;                        // record max shortfall
             }
             
-            // ------------------------------------------------------------------------------------------------------
-            //                                             END OF MODEL
-            // ------------------------------------------------------------------------------------------------------
-            
             hydrogen_store_SOC_hourly[i] = hydrogen_store_SOC;
             methane_store_SOC_hourly[i] = methane_store_SOC;
             synthfuel_store_SOC_hourly[i] = synthfuel_store_SOC;
@@ -1359,10 +1356,14 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         // liquid_final_balance = synthfuel_store_SOC - unmet_liquid_demand;
         biomass_surplus = biomass_available;
         //console.log(unmet_solid_demand+" "+unmet_gas_demand+" "+unmet_liquid_demand+" "+unmet_hydrogen_demand)
-        
+        if((initial_methane_store_SOC - methane_store_SOC)>0){
+            unmet_gas_demand += (initial_methane_store_SOC - methane_store_SOC);
+        }
         residual_emissions = unmet_electricity_demand*0.5 + unmet_solid_demand*0.4 + unmet_gas_demand*0.2 + unmet_liquid_demand*0.3 + unmet_hydrogen_demand*0.2;
         
-        //-------------------------------------------------------------------------------------------
+        // ------------------------------------------------------------------------------------------------------
+        //                                             END OF MODEL
+        // ------------------------------------------------------------------------------------------------------
         
         $("[key]").each(function(){
             var keyparts = $(this).attr('key').split(".");
@@ -1634,7 +1635,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         
             var maxallstores = hydrogen_store_capacity + methane_store_capacity;
             var level_colors = ["#ffccff","#ffee00"];
-            var level_labels = ["Hydrogen","Methane"];
+            var level_labels = ["Hydrogen","Biogas/synthetic gas"];
             
             ctx.strokeRect(23,25,1, 2);
             ctx.strokeRect(23,125,1, 2);
