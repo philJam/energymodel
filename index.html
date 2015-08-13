@@ -226,7 +226,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         <td>Average annual miles driven</td><td><input type="text" key="input.elecvehicles_miles_driven"></td>
         <td>Average annual miles driven</td><td><input type="text" key="input.hydrogenvehicles_miles_driven"></td>
     </tr><tr>
-        <td>Average kwh per 100 p-km</td><td><input type="text" key="input.electrains_performance"></td>
+        <td>Average kWh per 100 p-km</td><td><input type="text" key="input.electrains_performance"></td>
         <td>Average miles per kWh</td><td><input type="text" key="input.elecvehicles_miles_per_kwh"></td>
         <td>Average miles per kWh</td><td><input type="text" key="input.hydrogenvehicles_miles_per_kwh"></td>
     </tr><tr>
@@ -269,7 +269,8 @@ You can also download the full ten year hourly model used for ZCB <a href="https
         <td><input type="text" key="input.industryLiquidDemand"></td><td><input type="text" key="input.industryCHPSolidDemand"></td>
         <td><input type="text" key="input.industryCHPGasDemand"></td><td><input type="text" key="input.industryCHPLiquidDemand"></td>
         <td><input type="text" key="input.industryHydrogenDemand"></td><td> all TWh/yr</td>
-    </tr>
+        </tr>
+        <tr><td>% of industrial electricity demand deferrable</td><td><input type="text" key="input.industryDeferrable"></td></tr>
     </table>
     
     <hr><h3>ELECTRIC STORE</h3><hr>
@@ -456,7 +457,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     var tidal_capacity = 20;                // GW
     var nuclear_capacity = 0;               // GW
     var backupCap = 45;                     // GW
-    var total_biomass_produced = 274;       // TWh/yr
+    var total_biomass_produced = 300;       // TWh/yr
     var biomass_available = total_biomass_produced*1000*10;//**10**
     
     var solarthermal_capacity = 30;
@@ -593,6 +594,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     var industryCHPGasDemand = 0;
     var industryCHPLiquidDemand = 0;
     var industryHydrogenDemand = 0;
+    var industryDeferrable = 50;
     var totalelecforind = 0;
     
     var total_electricity_demand = 0;
@@ -667,7 +669,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
     var synthfuel_store_SOC = synthfuel_store_capacity / 2;
     var synthfuel_store_SOC_hourly = [];
     
-    var methane_store_capacity = 10000;
+    var methane_store_capacity = 25000;
     var methane_store_SOC = methane_store_capacity / 2;
     var methane_store_SOC_hourly = [];
     // ------------------------------    
@@ -1161,15 +1163,17 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             // ------------------------------------------------------------------------------------------------------
             
             var industry_deferred = 0;
-            if(balance_array[i] < (-1*backupCap/(1+grid_loss))){
+            if(balance_array[i] < (-1*backupCap*(1-grid_loss))){
+                
                 balance_array[i] += hourlyElecForIndustry[i];
-                if(hourlyElecForIndustry[i]*0.5 > backupCap/(1+grid_loss)){
-                    hourlyElecForIndustry[i] -= backupCap/(1+grid_loss);
-                    industry_deferred = backupCap/(1+grid_loss);
+                
+                if(hourlyElecForIndustry[i]*(1-industryDeferrable/100) > backupCap*(1-grid_loss)){
+                    hourlyElecForIndustry[i] -= backupCap*(1-grid_loss);
+                    industry_deferred = backupCap*(1-grid_loss);
                 }
                 else{
-                    industry_deferred = hourlyElecForIndustry[i]*0.5;
-                    hourlyElecForIndustry[i] = hourlyElecForIndustry[i]*0.5;
+                    industry_deferred = hourlyElecForIndustry[i]*(1-industryDeferrable/100);
+                    hourlyElecForIndustry[i] = hourlyElecForIndustry[i]*(1-industryDeferrable/100);
                     
                 }                   
                
@@ -1183,7 +1187,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             }
         
             totalelecforind += hourlyElecForIndustry[i];
-            if(i==87599){console.log(totalelecforind+" ");}
+            //if(i==87599){console.log(totalelecforind+" ");}
             
             hour++;
             if(hour==24) hour=0;
@@ -1242,6 +1246,8 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             
             hydrogen_demand += transportHydrogenDemand*1000 / (365*24);
             hydrogen_demand += industryHydrogenDemand*1000 / (365*24);
+            hydrogen_demand += unmet_hydrogen_demand;
+            unmet_hydrogen_demand = 0;
             
             if (balance>0) {
                 // positive balance == surplus electricity
@@ -1278,6 +1284,8 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             // ------------------------------------------------------------------------------------------------------
             // LIQUID DEMAND
             // ------------------------------------------------------------------------------------------------------      
+            liquid_for_heat = (hourlyHeatDemand[i]*(percentHeatLiquid/100))/0.9 + (hourlyHeatDemand[i]*(percentHeatCHPLiquid/100))/0.6;
+        
             var liquid_demand = liquid_for_heat;
             liquid_demand += appliancesLiquidDemand * 1000 / (365*24);
             liquid_demand += transportLiquidDemand * 1000 / (365*24);
@@ -1398,6 +1406,8 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             // ------------------------------------------------------------------------------------------------------
             // GAS DEMAND
             // ------------------------------------------------------------------------------------------------------     
+            gas_for_heat = (hourlyHeatDemand[i]*(percentHeatGas/100))/0.9 + (hourlyHeatDemand[i]*(percentHeatCHPGas/100))/0.6;
+        
             var gas_demand = gas_for_heat;
             gas_demand += appliancesGasDemand * 1000 / (365*24);
             gas_demand += transportGasDemand * 1000 / (365*24);
@@ -1410,8 +1420,8 @@ You can also download the full ten year hourly model used for ZCB <a href="https
                 methane_store_SOC -= gas_demand;
             } 
             else {
-                methane_store_SOC = 0;
-                unmet_gas_demand += gas_demand - methane_store_SOC;
+                unmet_gas_demand += (gas_demand - methane_store_SOC);
+                methane_store_SOC = 0;                
             }
                
             // ------------------------------------------------------------------------------------------------------
@@ -1430,7 +1440,7 @@ You can also download the full ten year hourly model used for ZCB <a href="https
             
             if (balance<0) {
                 backupgen_delivered = -balance;
-                backupgen_before_gridloss = backupgen_delivered * (1+grid_loss);
+                backupgen_before_gridloss = backupgen_delivered / (1-grid_loss);
                 if (backupgen_before_gridloss > backupCap) backupgen_before_gridloss = backupCap;
                 var backupgen_gas_demand = backupgen_before_gridloss / 0.5;
                 total_gas_demand += backupgen_gas_demand;
@@ -1443,10 +1453,10 @@ You can also download the full ten year hourly model used for ZCB <a href="https
                     //backupgen_delivered = backupgen_before_gridloss / (1+grid_loss);
                     methane_store_SOC = 0;
                 }
-                methane_store_SOC -= backupgen_gas_demand;
+                else{methane_store_SOC -= backupgen_gas_demand;}
                 
                 backupgen_before_gridloss = backupgen_gas_demand * 0.5;
-                backupgen_delivered = backupgen_before_gridloss / (1+grid_loss);
+                backupgen_delivered = backupgen_before_gridloss * (1-grid_loss);
             }
 
             // ------------------------------------------------------------------------------------------------------
